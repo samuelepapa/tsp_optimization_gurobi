@@ -6,7 +6,7 @@
 #include <string.h>
 #include <malloc.h>
 #include "common.h"
-#include "gnuplot_c.h"
+#include "gnuplot_lib.h"
 
 void parse_input(int argc, char **argv, Tsp_prob *instance);
 void init_instance(Tsp_prob *instance);
@@ -162,7 +162,7 @@ void close_instance(Tsp_prob *instance){
 }
 
 void plot_instance(Tsp_prob *instance){
-    ComplexRect_s *points;
+    Points *points;
     h_GPC_Plot *plot1;
     points = calloc((size_t)instance->nnode, sizeof(h_GPC_Plot));
 
@@ -174,15 +174,15 @@ void plot_instance(Tsp_prob *instance){
 
     //populate points
     for(int i = 0; i<instance->nnode; i++) {
-        points[i].real = instance->coord_x[i];
-        points[i].imag = instance->coord_y[i];
+        points[i].x = instance->coord_x[i];
+        points[i].y = instance->coord_y[i];
         // find edges
-        if(points[i].real < smallest_x) smallest_x = points[i].real;
-        if(points[i].real > biggest_x) biggest_x = points[i].real;
-        if(points[i].imag < smallest_y) smallest_y = points[i].imag;
-        if(points[i].imag > biggest_y) biggest_y = points[i].imag;
+        if(points[i].x < smallest_x) smallest_x = points[i].x;
+        if(points[i].x > biggest_x) biggest_x = points[i].x;
+        if(points[i].y < smallest_y) smallest_y = points[i].y;
+        if(points[i].y > biggest_y) biggest_y = points[i].y;
     }
 
-    plot1 = gpc_init_xy("Plot of points", "X", "Y", GPC_KEY_ENABLE,  smallest_x-200, smallest_y-200, biggest_x+200, biggest_y+200, -1);
-    gpc_plot_xy(plot1, points, instance->nnode, "points", "points", "blue", GPC_NEW);
+    plot1 = gpc_init_xy("Plot of points",  smallest_x-200, smallest_y-200, biggest_x+200, biggest_y+200);
+    gpc_plot_xy(plot1, points, instance->nnode, "points", "points", "blue");
 }
