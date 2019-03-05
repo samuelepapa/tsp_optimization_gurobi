@@ -163,8 +163,8 @@ void close_instance(Tsp_prob *instance){
 
 void plot_instance(Tsp_prob *instance){
     Points *points;
-    h_GPC_Plot *plot1;
-    points = calloc((size_t)instance->nnode, sizeof(h_GPC_Plot));
+    GPC_Plot *plot1;
+    points = calloc((size_t)instance->nnode, sizeof(GPC_Plot));
 
     // to display all points in graph
     double smallest_x = instance->coord_x[0];
@@ -184,5 +184,7 @@ void plot_instance(Tsp_prob *instance){
     }
 
     plot1 = gpc_init_xy("Plot of points",  smallest_x-200, smallest_y-200, biggest_x+200, biggest_y+200);
-    gpc_plot_xy(plot1, points, instance->nnode, "points", "points", "blue");
+    gpc_plot_xy(plot1, points, instance->nnode, "points", "circles", "blue");
+    plot_line(instance, plot1, 0,1);
+    plot_line(instance, plot1, 10,11);
 }
