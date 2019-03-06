@@ -3,7 +3,7 @@
 
 #ifndef TSPOPT_GPC_H
 
-#define TSPOPT_GPC_H 1                   // Gnuplot/C included
+#define TSPOPT_GPC_H 1
 
 #define TSPOPT_GPC_DEBUG
 
