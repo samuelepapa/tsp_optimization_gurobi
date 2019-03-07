@@ -4,6 +4,7 @@
 
 #include "common.h"
 #include "utils.h"
+#include "tsp.h"
 #include "plotGraph.h"
 #include "gurobi_c.h"
 
@@ -47,7 +48,7 @@ int main(int argc, char **argv) {
     Tsp_prob instance = {
             .nnode = -1
     };
-
+    //GRBerror message.
     int valid_instance = 0;
 
     parse_input(argc, argv, &instance);
