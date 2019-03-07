@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "common.h"
+#include "plotGraph.h"
 
 void plot_nodes(Tsp_prob *inst) {
 

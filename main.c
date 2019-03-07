@@ -3,7 +3,7 @@
 //
 
 #include "common.h"
-#include "gnuplot_lib.h"
+#include "plotGraph.h"
 
 /**
  * Parse the input from command line
@@ -260,7 +260,7 @@ void close_instance(Tsp_prob *instance) {
 }
 
 void plot_instance(Tsp_prob *instance) {
-    Points *points;
+    /*Points *points;
     GPC_Plot *plot1;
     points = calloc((size_t) instance->nnode, sizeof(GPC_Plot));
 
@@ -285,4 +285,7 @@ void plot_instance(Tsp_prob *instance) {
     gpc_plot_xy(plot1, points, instance->nnode, "points", "circles", "blue");
     plot_line(instance, plot1, 0, 1);
     plot_line(instance, plot1, 10, 11);
+     */
+    plot_nodes(instance);
+    plot_path(instance);
 }

@@ -46,4 +46,6 @@ typedef struct{
 
 } Tsp_prob;
 
+
+
 #endif //UNTITLED_COMMON_H
