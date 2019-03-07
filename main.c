@@ -159,6 +159,7 @@ void close_instance(Tsp_prob *instance){
     free(instance->filename);
     free(instance->coord_y);
     free(instance->coord_x);
+    free(instance->solution);
 }
 
 void plot_instance(Tsp_prob *instance){
