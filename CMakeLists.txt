@@ -3,7 +3,9 @@ project(tsp_optimization_gurobi)
 
 set(CMAKE_C_STANDARD  11)
 
-add_library(gnuplot SHARED gnuplot_lib.c)
+add_library(gnuplot SHARED gnuplot_lib.c plotGraph.c)
 add_executable(tsp_optimize main.c common.h)
+
+
 
 target_link_libraries(tsp_optimize gnuplot)

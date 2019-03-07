@@ -42,6 +42,8 @@ typedef struct{
 
     char *filename; //TODO free memory after allocation
 
+    double *solution;
+
 } Tsp_prob;
 
 #endif //UNTITLED_COMMON_H
