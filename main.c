@@ -6,7 +6,6 @@
 #include "utils.h"
 #include "tsp.h"
 #include "plotGraph.h"
-#include "gurobi_c.h"
 
 /**
  * Parse the input from command line

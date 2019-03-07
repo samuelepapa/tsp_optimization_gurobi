@@ -11,6 +11,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include "gurobi_c.h"
+
 
 typedef struct{
     char *name; //TODO free memory after allocation
