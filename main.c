@@ -3,6 +3,7 @@
 //
 
 #include "common.h"
+#include "utils.h"
 #include "plotGraph.h"
 #include "gurobi_c.h"
 
@@ -288,5 +289,5 @@ void plot_instance(Tsp_prob *instance) {
     plot_line(instance, plot1, 10, 11);
      */
     plot_nodes(instance);
-    plot_path(instance);
+    //plot_path(instance);
 }
