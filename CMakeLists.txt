@@ -6,7 +6,7 @@ set(CMAKE_C_STANDARD  11)
 include_directories(/opt/gurobi810/linux64/include)
 link_directories(/opt/gurobi810/linux64/lib)
 
-add_library(gnuplot SHARED plotGraph.c)
+add_library(gnuplot SHARED plotGraph.c plotGraph.h utils.c utils.h)
 add_library(gurobi81 STATIC IMPORTED)
 
 add_executable(tsp_optimize main.c common.h)
