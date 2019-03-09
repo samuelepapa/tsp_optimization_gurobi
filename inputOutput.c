@@ -128,9 +128,58 @@ int init_instance(Tsp_prob *instance) {
                 str_len = strlen(pointer_to_line) - 2;
                 strncpy(buffer, pointer_to_line + 1, str_len);
 
-                if (strncmp(buffer, "ATT", 3) == 0) {
+                if (strncmp(buffer, "EXPLICIT", 8) == 0) {
                     instance->weight_type = 0;
                 }
+
+                if (strncmp(buffer, "EUC_2D", 6) == 0) {
+                    instance->weight_type = 1;
+                }
+
+                if (strncmp(buffer, "EUC_3D", 6) == 0) {
+                    instance->weight_type = 2;
+                }
+
+                if (strncmp(buffer, "MAX_2D", 6) == 0) {
+                    instance->weight_type = 3;
+                }
+
+                if (strncmp(buffer, "EUC_3D", 6) == 0) {
+                    instance->weight_type = 4;
+                }
+
+                if (strncmp(buffer, "MAN_2D", 6) == 0) {
+                    instance->weight_type = 5;
+                }
+
+                if (strncmp(buffer, "MAN_3D", 6) == 0) {
+                    instance->weight_type = 6;
+                }
+
+                if (strncmp(buffer, "CEIL_2D", 7) == 0) {
+                    instance->weight_type = 7;
+                }
+
+                if (strncmp(buffer, "GEO", 3) == 0) {
+                    instance->weight_type = 8;
+                }
+
+                if (strncmp(buffer, "ATT", 3) == 0) {
+                    instance->weight_type = 9;
+                }
+
+                if (strncmp(buffer, "XRAY1", 3) == 0) {
+                    instance->weight_type = 10;
+                }
+
+                if (strncmp(buffer, "XRAY2", 3) == 0) {
+                    instance->weight_type = 11;
+                }
+
+                if (strncmp(buffer, "SPECIAL", 7) == 0) {
+                    instance->weight_type = 12;
+                }
+
                 current_mode = 0;
                 printf("param_content: |%d|\n", instance->weight_type);
             }
