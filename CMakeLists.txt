@@ -9,6 +9,7 @@ link_directories(/opt/gurobi810/linux64/lib)
 add_library(gnuplot SHARED plotGraph.c)
 add_library(utils SHARED utils.c)
 add_library(tsp SHARED tsp.c)
+add_library(inputOutput SHARED inputOutput.c)
 add_library(gurobi810 STATIC IMPORTED)
 
 

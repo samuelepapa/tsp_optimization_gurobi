@@ -7,10 +7,25 @@
 #include "common.h"
 #include "plotGraph.h"
 
-void plot_nodes(Tsp_prob *inst) {
 
-    printf("\n%s\n", "--start plot_nodes method");
+/**
+ * Plot the points of the instance passed in the argument
+ * @param instance The pointer to the problem instance
+ */
+void plot_instance(Tsp_prob *instance);
 
+/**
+ * Plot the solution of the instance passed in the argument
+ * @param instance The pointer to the problem instance
+ */
+void plot_instance(Tsp_prob *instance);
+
+
+void plot_instance(Tsp_prob *inst) {
+
+    printf("\n%s\n", "--start plot_instance method");
+
+    //file to store the points coordinates
     FILE *data = fopen("data.dat", "w");
 
     for(int i = 0; i < inst->nnode; i++) {
@@ -25,12 +40,14 @@ void plot_nodes(Tsp_prob *inst) {
      */
     FILE *gnuplot_pipe = popen("gnuplot -persistent", "w");
 
+    //set teminal type with parameters, size in inch
     fprintf(gnuplot_pipe, "%s\n", "set terminal postscript portrait size 10, 8 \
-enhanced color \"Helvetica\" 8"); //set teminal type with parameters, size in inch
+enhanced color \"Helvetica\" 8");
 
     //fprintf(gnuplot_pipe, "%s \n", "set size 1,1"); //set size of canvas
 
-    fprintf(gnuplot_pipe, "%s\n", "set output 'nodes.eps'"); //output file
+    //output file
+    fprintf(gnuplot_pipe, "%s\n", "set output 'nodes.eps'");
 
     //fprintf(gnuplot_pipe, "%s\n", "set title 'Graph nodes'"); //plot title
 
@@ -38,14 +55,18 @@ enhanced color \"Helvetica\" 8"); //set teminal type with parameters, size in in
 
     //fprintf(gnuplot_pipe, "%s\n", "set ylabel 'Y'");
 
-    fprintf(gnuplot_pipe, "%s\n", "unset border"); //remove border
+    //remove border
+    fprintf(gnuplot_pipe, "%s\n", "unset border");
 
-    fprintf(gnuplot_pipe, "%s\n", "unset xtics"); //remove x axes
+    //remove x-axis
+    fprintf(gnuplot_pipe, "%s\n", "unset xtics");
 
-    fprintf(gnuplot_pipe, "%s\n", "unset ytics"); //remove y axes
+    //remove y-axis
+    fprintf(gnuplot_pipe, "%s\n", "unset ytics");
 
     //fprintf(gnuplot_pipe, "%s\n", "set offset 1,1,1,1");
 
+    //plot path with point style and label
     fprintf(gnuplot_pipe, "%s\n", "plot 'data.dat' with labels point pointtype 7 offset char 1,-1.0 notitle");
 
     pclose(gnuplot_pipe);
@@ -54,12 +75,14 @@ enhanced color \"Helvetica\" 8"); //set teminal type with parameters, size in in
 
 }
 
-void plot_path(Tsp_prob *inst) {
+void plot_solution(Tsp_prob *inst) {
 
     printf("\n%s\n", "--start plot_path method");
 
+    //file to store the points coordinates of the path
     FILE *data = fopen("path.dat", "w");
 
+    //number of nodes
     int n = inst->nnode;
 
     /*for(int i = 0; i < inst->num_nodes - 1; i++) {
@@ -71,9 +94,10 @@ void plot_path(Tsp_prob *inst) {
 
     }*/
 
-    for(int i = 0; i < n; i++) { //create edge data file
-        int node1 = inst->solution[i%n];
-        int node2 = inst->solution[(i+1)%n];
+    //create path data file
+    for(int i = 0; i < n; i++) {
+        int node1 = (int) inst->solution[i%n];
+        int node2 = (int) inst->solution[(i+1)%n];
         fprintf(data, "%lf %lf %d\n", inst->coord_x[node1-1], inst->coord_y[node1-1], node1);
         fprintf(data, "%lf %lf %d\n", inst->coord_x[node2-1], inst->coord_y[node2-1], node2);
         fprintf(data, "%s\n", "");
@@ -88,12 +112,14 @@ void plot_path(Tsp_prob *inst) {
      */
     FILE *gnuplot_pipe = popen("gnuplot -persistent", "w");
 
+    //set teminal type with parameters, size in inch
     fprintf(gnuplot_pipe, "%s\n", "set terminal postscript portrait size 10, 8 \
-enhanced color \"Helvetica\" 6"); //set teminal type with parameters, size in inch
+enhanced color \"Helvetica\" 6");
 
     //fprintf(gnuplot_pipe, "%s \n", "set size 1,1"); //set size of canvas
 
-    fprintf(gnuplot_pipe, "%s\n", "set output 'path.eps'"); //output file
+    //output file
+    fprintf(gnuplot_pipe, "%s\n", "set output 'path.eps'");
 
     //fprintf(gnuplot_pipe, "%s\n", "set title 'Graph nodes'"); //plot title
 
@@ -101,26 +127,31 @@ enhanced color \"Helvetica\" 6"); //set teminal type with parameters, size in in
 
     //fprintf(gnuplot_pipe, "%s\n", "set ylabel 'Y'");
 
+    //remove border
     fprintf(gnuplot_pipe, "%s\n", "unset border");
 
+    //remove x-axis
     fprintf(gnuplot_pipe, "%s\n", "unset xtics");
 
+    //remove y-axis
     fprintf(gnuplot_pipe, "%s\n", "unset ytics");
 
+    //remove legend
     fprintf(gnuplot_pipe, "%s\n", "unset key");
 
     //fprintf(gnuplot_pipe, "%s\n", "set offset 1,1,1,1");
 
+    //set style of the lines
     fprintf(gnuplot_pipe, "%s\n",  "set style line 1 \
 									linecolor rgb '#0060ad' \
 									linetype 1 linewidth 1" );
 
+    //plot path with point style and label
     fprintf(gnuplot_pipe, "%s\n", "plot 'path.dat' with linespoints linestyle 1, '' with labels offset char 1,-1.0 point pointtype 7 lc rgb '#0060ad' notitle");
 
     pclose(gnuplot_pipe);
 
     printf("\n%s\n", "--plot completed");
-
 
 }
 
