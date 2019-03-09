@@ -91,33 +91,28 @@ int dist_from_geo(double i_latitude, double j_latitude, double i_longitude, doub
     */
 int distance(int i, int j, Tsp_prob *instance) {
 
-    int dist = INT_MAX; //default value for distance is maximum value for an int
     double xd = instance->coord_x[i-1] - instance->coord_x[j-1]; //x coordinates difference
     double yd = instance->coord_y[i-1] - instance->coord_y[j-1]; //y coordinates difference
 
     switch (instance->weight_type) {
         case 1: {
-            dist = nint(sqrt(xd*xd + yd*yd));
-            break;
+            return nint(sqrt(xd*xd + yd*yd));
         }
 
         case 3: {
             double x = abs(xd);
             double y = abs(yd);
-            dist = max(nint(x), nint(y));
-            break;
+            return max(nint(x), nint(y));
         }
 
         case 5: {
             double x = abs(xd);
             double y = abs(yd);
-            dist = nint(x + y);
-            break;
+            return nint(x + y);
         }
 
         case 7: {
-            dist = (int) ceil(sqrt(xd*xd + yd*yd));
-            break;
+            return (int) ceil(sqrt(xd*xd + yd*yd));
         }
 
         case 8: {
@@ -128,19 +123,17 @@ int distance(int i, int j, Tsp_prob *instance) {
             double i_longitude = lat_long(instance->coord_y[i-1]);
             double j_longitude = lat_long(instance->coord_y[j-1]);
 
-            dist = dist_from_geo(i_latitude, j_latitude, i_longitude, j_longitude);
-            break;
+            return dist_from_geo(i_latitude, j_latitude, i_longitude, j_longitude);
         }
 
         case 9: {
             double rij = sqrt((xd*xd + yd*yd) / 10.0);
             int tij = nint(rij);
             if(tij > rij) {
-                dist = tij + 1;
+                return tij + 1;
             } else {
-                dist = tij;
+                return tij;
             }
-            break;
         }
 
         default: {
