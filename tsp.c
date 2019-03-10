@@ -15,6 +15,8 @@
 #define MAX_VARNAME_SIZE 100
 
 void print_GRB_error(int error, GRBenv * env, char * msg);
+int in_solution(Tsp_prob * instance, int node);
+void populate_solution(GRBmodel * model, Tsp_prob * instance, int node);
 
 void preprocessing_model_create(Tsp_prob *instance) {
     GRBenv *env = NULL;
@@ -95,12 +97,90 @@ void preprocessing_model_create(Tsp_prob *instance) {
     error = GRBgetdblattr(model, GRB_DBL_ATTR_OBJVAL, &solution);
     print_GRB_error(error, env, "Error in getting solution.\n");
 
-    printf("Solution: %g", solution);
+    printf("Solution: %g\n", solution);
+
+
+    double opt_value;
+    instance->solution_size = 0;
+    populate_solution(model, instance, -1);
+    double value = 0;
+    for(int i = 1; i< instance->nnode; i++){
+        error = GRBgetdblattrelement(model, GRB_DBL_ATTR_X, xpos(i,0, instance), &value);
+        if(error){
+            printf("ERROR: %d", error);
+            exit(1);
+        }
+        printf("node(%d,%d) sol: %g\n", i, 0, value);
+        populate_solution(model, instance, i);
+    }
+    instance->solution_size = 54;
+    printf("SIZE: %d\n", instance->solution_size);
+
+    for(int j = 0; j< instance->solution_size; j++){
+        printf("SOL %d = %g\n", j, instance->solution[j]);
+    }
+
 }
 void print_GRB_error(int error, GRBenv * env, char * msg){
     if(error){
-        printf("Error: couldn't start environment.\n");
+        printf("%s\n", msg);
         printf("%s\n",GRBgeterrormsg(env));
         exit(1);
     }
+}
+void populate_solution(GRBmodel * model, Tsp_prob * instance, int node){
+    double * temp_add;
+    if(instance->solution_size == 0){
+        instance->solution = (double *) calloc(1, sizeof(double));
+        instance->solution_size = 1;
+    }else{
+        instance->solution_size += 1;
+        temp_add = (double *) realloc(instance->solution, sizeof(double)*instance->solution_size);
+        if(temp_add == NULL){
+            exit(1);
+        }
+        instance->solution = temp_add;
+
+    }
+    if(node == -1){
+        instance->solution[0] = 0;
+        return populate_solution(model, instance, 0);
+    }
+
+    double value = 0;
+    int error = 0;
+    int next_node = -1;
+    int found  = 0;
+    for(int i = 0; i < instance->nnode; i++){
+        if(i != node){
+
+            error = GRBgetdblattrelement(model, GRB_DBL_ATTR_X, xpos(i,node, instance), &value);
+            if(error){
+                printf("ERROR: %d", error);
+                exit(1);
+            }
+
+            if((int) value && !(in_solution(instance, i))){
+                found = 1;
+                printf("i: %d, node: %d\n", i, node);
+                next_node = i;
+                printf("Next node: %d\n", next_node);
+            }
+        }
+    }
+    if(found) {
+        instance->solution[instance->solution_size - 1] = next_node;
+        return populate_solution(model, instance, next_node);
+    }else{
+        return;
+    }
+}
+int in_solution(Tsp_prob * instance, int node){
+    int found = 0;
+    for(int i = 0; i < instance->solution_size; i++){
+        if((int) (instance->solution[i]) == node){
+            found = 1;
+        }
+    }
+    return found;
 }

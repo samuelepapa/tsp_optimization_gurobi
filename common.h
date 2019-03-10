@@ -39,6 +39,7 @@ typedef struct{
     char *filename; //TODO free memory after allocation
 
     double *solution;
+    int solution_size;
 
 } Tsp_prob;
 

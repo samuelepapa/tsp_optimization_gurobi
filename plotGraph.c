@@ -81,7 +81,7 @@ void plot_solution(Tsp_prob *inst) {
     }*/
 
     //create path data file
-    for(int i = 0; i < n; i++) {
+    for(int i = 0; i < inst->solution_size; i++) {
         int node1 = (int) inst->solution[i%n];
         int node2 = (int) inst->solution[(i+1)%n];
         fprintf(data, "%lf %lf %d\n", inst->coord_x[node1-1], inst->coord_y[node1-1], node1);

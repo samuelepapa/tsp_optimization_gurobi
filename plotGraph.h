@@ -17,4 +17,6 @@ void plot_instance(Tsp_prob *instance);
  */
 void plot_instance(Tsp_prob *instance);
 
+void plot_solution(Tsp_prob *inst);
+
 #endif //TSP_OPTIMIZATION_GUROBI_PLOTGRAPH_H
