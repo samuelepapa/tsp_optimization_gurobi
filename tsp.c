@@ -81,6 +81,9 @@ void preprocessing_model_create(Tsp_prob *instance) {
         print_GRB_error(error, env, "Error in adding constraint.\n");
     }
 
+    error = GRBupdatemodel(model);
+    print_GRB_error(error, env, "Error in updating the model.\n");
+
     error = GRBwrite(model, "output_model.lp");
     print_GRB_error(error, env, "Error in output");
 
