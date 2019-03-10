@@ -61,8 +61,38 @@ void preprocessing_model_create(Tsp_prob *instance) {
             objective_coeffs, lower_bounds, upper_bounds, variable_type, variables_names);
     print_GRB_error(error, env, "Error in adding variables.\n");
 
+    int indexes[nnode-1];
+    double coefficients[nnode-1];
+    int k = 0;
+    double rhs = 2.0;
+    char * constr_name = (char *) calloc(100, sizeof(char));
+
+    for(int i = 0; i < nnode; i++){
+        k = 0;
+        for(int j = 0; j < nnode; j++){
+            if(i != j) {
+                indexes[k] = xpos(i, j, instance);
+                coefficients[k] = 1.0;
+                k = k + 1;
+            }
+        }
+        sprintf(constr_name, "deg(%d)", i);
+        error = GRBaddconstr(model, nnode-1, indexes, coefficients, GRB_EQUAL, rhs, constr_name );
+        print_GRB_error(error, env, "Error in adding constraint.\n");
+    }
+
     error = GRBwrite(model, "output_model.lp");
     print_GRB_error(error, env, "Error in output");
+
+    error = GRBoptimize(model);
+    print_GRB_error(error, env, "Error in optimization.\n");
+
+    double solution;
+
+    error = GRBgetdblattr(model, GRB_DBL_ATTR_OBJVAL, &solution);
+    print_GRB_error(error, env, "Error in getting solution.\n");
+
+    printf("Solution: %g", solution);
 }
 void print_GRB_error(int error, GRBenv * env, char * msg){
     if(error){

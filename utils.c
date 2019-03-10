@@ -72,8 +72,8 @@ int dist_from_geo(double i_latitude, double j_latitude, double i_longitude, doub
     */
 int distance(int i, int j, Tsp_prob *instance) {
 
-    double xd = instance->coord_x[i-1] - instance->coord_x[j-1]; //x coordinates difference
-    double yd = instance->coord_y[i-1] - instance->coord_y[j-1]; //y coordinates difference
+    double xd = instance->coord_x[i] - instance->coord_x[j]; //x coordinates difference
+    double yd = instance->coord_y[i] - instance->coord_y[j]; //y coordinates difference
 
     switch (instance->weight_type) {
         case 1: {
@@ -98,11 +98,11 @@ int distance(int i, int j, Tsp_prob *instance) {
 
         case 8: {
 
-            double i_latitude = lat_long(instance->coord_x[i-1]);
-            double j_latitude = lat_long(instance->coord_x[j-1]);
+            double i_latitude = lat_long(instance->coord_x[i]);
+            double j_latitude = lat_long(instance->coord_x[j]);
 
-            double i_longitude = lat_long(instance->coord_y[i-1]);
-            double j_longitude = lat_long(instance->coord_y[j-1]);
+            double i_longitude = lat_long(instance->coord_y[i]);
+            double j_longitude = lat_long(instance->coord_y[j]);
 
             return dist_from_geo(i_latitude, j_latitude, i_longitude, j_longitude);
         }
