@@ -1,24 +1,14 @@
 //
 // Created by davide on 09/03/19.
 //
-
-/**
- * Parse the input from command line
- * @param argc The number of arguments
- * @param argv The arguments themselves
- * @param instance The pointer to the problem instance we are using
- */
-void parse_input(int argc, char **argv, Tsp_prob *instance);
-
-/**
- * Initialize the problem instance
- * @param instance The pointer to the problem instance
- * @return 0 if not a valid instance, 1 otherwise
- */
-int init_instance(Tsp_prob *instance);
-
-// print the help text for command line
-void print_help();
+#include "common.h"
+#include <stdio.h>
+#include "math.h"
+#include <malloc.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include "inputOutput.h"
 
 
 void parse_input(int argc, char **argv, Tsp_prob *instance) {
@@ -125,8 +115,8 @@ int init_instance(Tsp_prob *instance) {
             }
 
             if (strncmp(param, "EDGE_WEIGHT_TYPE", 16) == 0) {
-                str_len = strlen(pointer_to_line) - 2;
-                strncpy(buffer, pointer_to_line + 1, str_len);
+                str_len = strlen(pointer_to_line) - 3;
+                strncpy(buffer, pointer_to_line + 2, str_len);
 
                 if (strncmp(buffer, "EXPLICIT", 8) == 0) {
                     instance->weight_type = 0;
@@ -210,6 +200,8 @@ int init_instance(Tsp_prob *instance) {
     }
 
     // This means that the dimension was given after the coordinates, or coordinates are missing
+    //For the moment this is useless
+    /*
     if (instance->nnode > 0 && began_importing_coords == 0) {
         fseek(model_file, 0, SEEK_SET);
         current_mode = 0;
@@ -249,6 +241,7 @@ int init_instance(Tsp_prob *instance) {
         }
 
     }
+     */
 
     if (began_importing_coords == 2 || instance->nnode < 1) {
         printf("Unable to import coordinates, they or the dimension might be missing.\n");

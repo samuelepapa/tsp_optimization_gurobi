@@ -5,12 +5,6 @@
 #ifndef UNTITLED_COMMON_H
 #define UNTITLED_COMMON_H
 
-#include <stdio.h>
-#include <math.h>
-#include <malloc.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
 #include "gurobi_c.h"
 
 

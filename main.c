@@ -3,11 +3,16 @@
 //
 
 #include "common.h"
+#include <stdio.h>
+#include <math.h>
+#include <malloc.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include "utils.h"
 #include "tsp.h"
 #include "plotGraph.h"
-#include "utils.c"
-#include "inputOutput.c"
+#include "inputOutput.h"
 
 int main(int argc, char **argv) {
 
@@ -26,9 +31,13 @@ int main(int argc, char **argv) {
 
     valid_instance = init_instance(&instance);
 
+    printf("weight type: %d", instance.weight_type);
+
     if (valid_instance) {
 
         plot_instance(&instance);
+
+        preprocessing_model_create(&instance);
 
         close_instance(&instance);
 

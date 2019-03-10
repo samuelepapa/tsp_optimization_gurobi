@@ -5,7 +5,16 @@
 #ifndef TSP_OPTIMIZATION_GUROBI_PLOTGRAPH_H
 #define TSP_OPTIMIZATION_GUROBI_PLOTGRAPH_H
 
-void plot_instance(Tsp_prob *inst);
-void plot_path(Tsp_prob *instance);
+/**
+ * Plot the points of the instance passed in the argument
+ * @param instance The pointer to the problem instance
+ */
+void plot_instance(Tsp_prob *instance);
+
+/**
+ * Plot the solution of the instance passed in the argument
+ * @param instance The pointer to the problem instance
+ */
+void plot_instance(Tsp_prob *instance);
 
 #endif //TSP_OPTIMIZATION_GUROBI_PLOTGRAPH_H

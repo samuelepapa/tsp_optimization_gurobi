@@ -2,33 +2,14 @@
 // Created by samuele on 07/03/19.
 //
 #include "common.h"
-#include "utils.h"
-#include <math.h>
+#include <stdio.h>
+#include "math.h"
+#include <malloc.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <limits.h>
-
-/**
- * Associative function between points of an edge and memory position
- * @param i First point
- * @param j Second point
- * @param instance The pointer to the problem instance
- * @return The memory position
- */
-int xpos(int i, int j, Tsp_prob * instance);
-
-/**
- * Compute the distance between two points in two dimensions with the method described in the weight_type value of instance
- * @param i First point
- * @param j Second point
- * @param instance The pointer to the problem instance
- * @return The distance value from i to j
- */
-int distance(int i, int j, Tsp_prob *instance);
-
-/**
- * Free memory to avoid leaks, assumes instance is initialized as variable, not dinamically allocated
- * @param instance The pointer to the problem instance
- */
-void close_instance(Tsp_prob *instance);
+#include "utils.h"
 
 
 int xpos(int i, int j, Tsp_prob * instance){
