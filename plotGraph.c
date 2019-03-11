@@ -60,6 +60,11 @@ enhanced color \"Helvetica\" 8");
     printf("\n%s\n", "--plot completed");
 
 }
+//TODO change solution format
+/* First possible solution: make an array of couples of double these couples are interpreted as an edge
+ * Second possible solution: same interpretation but store as strings
+ *
+ * */
 
 void plot_solution(Tsp_prob *inst) {
 
@@ -81,9 +86,19 @@ void plot_solution(Tsp_prob *inst) {
     }*/
 
     //create path data file
-    for(int i = 0; i < inst->solution_size; i++) {
+    //OLD SOLUTION
+    /*for(int i = 0; i < inst->solution_size; i++) {
         int node1 = (int) inst->solution[i%n];
         int node2 = (int) inst->solution[(i+1)%n];
+        fprintf(data, "%lf %lf %d\n", inst->coord_x[node1-1], inst->coord_y[node1-1], node1);
+        fprintf(data, "%lf %lf %d\n", inst->coord_x[node2-1], inst->coord_y[node2-1], node2);
+        fprintf(data, "%s\n", "");
+
+    }*/
+    //FIRST SOLUTION
+    for(int i = 0; i < inst->solution_size; i++) {
+        int node1 = (int) inst->solution[i][0];
+        int node2 = (int) inst->solution[i][1];
         fprintf(data, "%lf %lf %d\n", inst->coord_x[node1-1], inst->coord_y[node1-1], node1);
         fprintf(data, "%lf %lf %d\n", inst->coord_x[node2-1], inst->coord_y[node2-1], node2);
         fprintf(data, "%s\n", "");
