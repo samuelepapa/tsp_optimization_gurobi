@@ -62,16 +62,20 @@ int dist_from_geo(double i_latitude, double j_latitude, double i_longitude, doub
 }
 
 /**
-    * 0 = EXPLICIT     : weights are listed explicitly in the corresponding section
-    * 1 = EUC_2D       : weights are Euclidean distances in 2-D
-    * 2 = EUC_3D       : weights are Euclidean distances in 3-D
-    * 3 = MAX_2D       : weights are maximum distances in 2-D
-    * 4 = MAX_3D       : weights are maximum distances in 3-D
-    * 5 = MAN_2D       : weights are Manhattan distances in 2-D
-    * 6 = MAN_3D       : weights are Manhattan distances in 3-D
-    * 7 = CEIL_2D      : weights are Euclidean distances in 2-D rounded up
-    * 8 = GEO          : weights are geographical distances
-    * 9 = ATT          : special distance function for problems att48 and att532 (pseudo-Euclidean)
+ * for symmetric travelling salesman problems:
+ *  0 = EUC_2D       : weights are Euclidean distances in 2-D
+ *  1 = MAX_2D       : weights are maximum distances in 2-D
+ *  2 = MAN_2D       : weights are Manhattan distances in 2-D
+ *  3 = CEIL_2D      : weights are Euclidean distances in 2-D rounded up
+ *  4 = GEO          : weights are geographical distances
+ *  5 = ATT          : special distance function for problems att48 and att532 (pseudo-Euclidean)
+ *  6 = EXPLICIT     : weights are listed explicitly in the corresponding section
+ *
+ *  other weight value:
+ *
+    * 7 = EUC_3D       : weights are Euclidean distances in 3-D
+    * 8 = MAX_3D       : weights are maximum distances in 3-D
+    * 9 = MAN_3D       : weights are Manhattan distances in 3-D
     * 10 = XRAY1       : special distance function for crystallography problems(version1)
     * 11 = XRAY2       : special distance function for crystallography problems (version2)
     * 12 = SPECIAL     : there is a special distance function documented elsewhere
@@ -82,27 +86,27 @@ int distance(int i, int j, Tsp_prob *instance) {
     double yd = instance->coord_y[i] - instance->coord_y[j]; //y coordinates difference
 
     switch (instance->weight_type) {
-        case 1: {
+        case 0:{
             return nint(sqrt(xd*xd + yd*yd));
         }
 
-        case 3: {
+        case 1: {
             double x = abs(xd);
             double y = abs(yd);
             return max(nint(x), nint(y));
         }
 
-        case 5: {
+        case 2: {
             double x = abs(xd);
             double y = abs(yd);
             return nint(x + y);
         }
 
-        case 7: {
+        case 3: {
             return (int) ceil(sqrt(xd*xd + yd*yd));
         }
 
-        case 8: {
+        case 4: {
 
             double i_latitude = lat_long(instance->coord_x[i]);
             double j_latitude = lat_long(instance->coord_x[j]);
@@ -113,7 +117,7 @@ int distance(int i, int j, Tsp_prob *instance) {
             return dist_from_geo(i_latitude, j_latitude, i_longitude, j_longitude);
         }
 
-        case 9: {
+        case 5: {
             double rij = sqrt((xd*xd + yd*yd) / 10.0);
             int tij = nint(rij);
             if(tij > rij) {
