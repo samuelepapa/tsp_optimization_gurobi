@@ -69,7 +69,7 @@ typedef struct{
     double *coord_x; //list of x coordinates //TODO free memory after allocation
     double *coord_y; //list of y coordinates //TODO free memory after allocation
 
-    double **weight_matrix; //weight value matrix
+    // **weight_matrix; //weight value matrix
 
     double time_limit;
 

@@ -234,7 +234,7 @@ int init_instance(Tsp_prob *instance) {
                 printf("param_content: |%d|\n", instance->weight_type);
             }*/
 
-            if (strncmp(param, "EDGE_WEIGHT_FORMAT", 18) == 0) {
+            /*if (strncmp(param, "EDGE_WEIGHT_FORMAT", 18) == 0) {
                 str_len = strlen(pointer_to_line) - 3;
                 strncpy(buffer, pointer_to_line + 2, str_len);
 
@@ -264,7 +264,7 @@ int init_instance(Tsp_prob *instance) {
                     exit(1);
                 }
 
-            }
+            }*/
 
             /** list of edge weight format
              * 0 = FUNCTION Weights are given by a function (see above)
@@ -294,9 +294,24 @@ int init_instance(Tsp_prob *instance) {
                 param = strsep(&pointer_to_line, ": ");
             }
 
-            if (strncmp(param, "EDGE_WEIGHT_SECTION", 19) == 0) { //TODO: read data from file in matrix format
+            /*if (strncmp(param, "EDGE_WEIGHT_SECTION", 19) == 0) {
 
-            }
+                int n_node = instance->nnode;
+                int **arr = (int **)malloc(n_node * sizeof(int *));
+                for (int i=0; i < n_node; i++) {
+                    arr[i] = (int *)malloc(n_node * sizeof(int));
+                }
+
+                current_mode = 2;
+                //This is done because I start reading the next line immediately
+                //without waiting for the next cycle
+                if (fgets(line, sizeof(line), model_file) == NULL) {
+                    printf("After the coordinate section delimiter the file ended.");
+                }
+                pointer_to_line = line;
+                param = strsep(&pointer_to_line, ": ");
+
+            }*/
 
             if (current_mode == 1 && instance->nnode > 0) {
                 began_importing_coords = 1;
@@ -309,6 +324,20 @@ int init_instance(Tsp_prob *instance) {
                 param = strsep(&pointer_to_line, " \n");
                 instance->coord_y[id_numb - 1] = (double) strtol(param, NULL, 10);
             }
+
+            /*if (current_mode == 2 && instance->nnode > 0) {
+
+                began_importing_coords = 1;
+                //the number of the line
+                id_numb = (int) strtol(param, NULL, 10);
+                //the first coordinate
+                for (int j = 0; j < instance->nnode; j++){
+                    param = strsep(&pointer_to_line, " \n");
+
+
+                }
+
+            }*/
         }
     }
 
@@ -356,10 +385,10 @@ int init_instance(Tsp_prob *instance) {
     }
      */
 
-    if (began_importing_coords == 2 || instance->nnode < 1) {
+    /*if (began_importing_coords == 2 || instance->nnode < 1) {
         printf("Unable to import coordinates, they or the dimension might be missing.\n");
         valid_instance = 0;
-    }
+    }*/
 
     /*for (int i = 0; i < instance->nnode; i++) {
         printf("i: %d X: %g, Y: %g \n", i + 1, instance->coord_x[i], instance->coord_y[i]);
