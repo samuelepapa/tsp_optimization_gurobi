@@ -127,6 +127,11 @@ int distance(int i, int j, Tsp_prob *instance) {
             }
         }
 
+        case 6: {
+            printf("%s\n", "Weight value is explicit.");
+            break;
+        }
+
         default: {
             printf("%s\n", "Wrong weight type!");
             exit(1);
