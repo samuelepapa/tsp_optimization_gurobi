@@ -66,7 +66,7 @@ enhanced color \"Helvetica\" 8");
  *
  * */
 
-void plot_solution(Tsp_prob *inst) {
+void plot_solution(Tsp_prob *instance) {
 
     printf("\n%s\n", "--start plot_path method");
 
@@ -74,33 +74,33 @@ void plot_solution(Tsp_prob *inst) {
     FILE *data = fopen("path.dat", "w");
 
     //number of nodes
-    int n = inst->nnode;
+    int n = instance->nnode;
 
-    /*for(int i = 0; i < inst->num_nodes - 1; i++) {
-        int node1 = inst->nodes_sequence[i];
-        int node2 = inst->nodes_sequence[i+1];
-        fprintf(data, "%lf %lf %d\n", inst->x_coord[node1], inst->y_coord[node1], node1);
-        fprintf(data, "%lf %lf %d\n", inst->x_coord[node2], inst->y_coord[node2], node2);
+    /*for(int i = 0; i < instance->num_nodes - 1; i++) {
+        int node1 = instance->nodes_sequence[i];
+        int node2 = instance->nodes_sequence[i+1];
+        fprintf(data, "%lf %lf %d\n", instance->x_coord[node1], instance->y_coord[node1], node1);
+        fprintf(data, "%lf %lf %d\n", instance->x_coord[node2], instance->y_coord[node2], node2);
         fprintf(data, "%s\n", "");
 
     }*/
 
     //create path data file
     //OLD SOLUTION
-    /*for(int i = 0; i < inst->solution_size; i++) {
-        int node1 = (int) inst->solution[i%n];
-        int node2 = (int) inst->solution[(i+1)%n];
-        fprintf(data, "%lf %lf %d\n", inst->coord_x[node1-1], inst->coord_y[node1-1], node1);
-        fprintf(data, "%lf %lf %d\n", inst->coord_x[node2-1], inst->coord_y[node2-1], node2);
+    /*for(int i = 0; i < instance->solution_size; i++) {
+        int node1 = (int) instance->solution[i%n];
+        int node2 = (int) instance->solution[(i+1)%n];
+        fprintf(data, "%lf %lf %d\n", instance->coord_x[node1-1], instance->coord_y[node1-1], node1);
+        fprintf(data, "%lf %lf %d\n", instance->coord_x[node2-1], instance->coord_y[node2-1], node2);
         fprintf(data, "%s\n", "");
 
     }*/
     //FIRST SOLUTION
-    for(int i = 0; i < inst->solution_size; i++) {
-        int node1 = inst->solution[i][0];
-        int node2 = inst->solution[i][1];
-        fprintf(data, "%lf %lf %d\n", inst->coord_x[node1-1], inst->coord_y[node1-1], node1);
-        fprintf(data, "%lf %lf %d\n", inst->coord_x[node2-1], inst->coord_y[node2-1], node2);
+    for(int i = 0; i < instance->solution_size; i++) {
+        int node1 = instance->solution[i][0];
+        int node2 = instance->solution[i][1];
+        fprintf(data, "%lf %lf %d\n", instance->coord_x[node1-1], instance->coord_y[node1-1], node1);
+        fprintf(data, "%lf %lf %d\n", instance->coord_x[node2-1], instance->coord_y[node2-1], node2);
         fprintf(data, "%s\n", "");
 
     }
