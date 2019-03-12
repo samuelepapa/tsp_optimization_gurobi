@@ -30,4 +30,11 @@ int distance(int i, int j, Tsp_prob *instance);
  */
 void close_instance(Tsp_prob *instance);
 
+/**
+ * Adds an edge to the solution array. If the size is negative an error is triggered, and exits with 1.
+ * @param instance The Tsp_prob instance where to add the edge.
+ * @param edge The edge to be added, allocate memory before passing the pointer.
+ */
+void add_edge_to_solution(Tsp_prob * instance, int * edge);
+
 #endif //TSP_OPTIMIZATION_GUROBI_UTILS_H
