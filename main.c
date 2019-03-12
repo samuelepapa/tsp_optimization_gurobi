@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
 
         preprocessing_model_create(&instance);
 
-        //plot_solution(&instance);
+        plot_solution(&instance);
 
         close_instance(&instance);
 

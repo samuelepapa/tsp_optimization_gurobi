@@ -20,9 +20,7 @@ int in_solution(Tsp_prob *instance, int node);
 
 void populate_solution(GRBmodel *model, Tsp_prob *instance, int node);
 
-int parse_solution_file(Tsp_prob *instance, char *filename);
-
-int string_to_varnumb(Tsp_prob *instance, char *varname);
+int varname_to_varnum(Tsp_prob *instance, char *varname);
 
 
 void preprocessing_model_create(Tsp_prob *instance) {
@@ -111,25 +109,9 @@ void preprocessing_model_create(Tsp_prob *instance) {
 
     parse_solution_file(instance, "solution.sol");
 
-    /* double opt_value;
-     instance->solution_size = 0;
-     populate_solution(model, instance, -1);
-     double value = 0;
-     for(int i = 1; i< instance->nnode; i++){
-         error = GRBgetdblattrelement(model, GRB_DBL_ATTR_X, xpos(i,0, instance), &value);
-         if(error){
-             printf("ERROR: %d", error);
-             exit(1);
-         }
-         printf("node(%d,%d) sol: %g\n", i, 0, value);
-         populate_solution(model, instance, i);
-     }
-     instance->solution_size = 54;
-     printf("SIZE: %d\n", instance->solution_size);
-
-     for(int j = 0; j< instance->solution_size; j++){
-         printf("SOL %d = %g\n", j, instance->solution[j]);
-     }*/
+    for(int j = 0; j< instance->solution_size; j++){
+        printf("SOL %d = (%d, %d)\n", j, instance->solution[j][0],instance->solution[j][1] );
+    }
 
 }
 
@@ -138,54 +120,6 @@ void print_GRB_error(int error, GRBenv *env, char *msg) {
         printf("%s\n", msg);
         printf("%s\n", GRBgeterrormsg(env));
         exit(1);
-    }
-}
-
-void populate_solution(GRBmodel *model, Tsp_prob *instance, int node) {
-    double *temp_add;
-    if (instance->solution_size == 0) {
-        instance->solution = (double *) calloc(1, sizeof(double));
-        instance->solution_size = 1;
-    } else {
-        instance->solution_size += 1;
-        temp_add = (double *) realloc(instance->solution, sizeof(double) * instance->solution_size);
-        if (temp_add == NULL) {
-            exit(1);
-        }
-        instance->solution = temp_add;
-
-    }
-    if (node == -1) {
-        instance->solution[0] = 0;
-        return populate_solution(model, instance, 0);
-    }
-
-    double value = 0;
-    int error = 0;
-    int next_node = -1;
-    int found = 0;
-    for (int i = 0; i < instance->nnode; i++) {
-        if (i != node) {
-
-            error = GRBgetdblattrelement(model, GRB_DBL_ATTR_X, xpos(i, node, instance), &value);
-            if (error) {
-                printf("ERROR: %d", error);
-                exit(1);
-            }
-
-            if ((int) value && !(in_solution(instance, i))) {
-                found = 1;
-                printf("i: %d, node: %d\n", i, node);
-                next_node = i;
-                printf("Next node: %d\n", next_node);
-            }
-        }
-    }
-    if (found) {
-        instance->solution[instance->solution_size - 1] = next_node;
-        return populate_solution(model, instance, next_node);
-    } else {
-        return;
     }
 }
 
@@ -208,62 +142,55 @@ int parse_solution_file(Tsp_prob *instance, char *filename) {
     }
     //buffer for line
     char line[180];
-    //buffer for param values
-    char buffer[180];
-    size_t str_len;
-    int variable_number = 0;
     char *pointer_to_next;
     char *param;
-    int id_numb = -1;//-1: yet to start/nothing found;  0:first line found; 1: second line found; 2: started saving sols
+    int file_position = -1;//-1: yet to start/nothing found;  0:first line found; 1: second line found, start saving sols
     int is_sol = 0;
 
-    int valid_instance = 1;
-    //flag to check whether nnode was defined before importing coordinates
-    int began_importing_coords = 0;
+    int valid_file = 1;
+
+    instance->solution_size = 0;
+
+
     //scan entire file
-    while (fgets(line, sizeof(line), solution_file) != NULL) {
-        if (id_numb == -1) {
+    while ((fgets(line, sizeof(line), solution_file) != NULL) && valid_file) {
+        if (file_position == -1) {
             if (strncmp(line, "# Solution for model ", 21) == 0) {
-                id_numb = 0;
+                file_position = 0;
             } else {
                 printf("Something is wrong in the solution file.\n");
+                valid_file = 0;
             }
-        } else if (id_numb == 0) {
+        } else if (file_position == 0) {
             if (strncmp(line, "# Objective value = ", 20) == 0) {
-                id_numb = 1;
+                file_position = 1;
             } else {
                 printf("Something is wrong in the solution file.\n");
+                valid_file = 0;
             }
-        } else if (id_numb == 1) {
+        } else if (file_position == 1) {
             if (strncmp(line, "x(", 2) == 0) {
-                id_numb = 2;
                 pointer_to_next = line;
                 param = strsep(&pointer_to_next, ")");
-
                 is_sol = atoi(pointer_to_next);
                 if (is_sol) {
-                    strcpy(buffer, param);
-                    printf("Current variable name: %s \n", pointer_to_next);
-
+                    int * edge = calloc(2, sizeof(int)); //TODO free this
+                    string_to_coords(param, edge);
+                    printf("Current edge: (%d, %d) \n", edge[0], edge[1]);
+                    add_edge_to_solution(instance, edge);
                 }
 
 
             } else {
                 printf("Something is wrong in the solution file.\n");
+                valid_file = 0;
             }
-        } else if (id_numb == 2) {
-            pointer_to_next = line;
-            param = strsep(&pointer_to_next, " ");
-            strcpy(buffer, param);
-            printf("Current variable name: %s \n", buffer);
-            variable_number = string_to_varnumb(instance, buffer);
-            printf("Current variable number: %d \n", variable_number);
         }
     }
-    return 1;
+    return valid_file;
 }
 
-int string_to_varnumb(Tsp_prob *instance, char *varname) {
+int varname_to_varnum(Tsp_prob *instance, char *varname) {
     char *number;
     char *buffer = (char *) calloc(30, sizeof(char));
     //used to keep pointer clean to free later
@@ -271,6 +198,8 @@ int string_to_varnumb(Tsp_prob *instance, char *varname) {
     char *pointer_to_next;
     int i = 0;
     int j = 0;
+
+    //copy locally
     strcpy(current_token, varname);
     pointer_to_next = current_token;
     current_token = strsep(&pointer_to_next, ",");
@@ -278,42 +207,48 @@ int string_to_varnumb(Tsp_prob *instance, char *varname) {
     number = current_token + 2;
     i = atoi(number);
 
-
     current_token = strsep(&pointer_to_next, ")");
-
     number = current_token;
     j = atoi(number);
-    printf("x(%d,%d)\n", i, j);
 
     free(buffer);
+
     return xpos(i, j, instance);
 }
 
-int string_to_coords(Tsp_prob* instance,char *varname, int * coords){
-char *number;
-char *buffer = (char *) calloc(30, sizeof(char));
-//used to keep pointer clean to free later
-char *current_token = buffer;
-char *pointer_to_next;
-int i = 0;
-int j = 0;
-strcpy(current_token, varname
-);
-pointer_to_next = current_token;
-current_token = strsep(&pointer_to_next, ",");
-//This is why there is a number pointer, I need to move to the right by 2, x(1
-number = current_token + 2;
-i = atoi(number);
+int string_to_coords(char *varname, int *edge) {
+    char *number;
+    char *buffer = (char *) calloc(30, sizeof(char));
+    //used to keep pointer clean to free later
+    char *current_token = buffer;
+    char *pointer_to_next;
+    //init coordinates, if they are 0 something is wrong, it starts counting from 1.
+    int i = 0;
+    int j = 0;
+
+    //local copy
+    strcpy(current_token, varname);
+    pointer_to_next = current_token;
+    current_token = strsep(&pointer_to_next, ",");
+    //This is why there is a number pointer, I need to move to the right by 2, x(1
+    number = current_token + 2;
+    i = atoi(number);
+
+    //Next number
+    current_token = strsep(&pointer_to_next, ")");
+    number = current_token;
+    j = atoi(number);
 
 
-current_token = strsep(&pointer_to_next, ")");
+    //temporary array
+    int *p = calloc(2, sizeof(int));
+    p[0] = i;
+    p[1] = j;
+    //copy it inside the edge pointer
+    memcpy(edge, p, 2 * sizeof(int));
 
-number = current_token;
-j = atoi(number);
-printf("x(%d,%d)\n", i, j);
+    free(p);
+    free(buffer);
 
-free(buffer);
-
-coords =
-return 1;
+    return 1;
 }

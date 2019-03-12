@@ -97,8 +97,8 @@ void plot_solution(Tsp_prob *inst) {
     }*/
     //FIRST SOLUTION
     for(int i = 0; i < inst->solution_size; i++) {
-        int node1 = (int) inst->solution[i][0];
-        int node2 = (int) inst->solution[i][1];
+        int node1 = inst->solution[i][0];
+        int node2 = inst->solution[i][1];
         fprintf(data, "%lf %lf %d\n", inst->coord_x[node1-1], inst->coord_y[node1-1], node1);
         fprintf(data, "%lf %lf %d\n", inst->coord_x[node2-1], inst->coord_y[node2-1], node2);
         fprintf(data, "%s\n", "");

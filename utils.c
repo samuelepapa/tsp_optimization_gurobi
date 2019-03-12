@@ -11,6 +11,12 @@
 #include <limits.h>
 #include "utils.h"
 
+/**
+ * Used to free the solution array, if size is negative returns with no error. This is a "private" function.
+ * @param instance the Tsp_prob instance where the solution is stored
+ */
+void free_solution_array(Tsp_prob * instance);
+
 
 int xpos(int i, int j, Tsp_prob * instance){
     if(i==j) {
@@ -124,11 +130,40 @@ int distance(int i, int j, Tsp_prob *instance) {
     }
 }
 
+void add_edge_to_solution(Tsp_prob * instance, int * edge){
+    if(edge == NULL){
+        printf("The edge is NULL, allocate it before passing it as argument. \n");
+        exit(1);
+    }
+    if(instance->solution_size == 0){
+        instance->solution = calloc(1, sizeof(int *));
+        instance->solution_size = 1;
+    }else if(instance->solution_size > 0) {
+        instance->solution_size += 1;
+        instance->solution = realloc(instance->solution, instance->solution_size * sizeof(int *));
+    }else{
+        printf("Error while adding edge to solution, the size is negative. \n");
+        exit(1);
+    }
+    instance->solution[instance->solution_size - 1] = edge;
+}
+
+void free_solution_array(Tsp_prob * instance){
+    if(instance->solution_size < 0){
+        printf("Solution array was not initialized (sol size is negative).\n");
+        return;
+    }
+    for(int i = 0; i< instance->solution_size; i++){
+        free(instance->solution[i]);
+    }
+    free(instance->solution);
+}
+
 void close_instance(Tsp_prob *instance) {
     free(instance->name);
     free(instance->comment);
     free(instance->filename);
     free(instance->coord_y);
     free(instance->coord_x);
-    free(instance->solution);
+    free_solution_array(instance);
 }
