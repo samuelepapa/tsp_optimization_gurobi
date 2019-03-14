@@ -10,9 +10,14 @@
 #include "utils.h"
 #include "tspMTZ.h"
 
-int ypos(int i, int j, Tsp_prob * instance){
+int ypos(int i, int j, Tsp_prob *instance){
 
     return i*instance->nnode + j;
+}
+
+int upos(int i, Tsp_prob *instance) {
+    int latest_y_pos = ypos(instance->nnode - 1, instance->nnode - 1, instance);
+    return latest_y_pos + 1 + i;
 }
 
 void print_GRB_error(int error, GRBenv *env, char *msg) {
@@ -43,7 +48,7 @@ void preprocessing_MTZ_model_create(Tsp_prob *instance) {
     GRBmodel *MTZ_model = NULL;
     int error = 0;
     int n_nodes = instance->nnode;
-    int n_variables = n_nodes*n_nodes;
+    int n_variables = n_nodes*n_nodes + n_nodes;
     printf("Number of nodes: %d\n Number of variables: %d\n", n_nodes, n_variables);
 
     char var_type[n_variables];
@@ -71,9 +76,31 @@ void preprocessing_MTZ_model_create(Tsp_prob *instance) {
             variables_names[coord] = (char*) calloc(100, sizeof(char));
             sprintf(variables_names[coord], "y(%d,%d)", i + 1, j + 1);
             printf("i:%d, j: %d\n", i + 1, j + 1);
-
         }
     }
+
+    /*Add variables u*/
+
+    for (int i = 0; i < n_nodes; i++) {
+        coord = upos(i, instance);
+        obj_coeff[coord] = 0.0;
+        if (i == 0) {
+            low_bound[coord] = 1.0;
+            up_bound[coord] = 1.0;
+        } else {
+            low_bound[coord] = 2.0;
+            up_bound[coord] = n_nodes;
+        }
+        var_type[coord] = GRB_INTEGER;
+        variables_names[coord] = calloc(100, sizeof(char));
+
+        sprintf(variables_names[coord], "u(%d)", i + 1);
+    }
+
+    /*error = GRBaddvars(MTZ_model, n_nodes, 0, NULL, NULL, NULL, u_obj_val, u_low_bound, u_up_bound, u_type, u_name);
+    if (error) {
+        quit(env, MTZ_model, error);
+    }*/
 
 
     /*create environment*/
@@ -102,10 +129,12 @@ void preprocessing_MTZ_model_create(Tsp_prob *instance) {
         quit(env, MTZ_model, error);
     }
 
+
     int constr_index[n_nodes];
     double constr_value[n_nodes];
     double rhs = 1.0;
     char *constr_name = (char *) calloc(100, sizeof(char));
+    int indexNextConstraints = 0;
 
     /*Add constraints for indegree*/
     for (int h = 0; h < n_nodes; h++) {
@@ -119,6 +148,7 @@ void preprocessing_MTZ_model_create(Tsp_prob *instance) {
         if (error) {
             quit(env, MTZ_model, error);
         }
+        indexNextConstraints++;
     }
 
     /*Add constraints for outdegree*/
@@ -133,22 +163,28 @@ void preprocessing_MTZ_model_create(Tsp_prob *instance) {
         if (error) {
             quit(env, MTZ_model, error);
         }
+        indexNextConstraints++;
     }
 
+
+
     /*Add lazy constraints for y(i,j) + y(j, i) <= 1*/
-    /*int constr_ind[2];
+    int constr_ind[2];
     double constr_val[2] = {1.0, 1.0};
 
+
     for (int i = 0; i < n_nodes; i++) {
-        for (int j = i; j < n_nodes; j++) {
+        for (int j = i+1; j < n_nodes; j++) {
             constr_ind[0] = ypos(i, j, instance);
             constr_ind[1] = ypos(j, i, instance);
-            sprintf(constr_name, "lazy constr 1 (%d, %d)", i+1, j+1);
+            sprintf(constr_name, "lazy_constr_(%d,%d)", i+1, j+1);
+
             error = GRBaddconstr(MTZ_model, 2, constr_ind, constr_val, GRB_LESS_EQUAL, rhs, constr_name);
             if (error) {
                 quit(env, MTZ_model, error);
             }
-            error = GRBsetintattrelement(MTZ_model, "Lazy", 2*n_nodes + i + j, 1);
+
+            error = GRBsetintattrelement(MTZ_model, "Lazy", indexNextConstraints, 1);
             if (error) {
                 quit(env, MTZ_model, error);
             }
@@ -156,8 +192,9 @@ void preprocessing_MTZ_model_create(Tsp_prob *instance) {
             if (error) {
                 quit(env, MTZ_model, error);
             }
+            indexNextConstraints++;
         }
-    }*/
+    }
 
     /*Add constrain y(i, i) = 0 <=> 0 <= y(i,i) <= 0*/
 
@@ -170,6 +207,41 @@ void preprocessing_MTZ_model_create(Tsp_prob *instance) {
     if (error) {
         quit(env, MTZ_model, error);
     }*/
+
+
+
+    /*Add MTZ lazy constraints: u(j) >= u(i) +1 - M * (1 - y(i,j))*/
+    int M = n_nodes - 1;
+    int MTZ_index[3];
+    double MTZ_value[3] = {1.0, -1.0, M};
+
+
+    for (int i = 0; i < n_nodes; i++) {
+        for (int j = i+1; j < n_nodes; j++) {
+            MTZ_index[0] = upos(i, instance);
+            MTZ_index[1] = upos(j, instance);
+            MTZ_index[2] = ypos(i, j, instance);
+            sprintf(constr_name, "MTZ_constr_(%d,%d)", i+1, j+1);
+
+            error = GRBaddconstr(MTZ_model, 3, MTZ_index, MTZ_value, GRB_LESS_EQUAL, M, constr_name);
+            if (error) {
+                quit(env, MTZ_model, error);
+            }
+
+            error = GRBsetintattrelement(MTZ_model, "Lazy", indexNextConstraints, 1);
+            if (error) {
+                quit(env, MTZ_model, error);
+            }
+            error = GRBupdatemodel(MTZ_model);
+            if (error) {
+                quit(env, MTZ_model, error);
+            }
+            indexNextConstraints++;
+        }
+    }
+
+
+
 
     /*consolidate the model parameters*/
     error = GRBupdatemodel(MTZ_model);

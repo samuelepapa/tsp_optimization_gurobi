@@ -167,7 +167,8 @@ int init_instance(Tsp_prob *instance) {
                 }
 
                 if (strncmp(buffer, "EXPLICIT", 8) == 0) {
-                    instance->weight_type = 6;
+                    printf("%s\n", "Wrong edge weight type, this program resolve only 2D TSP case with coordinate type.");
+                    exit(1);
                 }
 
                 if (strncmp(buffer, "SPECIAL", 7) == 0 || strncmp(buffer, "EUC_3D", 6) == 0 ||
@@ -242,51 +243,6 @@ int init_instance(Tsp_prob *instance) {
                 printf("param_content: |%d|\n", instance->weight_type);
             }*/
 
-            /*if (strncmp(param, "EDGE_WEIGHT_FORMAT", 18) == 0) {
-                str_len = strlen(pointer_to_line) - 3;
-                strncpy(buffer, pointer_to_line + 2, str_len);
-
-                if (strncmp(buffer, "FUNCTION", 8) == 0) {
-                    instance->edge_weight_format = 0;
-                }
-
-                if (strncmp(buffer, "FULL_MATRIX", 11) == 0) {
-                    instance->edge_weight_format = 1;
-                }
-
-                if (strncmp(buffer, "UPPER_ROW", 9) == 0) {
-                    instance->edge_weight_format = 2;
-                }
-
-                if (strncmp(buffer, "UPPER_DIAG_ROW", 14) == 0) {
-                    instance->edge_weight_format = 3;
-                }
-
-                if (strncmp(buffer, "LOWER_DIAG_ROW", 14) == 0){
-                    instance->edge_weight_format = 4;
-                }
-
-                if (strncmp(buffer, "LOWER_ROW", 9) == 0 || strncmp(buffer, "UPPER_COL", 9) == 0 || strncmp(buffer, "LOWER_COL", 9) == 0 ||
-                    strncmp(buffer, "UPPER_DIAG_COL", 14) == 0 || strncmp(buffer, "LOWER_DIAG_COL", 14) == 0) {
-                    printf("%s\n", "Wrong edge weight format for TSP problem.");
-                    exit(1);
-                }
-
-            }*/
-
-            /** list of edge weight format
-             * 0 = FUNCTION Weights are given by a function (see above)
-             * 1 = FULL MATRIX Weights are given by a full matrix <-
-             * 2 = UPPER ROW Upper triangular matrix (row-wise without diagonal entries) <-
-             * 3 = UPPER DIAG ROW Upper triangular matrix (row-wise including diagonal entries) <-
-             * 4 = LOWER DIAG ROW Lower triangular matrix (row-wise including diagonal entries) <-
-             * 5 = LOWER ROW Lower triangular matrix (row-wise without diagonal entries)
-             * 6 = UPPER COL Upper triangular matrix (column-wise without diagonal entries)
-             * 7 = LOWER COL Lower triangular matrix (column-wise without diagonal entries)
-             * 8 = UPPER DIAG COL Upper triangular matrix (column-wise including diagonal entries)
-             * 9 = LOWER DIAG COL Lower triangular matrix (column-wise including diagonal entries)
-             * */
-
             if (strncmp(param, "NODE_COORD_SECTION", 18) == 0) {
                 //initialize the the array of coordinates
                 instance->coord_x = calloc((size_t) instance->nnode, sizeof(double));
@@ -332,20 +288,6 @@ int init_instance(Tsp_prob *instance) {
                 param = strsep(&pointer_to_line, " \n");
                 instance->coord_y[id_numb - 1] = (double) strtol(param, NULL, 10);
             }
-
-            /*if (current_mode == 2 && instance->nnode > 0) {
-
-                began_importing_coords = 1;
-                //the number of the line
-                id_numb = (int) strtol(param, NULL, 10);
-                //the first coordinate
-                for (int j = 0; j < instance->nnode; j++){
-                    param = strsep(&pointer_to_line, " \n");
-
-
-                }
-
-            }*/
         }
     }
 
