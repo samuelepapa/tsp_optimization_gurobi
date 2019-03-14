@@ -217,26 +217,28 @@ void preprocessing_MTZ_model_create(Tsp_prob *instance) {
 
 
     for (int i = 0; i < n_nodes; i++) {
-        for (int j = i+1; j < n_nodes; j++) {
-            MTZ_index[0] = upos(i, instance);
-            MTZ_index[1] = upos(j, instance);
-            MTZ_index[2] = ypos(i, j, instance);
-            sprintf(constr_name, "MTZ_constr_(%d,%d)", i+1, j+1);
+        for (int j = 1; j < n_nodes; j++) {
+            if(i != j) {
+                MTZ_index[0] = upos(i, instance);
+                MTZ_index[1] = upos(j, instance);
+                MTZ_index[2] = ypos(i, j, instance);
+                sprintf(constr_name, "MTZ_constr_(%d,%d)", i+1, j+1);
 
-            error = GRBaddconstr(MTZ_model, 3, MTZ_index, MTZ_value, GRB_LESS_EQUAL, M, constr_name);
-            if (error) {
-                quit(env, MTZ_model, error);
-            }
+                error = GRBaddconstr(MTZ_model, 3, MTZ_index, MTZ_value, GRB_LESS_EQUAL, M, constr_name);
+                if (error) {
+                    quit(env, MTZ_model, error);
+                }
 
-            error = GRBsetintattrelement(MTZ_model, "Lazy", indexNextConstraints, 1);
-            if (error) {
-                quit(env, MTZ_model, error);
+                error = GRBsetintattrelement(MTZ_model, "Lazy", indexNextConstraints, 1);
+                if (error) {
+                    quit(env, MTZ_model, error);
+                }
+                error = GRBupdatemodel(MTZ_model);
+                if (error) {
+                    quit(env, MTZ_model, error);
+                }
+                indexNextConstraints++;
             }
-            error = GRBupdatemodel(MTZ_model);
-            if (error) {
-                quit(env, MTZ_model, error);
-            }
-            indexNextConstraints++;
         }
     }
 
