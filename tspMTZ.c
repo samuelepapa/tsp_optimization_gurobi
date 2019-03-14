@@ -256,10 +256,35 @@ void preprocessing_MTZ_model_create(Tsp_prob *instance) {
     }
 
     /*launch gurobi solver with the selected model*/
-    /*error = GRBoptimize(MTZ_model);
+    error = GRBoptimize(MTZ_model);
     if (error) {
         quit(env, MTZ_model, error);
+    }
+
+    /* Capture solution information */
+    error = GRBgetintattr(MTZ_model, GRB_INT_ATTR_STATUS, &optim_status);
+    if (error) {
+        quit(env, MTZ_model, error);
+    }
+
+    error = GRBgetdblattr(MTZ_model, GRB_DBL_ATTR_OBJVAL, &obj_val);
+    if (error) {
+        quit(env, MTZ_model, error);
+    }
+
+     /*error = GRBgetdblattrarray(model, GRB_DBL_ATTR_X, 0, 2, sol);
+     * if (error) {
+        quit(env, MTZ_model, error);
     }*/
+
+    printf("\nOptimization complete\n");
+    if (optim_status == GRB_OPTIMAL) {
+        printf("Optimal objective: %.4e\n", obj_val);
+    } else if (optim_status == GRB_INF_OR_UNBD) {
+        printf("Model is infeasible or unbounded\n");
+    } else {
+        printf("Optimization was stopped early\n");
+    }
 
     /*free memory*/
     free(constr_name);
