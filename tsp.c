@@ -81,7 +81,7 @@ void preprocessing_model_create(Tsp_prob *instance) {
                 k = k + 1;
             }
         }
-        sprintf(constr_name, "deg(%d)", i);
+        sprintf(constr_name, "deg(%d)", i+1);
         error = GRBaddconstr(model, nnode - 1, indexes, coefficients, GRB_EQUAL, rhs, constr_name);
         print_GRB_error(error, env, "Error in adding constraint.\n");
     }

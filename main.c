@@ -16,6 +16,8 @@
 
 int main(int argc, char **argv) {
 
+    DEBUG_PRINT(("prova %s\n", "prova"));
+
     if (argc < 2) {
         printf("Not enough arguments.\n");
         exit(1);

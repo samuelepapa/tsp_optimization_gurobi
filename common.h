@@ -5,15 +5,20 @@
 #ifndef UNTITLED_COMMON_H
 #define UNTITLED_COMMON_H
 
-#define DEBUG
+#define DEBUG 1
 
 #include "gurobi_c.h"
 
-#define debug_print(fmt, ...) \
-        do { if (DEBUG) fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
-                                __LINE__, __func__, __VA_ARGS__); } while (0)
+#ifdef DEBUG
+# define DEBUG_PRINT(x) printf x
+#else
+# define DEBUG_PRINT(x) do {} while (0)
+#endif
 
 typedef struct{
+    int verbosity;
+    double time_limit;
+
     char *name; //TODO free memory after allocation
     char *comment; //TODO free memory after allocation
 
@@ -75,8 +80,6 @@ typedef struct{
     double *coord_y; //list of y coordinates //TODO free memory after allocation
 
     // **weight_matrix; //weight value matrix
-
-    double time_limit;
 
     char *filename; //TODO free memory after allocation
 
