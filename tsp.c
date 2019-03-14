@@ -18,8 +18,6 @@ void print_GRB_error(int error, GRBenv *env, char *msg);
 
 int in_solution(Tsp_prob *instance, int node);
 
-void populate_solution(GRBmodel *model, Tsp_prob *instance, int node);
-
 int varname_to_varnum(Tsp_prob *instance, char *varname);
 
 
@@ -44,7 +42,7 @@ void preprocessing_model_create(Tsp_prob *instance) {
             lower_bounds[coord] = 0.0;
             variable_type[coord] = GRB_BINARY;
             objective_coeffs[coord] = distance(i, j, instance);
-            variables_names[coord] = (char *) calloc(MAX_VARNAME_SIZE, sizeof(char));
+            variables_names[coord] = (char *) calloc(MAX_VARNAME_SIZE, sizeof(char)); //TODO dealloc after
             sprintf(variables_names[coord], "x(%d,%d)", i + 1, j + 1);
             printf("i: %d, ; j: %d\n", i + 1, j + 1);
         }
@@ -83,7 +81,7 @@ void preprocessing_model_create(Tsp_prob *instance) {
                 k = k + 1;
             }
         }
-        sprintf(constr_name, "deg(%d)", i);
+        sprintf(constr_name, "deg(%d)", i+1);
         error = GRBaddconstr(model, nnode - 1, indexes, coefficients, GRB_EQUAL, rhs, constr_name);
         print_GRB_error(error, env, "Error in adding constraint.\n");
     }

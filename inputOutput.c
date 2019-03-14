@@ -22,6 +22,14 @@ void parse_input(int argc, char **argv, Tsp_prob *instance) {
                 strcpy(instance->filename, optarg);
                 printf("Filename: %s \n", instance->filename);
                 break;
+            case 'v':
+                //verbosity level
+                instance->verbosity = atoi(optarg);
+                break;
+            case 'tlim':
+                //time limit
+                instance->time_limit = atof(optarg);
+                break;
             case '?':
                 printf("This is the guide.\n");
                 break;

@@ -62,7 +62,6 @@ enhanced color \"Helvetica\" 8");
 }
 //TODO change solution format
 /* First possible solution: make an array of couples of double these couples are interpreted as an edge
- * Second possible solution: same interpretation but store as strings
  *
  * */
 
