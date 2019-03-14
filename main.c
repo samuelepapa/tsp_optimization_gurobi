@@ -13,6 +13,7 @@
 #include "tsp.h"
 #include "plotGraph.h"
 #include "inputOutput.h"
+#include "tspMTZ.h"
 
 int main(int argc, char **argv) {
 
@@ -37,9 +38,10 @@ int main(int argc, char **argv) {
 
         plot_instance(&instance);
 
-        preprocessing_model_create(&instance);
+        //preprocessing_model_create(&instance);
+        preprocessing_MTZ_model_create(&instance);
 
-        plot_solution(&instance);
+        //plot_solution(&instance);
 
         close_instance(&instance);
 
