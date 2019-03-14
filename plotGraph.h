@@ -15,8 +15,6 @@ void plot_instance(Tsp_prob *instance);
  * Plot the solution of the instance passed in the argument
  * @param instance The pointer to the problem instance
  */
-void plot_instance(Tsp_prob *instance);
-
-void plot_solution(Tsp_prob *inst);
+void plot_solution(Tsp_prob *instance);
 
 #endif //TSP_OPTIMIZATION_GUROBI_PLOTGRAPH_H

@@ -174,6 +174,7 @@ void close_instance(Tsp_prob *instance) {
     free(instance->filename);
     free(instance->coord_y);
     free(instance->coord_x);
-    free(instance->weight_matrix);
+    //free(instance->weight_matrix);
+    free(instance->solution);
     free_solution_array(instance);
 }
