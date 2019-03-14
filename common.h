@@ -5,8 +5,13 @@
 #ifndef UNTITLED_COMMON_H
 #define UNTITLED_COMMON_H
 
+#define DEBUG
+
 #include "gurobi_c.h"
 
+#define debug_print(fmt, ...) \
+        do { if (DEBUG) fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
+                                __LINE__, __func__, __VA_ARGS__); } while (0)
 
 typedef struct{
     char *name; //TODO free memory after allocation
