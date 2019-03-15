@@ -169,6 +169,11 @@ void preprocessing_MTZ_model_create(Tsp_prob *instance) {
 
 
     /*Add lazy constraints for y(i,j) + y(j, i) <= 1*/
+    /*With a value of 1, the constraint can be used to cut off a feasible solution, but it won’t
+necessarily be pulled in if another lazy constraint also cuts off the solution. With a value of 2, all
+lazy constraints that are violated by a feasible solution will be pulled into the model. With a value
+of 3, lazy constraints that cut off the relaxation solution at the root node are also pulled in.
+     */
     int constr_ind[2];
     double constr_val[2] = {1.0, 1.0};
 
@@ -184,7 +189,7 @@ void preprocessing_MTZ_model_create(Tsp_prob *instance) {
                 quit(env, MTZ_model, error);
             }
 
-            error = GRBsetintattrelement(MTZ_model, "Lazy", indexNextConstraints, 1);
+            error = GRBsetintattrelement(MTZ_model, "Lazy", indexNextConstraints, 2);
             if (error) {
                 quit(env, MTZ_model, error);
             }
@@ -224,12 +229,12 @@ void preprocessing_MTZ_model_create(Tsp_prob *instance) {
                 MTZ_index[2] = ypos(i, j, instance);
                 sprintf(constr_name, "MTZ_constr_(%d,%d)", i+1, j+1);
 
-                error = GRBaddconstr(MTZ_model, 3, MTZ_index, MTZ_value, GRB_LESS_EQUAL, M, constr_name);
+                error = GRBaddconstr(MTZ_model, 3, MTZ_index, MTZ_value, GRB_LESS_EQUAL, M - 1, constr_name);
                 if (error) {
                     quit(env, MTZ_model, error);
                 }
 
-                error = GRBsetintattrelement(MTZ_model, "Lazy", indexNextConstraints, 1);
+                error = GRBsetintattrelement(MTZ_model, "Lazy", indexNextConstraints, 2);
                 if (error) {
                     quit(env, MTZ_model, error);
                 }
