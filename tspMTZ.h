@@ -1,7 +1,3 @@
-//
-// Created by davide on 13/03/19.
-//
-
 #ifndef TSP_OPTIMIZATION_GUROBI_TSPMTZ_H
 #define TSP_OPTIMIZATION_GUROBI_TSPMTZ_H
 

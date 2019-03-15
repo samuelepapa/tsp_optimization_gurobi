@@ -1,9 +1,6 @@
-//
-// Created by davide on 13/03/19.
-//
 #include "common.h"
 #include <stdio.h>
-#include "math.h"
+#include <math.h>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>

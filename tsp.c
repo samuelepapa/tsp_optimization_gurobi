@@ -4,7 +4,7 @@
 
 #include "common.h"
 #include <stdio.h>
-#include "math.h"
+#include <math.h>
 #include <malloc.h>
 #include <string.h>
 #include <stdlib.h>

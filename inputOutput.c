@@ -1,9 +1,6 @@
-//
-// Created by davide on 09/03/19.
-//
 #include "common.h"
 #include <stdio.h>
-#include "math.h"
+#include <math.h>
 #include <malloc.h>
 #include <string.h>
 #include <stdlib.h>
@@ -119,25 +116,15 @@ int init_instance(Tsp_prob *instance) {
             }
 
 
-/**
- * for symmetric travelling salesman problems:
- *  0 = EUC_2D       : weights are Euclidean distances in 2-D
- *  1 = MAX_2D       : weights are maximum distances in 2-D
- *  2 = MAN_2D       : weights are Manhattan distances in 2-D
- *  3 = CEIL_2D      : weights are Euclidean distances in 2-D rounded up
- *  4 = GEO          : weights are geographical distances
- *  5 = ATT          : special distance function for problems att48 and att532 (pseudo-Euclidean)
- *  6 = EXPLICIT     : weights are listed explicitly in the corresponding section
- *
- *  other weight value:
- *
-    * 7 = EUC_3D       : weights are Euclidean distances in 3-D
-    * 8 = MAX_3D       : weights are maximum distances in 3-D
-    * 9 = MAN_3D       : weights are Manhattan distances in 3-D
-    * 10 = XRAY1       : special distance function for crystallography problems(version1)
-    * 11 = XRAY2       : special distance function for crystallography problems (version2)
-    * 12 = SPECIAL     : there is a special distance function documented elsewhere
-    */
+            /**
+            * for symmetric travelling salesman problems:
+            *  0 = EUC_2D       : weights are Euclidean distances in 2-D
+            *  1 = MAX_2D       : weights are maximum distances in 2-D
+            *  2 = MAN_2D       : weights are Manhattan distances in 2-D
+            *  3 = CEIL_2D      : weights are Euclidean distances in 2-D rounded up
+            *  4 = GEO          : weights are geographical distances
+            *  5 = ATT          : special distance function for problems att48 and att532 (pseudo-Euclidean)
+            */
             if (strncmp(param, "EDGE_WEIGHT_TYPE", 16) == 0) {
                 str_len = strlen(pointer_to_line) - 3;
                 strncpy(buffer, pointer_to_line + 2, str_len);
@@ -181,67 +168,6 @@ int init_instance(Tsp_prob *instance) {
                 current_mode = 0;
                 printf("param_content: |%d|\n", instance->weight_type);
             }
-
-
-            /*if (strncmp(param, "EDGE_WEIGHT_TYPE", 16) == 0) {
-                str_len = strlen(pointer_to_line) - 3;
-                strncpy(buffer, pointer_to_line + 2, str_len);
-
-                if (strncmp(buffer, "EXPLICIT", 8) == 0) {
-                    instance->weight_type = 0;
-                }
-
-                if (strncmp(buffer, "EUC_2D", 6) == 0) {
-                    instance->weight_type = 1;
-                }
-
-                if (strncmp(buffer, "EUC_3D", 6) == 0) {
-                    instance->weight_type = 2;
-                }
-
-                if (strncmp(buffer, "MAX_2D", 6) == 0) {
-                    instance->weight_type = 3;
-                }
-
-                if (strncmp(buffer, "EUC_3D", 6) == 0) {
-                    instance->weight_type = 4;
-                }
-
-                if (strncmp(buffer, "MAN_2D", 6) == 0) {
-                    instance->weight_type = 5;
-                }
-
-                if (strncmp(buffer, "MAN_3D", 6) == 0) {
-                    instance->weight_type = 6;
-                }
-
-                if (strncmp(buffer, "CEIL_2D", 7) == 0) {
-                    instance->weight_type = 7;
-                }
-
-                if (strncmp(buffer, "GEO", 3) == 0) {
-                    instance->weight_type = 8;
-                }
-
-                if (strncmp(buffer, "ATT", 3) == 0) {
-                    instance->weight_type = 9;
-                }
-
-                if (strncmp(buffer, "XRAY1", 3) == 0) {
-                    instance->weight_type = 10;
-                }
-
-                if (strncmp(buffer, "XRAY2", 3) == 0) {
-                    instance->weight_type = 11;
-                }
-
-                if (strncmp(buffer, "SPECIAL", 7) == 0) {
-                    instance->weight_type = 12;
-                }
-
-                current_mode = 0;
-                printf("param_content: |%d|\n", instance->weight_type);
-            }*/
 
             if (strncmp(param, "NODE_COORD_SECTION", 18) == 0) {
                 //initialize the the array of coordinates
