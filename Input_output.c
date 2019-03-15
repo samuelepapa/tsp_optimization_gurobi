@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "inputOutput.h"
+#include "Input_output.h"
 
 
 void parse_input(int argc, char **argv, Tsp_prob *instance) {

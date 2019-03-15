@@ -4,8 +4,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "utils.h"
-#include "tspMTZ.h"
+#include "Utils.h"
+#include "Tsp_MTZ.h"
 
 int ypos(int i, int j, Tsp_prob *instance){
 

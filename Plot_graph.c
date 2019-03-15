@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "common.h"
-#include "plotGraph.h"
+#include "Plot_graph.h"
 
 void plot_instance(Tsp_prob *inst) {
 

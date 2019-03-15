@@ -9,8 +9,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "tsp.h"
-#include "utils.h"
+#include "Tsp.h"
+#include "Utils.h"
 
 #define MAX_VARNAME_SIZE 100
 
@@ -25,8 +25,8 @@ void preprocessing_model_create(Tsp_prob *instance) {
     GRBenv *env = NULL;
     GRBmodel *model = NULL;
     int error = 0;
-    int nnode = instance->nnode;
-    int n_variables = (int) (0.5 * (nnode * nnode - nnode));
+    int n_node = instance->nnode;
+    int n_variables = (int) (0.5 * (n_node * n_node - n_node));
     printf("%d", n_variables);
     double upper_bounds[n_variables];
     double lower_bounds[n_variables];
@@ -35,8 +35,8 @@ void preprocessing_model_create(Tsp_prob *instance) {
     char **variables_names = (char **) calloc(n_variables, sizeof(char *));
 
     int coord = 0;
-    for (int i = 0; i < nnode; i++) {
-        for (int j = i + 1; j < nnode; j++) {
+    for (int i = 0; i < n_node; i++) {
+        for (int j = i + 1; j < n_node; j++) {
             coord = xpos(i, j, instance);
             upper_bounds[coord] = 1.0;
             lower_bounds[coord] = 0.0;
@@ -66,15 +66,15 @@ void preprocessing_model_create(Tsp_prob *instance) {
                        objective_coeffs, lower_bounds, upper_bounds, variable_type, variables_names);
     print_GRB_error(error, env, "Error in adding variables.\n");
 
-    int indexes[nnode - 1];
-    double coefficients[nnode - 1];
+    int indexes[n_node - 1];
+    double coefficients[n_node - 1];
     int k = 0;
     double rhs = 2.0;
     char *constr_name = (char *) calloc(100, sizeof(char));
 
-    for (int i = 0; i < nnode; i++) {
+    for (int i = 0; i < n_node; i++) {
         k = 0;
-        for (int j = 0; j < nnode; j++) {
+        for (int j = 0; j < n_node; j++) {
             if (i != j) {
                 indexes[k] = xpos(i, j, instance);
                 coefficients[k] = 1.0;
@@ -82,7 +82,7 @@ void preprocessing_model_create(Tsp_prob *instance) {
             }
         }
         sprintf(constr_name, "deg(%d)", i+1);
-        error = GRBaddconstr(model, nnode - 1, indexes, coefficients, GRB_EQUAL, rhs, constr_name);
+        error = GRBaddconstr(model, n_node - 1, indexes, coefficients, GRB_EQUAL, rhs, constr_name);
         print_GRB_error(error, env, "Error in adding constraint.\n");
     }
 

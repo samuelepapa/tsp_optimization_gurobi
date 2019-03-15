@@ -9,11 +9,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "utils.h"
-#include "tsp.h"
-#include "plotGraph.h"
-#include "inputOutput.h"
-#include "tspMTZ.h"
+#include "Utils.h"
+#include "Tsp.h"
+#include "Plot_graph.h"
+#include "Input_output.h"
+#include "Tsp_MTZ.h"
 
 int main(int argc, char **argv) {
 

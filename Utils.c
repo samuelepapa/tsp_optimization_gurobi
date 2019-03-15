@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
-#include "utils.h"
+#include "Utils.h"
 
 /**
  * Used to free the solution array, if size is negative returns with no error. This is a "private" function.
@@ -69,17 +69,7 @@ int dist_from_geo(double i_latitude, double j_latitude, double i_longitude, doub
  *  3 = CEIL_2D      : weights are Euclidean distances in 2-D rounded up
  *  4 = GEO          : weights are geographical distances
  *  5 = ATT          : special distance function for problems att48 and att532 (pseudo-Euclidean)
- *  6 = EXPLICIT     : weights are listed explicitly in the corresponding section
- *
- *  other weight value:
- *
-    * 7 = EUC_3D       : weights are Euclidean distances in 3-D
-    * 8 = MAX_3D       : weights are maximum distances in 3-D
-    * 9 = MAN_3D       : weights are Manhattan distances in 3-D
-    * 10 = XRAY1       : special distance function for crystallography problems(version1)
-    * 11 = XRAY2       : special distance function for crystallography problems (version2)
-    * 12 = SPECIAL     : there is a special distance function documented elsewhere
-    */
+ */
 int distance(int i, int j, Tsp_prob *instance) {
 
     double xd = instance->coord_x[i] - instance->coord_x[j]; //x coordinates difference
@@ -125,11 +115,6 @@ int distance(int i, int j, Tsp_prob *instance) {
             } else {
                 return tij;
             }
-        }
-
-        case 6: {
-            printf("%s\n", "Weight value is explicit.");
-            break;
         }
 
         default: {
