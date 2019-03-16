@@ -54,6 +54,7 @@ void preprocessing_MTZ_model_create(Tsp_prob *instance) {
     double obj_coeff[n_variables];
     int optim_status;
     double obj_val;
+    double sol;
 
     char **variables_names = (char **) calloc(n_variables, sizeof(char *));
 
@@ -213,7 +214,7 @@ of 3, lazy constraints that cut off the relaxation solution at the root node are
 
 
     /*Add MTZ lazy constraints: u(j) >= u(i) +1 - M * (1 - y(i,j))*/
-    int M = n_nodes - 1;
+    int M = n_nodes;
     int MTZ_index[3];
     double MTZ_value[3] = {1.0, -1.0, M};
 
@@ -265,7 +266,7 @@ of 3, lazy constraints that cut off the relaxation solution at the root node are
         quit(env, MTZ_model, error);
     }
 
-    /* Capture solution information */
+    /* Capture solution informations */
     error = GRBgetintattr(MTZ_model, GRB_INT_ATTR_STATUS, &optim_status);
     if (error) {
         quit(env, MTZ_model, error);
@@ -276,11 +277,17 @@ of 3, lazy constraints that cut off the relaxation solution at the root node are
         quit(env, MTZ_model, error);
     }
 
-     /*error = GRBgetdblattrarray(model, GRB_DBL_ATTR_X, 0, 2, sol);
-     * if (error) {
+    /*error = GRBgetdblattrarray(MTZ_model, GRB_DBL_ATTR_X, 0, n_nodes, &sol);
+    if (error) {
         quit(env, MTZ_model, error);
     }*/
+    /*print solution in a file*/
+    error = GRBwrite(MTZ_model, "MTZ_solution.sol");
+    if (error) {
+        quit(env, MTZ_model, error);
+    }
 
+    /*print solution informations*/
     printf("\nOptimization complete\n");
     if (optim_status == GRB_OPTIMAL) {
         printf("Optimal objective: %.4e\n", obj_val);

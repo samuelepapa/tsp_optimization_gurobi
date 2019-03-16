@@ -110,7 +110,7 @@ int distance(int i, int j, Tsp_prob *instance) {
         case 5: {
             double rij = sqrt((xd*xd + yd*yd) / 10.0);
             int tij = nint(rij);
-            if(tij > rij) {
+            if(tij < rij) {
                 return tij + 1;
             } else {
                 return tij;

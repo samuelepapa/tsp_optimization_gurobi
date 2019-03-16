@@ -110,15 +110,14 @@ void plot_solution(Tsp_prob *instance) {
     FILE *gnuplot_pipe = popen("gnuplot -persistent", "w");
 
     //set teminal type with parameters, size in inch
-    fprintf(gnuplot_pipe, "%s\n", "set terminal postscript portrait size 10, 8 \
-enhanced color \"Helvetica\" 6");
+    fprintf(gnuplot_pipe, "%s\n", "set terminal postscript portrait size 10, 8 enhanced color \"Helvetica\" 6");
 
     //fprintf(gnuplot_pipe, "%s \n", "set size 1,1"); //set size of canvas
 
     //output file
     fprintf(gnuplot_pipe, "%s\n", "set output 'path.eps'");
 
-    //fprintf(gnuplot_pipe, "%s\n", "set title 'Graph nodes'"); //plot title
+    //fprintf(gnuplot_pipe, "%s\n", "set title 'TSP"); //plot title
 
     //fprintf(gnuplot_pipe, "%s\n", "set xlabel 'X'");
 
