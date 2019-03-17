@@ -49,4 +49,9 @@ typedef struct{
 
 } Tsp_prob;
 
+typedef struct{
+  int **solution;
+  int size;
+}Solution_list;
+
 #endif //UNTITLED_COMMON_H

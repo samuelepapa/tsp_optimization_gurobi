@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include "utils.h"
 #include "tsp_MTZ.h"
+#include "input_output.h"
 
 int ypos(int i, int j, Tsp_prob *instance);
 int upos(int i, Tsp_prob *instance);
@@ -161,7 +162,7 @@ void MTZ_model_create(Tsp_prob *instance) {
     double MTZ_value[3] = {1.0, -1.0, M};
 
 
-    for (int i = 0; i < n_nodes; i++) {
+    for (int i = 1; i < n_nodes; i++) {
         for (int j = 1; j < n_nodes; j++) {
             if(i != j) {
                 MTZ_index[0] = upos(i, instance);
@@ -213,6 +214,8 @@ void MTZ_model_create(Tsp_prob *instance) {
     } else {
         printf("Optimization was stopped early\n");
     }
+
+    plot_solution(instance, MTZ_model, env, &ypos);
 
     /*free memory*/
     free(constr_name);

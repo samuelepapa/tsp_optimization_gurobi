@@ -6,7 +6,17 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "input_output.h"
+#include "utils.h"
+#include "plot_graph.h"
 
+#define MODEL_TOLERANCE 10E-4
+
+/**
+ * Adds an edge to the solution array. If the size is negative an error is triggered, and exits with 1.
+ * @param instance The Tsp_prob instance where to add the edge.
+ * @param edge The edge to be added, allocate memory before passing the pointer.
+ */
+void add_edge_to_solution(Solution_list *edges_list, int *edge);
 
 void parse_input(int argc, char **argv, Tsp_prob *instance) {
     int c;
@@ -275,7 +285,67 @@ int init_instance(Tsp_prob *instance) {
     //TODO parse strange files too
     return valid_instance;
 }
+void add_edge_to_solution(Solution_list *edges_list, int *edge) {
+    if(edge == NULL){
+        printf("The edge is NULL, allocate it before passing it as argument. \n");
+        exit(1);
+    }
+    if(edges_list->size == 0){
+        edges_list->solution = calloc(1, sizeof(int *));
+        edges_list->size = 1;
+    }else if(edges_list->size > 0) {
+        edges_list->size += 1;
+        edges_list->solution = realloc(edges_list->solution, edges_list->size * sizeof(int *));
+    }else{
+        printf("Error while adding edge to solution, the size is negative. \n");
+        exit(1);
+    }
+    edges_list->solution[edges_list->size - 1] = edge;
+}
 
-int plot_solution(GRBmodel *model, GRBenv *env){
+void free_solution_list(Solution_list *edges_list){
+    if(edges_list->size < 0){
+        printf("Solution array was not initialized (sol size is negative).\n");
+        return;
+    }
+    for(int i = 0; i< edges_list->size; i++){
+        free(edges_list->solution[i]);
+    }
+
+    //no free on edge_list because we assume that it was statically allocated
+}
+int plot_solution(Tsp_prob *instance, GRBmodel *model, GRBenv *env, int (*var_pos)(int, int, Tsp_prob*)){
+    //this function assumes that var_pos converts coordinates into the correct identifier in the GRB model
+    int nedges = (instance->nnode)*(instance->nnode);
+    Solution_list edges_list={
+            .size = 0
+    };
+
+    int index = -1;
+    int error = 0;
+
+    double sol;
+    for(int i = 0; i<instance->nnode; i++){
+        for( int j = 0; j<instance->nnode; j++){
+            sol = 0;
+            index = (*var_pos)(i,j,instance);
+            if(index == -1){
+                //this is a tsp where self edges are not defined
+                continue;
+            }
+            error = GRBgetdblattrelement(model, "X",index, &sol);
+            quit_on_GRB_error(env, model, error);
+            if(sol>1-MODEL_TOLERANCE){
+                int *edge = calloc(2, sizeof(int));
+                edge[0] = i;
+                edge[1] = j;
+                add_edge_to_solution(&edges_list, edge);
+            }
+        }
+    }
+
+    plot_edges(&edges_list, instance);
+
+    //free_solution_list(&edges_list);
 
 }

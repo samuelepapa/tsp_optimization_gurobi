@@ -11,10 +11,20 @@
 #include <unistd.h>
 #include "tsp.h"
 #include "utils.h"
+#include "input_output.h"
 
 #define MAX_VARNAME_SIZE 100
 
 int varname_to_varnum(Tsp_prob *instance, char *varname);
+
+/**
+ * Mapping between points of an edge and position in GRB model
+ * @param i First point
+ * @param j Second point
+ * @param instance The pointer to the problem instance
+ * @return The memory position
+ */
+int xpos(int i, int j, Tsp_prob * instance);
 
 
 void model_create(Tsp_prob *instance) {
@@ -106,11 +116,13 @@ void model_create(Tsp_prob *instance) {
     error = GRBwrite(model, "solution.sol");
     quit_on_GRB_error(env, model, error);
 
-    parse_solution_file(instance, "solution.sol");
+    //parse_solution_file(instance, "solution.sol");
 
-    for(int j = 0; j< instance->solution_size; j++){
+    /*for(int j = 0; j< instance->solution_size; j++){
         printf("SOL %d = (%d, %d)\n", j, instance->solution[j][0],instance->solution[j][1] );
-    }
+    }*/
+
+    plot_solution(instance,model, env, &xpos);
 
     //Freeing memory
     free(constr_name);
@@ -120,7 +132,7 @@ void model_create(Tsp_prob *instance) {
     free(variables_names);
 
 }
-
+/*
 int parse_solution_file(Tsp_prob *instance, char *filename) {
     //opening file
     FILE *solution_file = fopen(filename, "r");
@@ -177,7 +189,7 @@ int parse_solution_file(Tsp_prob *instance, char *filename) {
     }
     return valid_file;
 }
-
+*/
 int varname_to_varnum(Tsp_prob *instance, char *varname) {
     char *number;
     char *buffer = (char *) calloc(30, sizeof(char));
@@ -239,4 +251,16 @@ int string_to_coords(char *varname, int *edge) {
     free(buffer);
 
     return 1;
+}
+
+int xpos(int i, int j, Tsp_prob * instance){
+    if(i==j) {
+        //printf("Index i=j\n");
+        //exit(1);
+        return -1;
+    }
+    if(i>j){
+        return xpos(j,i,instance);
+    }
+    return i*instance->nnode + j - ((i+1)*(i+2))/2;
 }

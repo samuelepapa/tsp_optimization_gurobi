@@ -19,6 +19,9 @@ void parse_input(int argc, char **argv, Tsp_prob *instance);
  */
 int init_instance(Tsp_prob *instance);
 
+
+int plot_solution(Tsp_prob *instance, GRBmodel *model, GRBenv *env, int (*var_pos)(int, int, Tsp_prob*));
+
 // print the help text for command line
 void print_help();
 #endif //TSP_OPTIMIZATION_GUROBI_INPUTOUTPUT_H
