@@ -201,7 +201,7 @@ of 3, lazy constraints that cut off the relaxation solution at the root node are
 
     /*Add MTZ lazy constraints: u(j) >= u(i) +1 - M * (1 - y(i,j))*/
     // u(i) - u(j) + M * y(i,j) <= M - 1
-    int M = n_nodes;
+    int M = n_nodes - 1;
     int MTZ_index[3];
     double MTZ_value[3] = {1.0, -1.0, M};
 
