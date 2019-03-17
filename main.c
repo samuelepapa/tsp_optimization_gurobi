@@ -9,11 +9,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "Utils.h"
-#include "Tsp.h"
-#include "Plot_graph.h"
-#include "Input_output.h"
-#include "Tsp_MTZ.h"
+#include "utils.h"
+#include "tsp.h"
+#include "plot_graph.h"
+#include "input_output.h"
+#include "tsp_MTZ.h"
 
 int main(int argc, char **argv) {
 
@@ -40,10 +40,10 @@ int main(int argc, char **argv) {
 
         plot_instance(&instance);
 
-        //preprocessing_model_create(&instance);
-        preprocessing_MTZ_model_create(&instance);
+        //model_create(&instance);
+        MTZ_model_create(&instance);
 
-        //plot_solution(&instance);
+        //plot_edges(&instance);
 
         close_instance(&instance);
 

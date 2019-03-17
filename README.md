@@ -8,10 +8,23 @@ We study how to find an optimal solution to the Travelling Salesman problem usin
 ### Style guidelines
 Underscore to name variable `name_of_variable`.
  
-Classes with `Uppercase_underscore_style`.
+Structs with `Uppercase_underscore_style`.
 
 Every library should have a header where functions usable by other executables are declared. Functions used inside the 
 same file can be declared and used there directly
+
+[C GNU styleguide](https://www.gnu.org/prep/standards/html_node/Writing-C.html)
+
+### Model definition
+
+First define the environment, the model. Then start by adding all variables, specifying the 
+necessary variables (define everything in arrays), add then the constraints. Print the model
+on file.
+
+Second, optimize the model, here maybe parameters can be changed, the model is ready, 
+so isolation is achieved.
+
+Third, plot solution found. Investigate whether solution can be plotted while it is being found.
 
 ### TODO
 * Make plot_instance work using call to GRB function (use tolerance).
@@ -19,4 +32,4 @@ same file can be declared and used there directly
 * Make code work with more types of files of input.
 * Define help text for command line.
 * Fix folder structure.
-* Time limit option.
+* Labels on edges.

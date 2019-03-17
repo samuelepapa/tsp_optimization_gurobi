@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "common.h"
-#include "Plot_graph.h"
+#include "plot_graph.h"
 
 void plot_instance(Tsp_prob *inst) {
 
@@ -62,7 +62,7 @@ enhanced color \"Helvetica\" 8");
  *
  * */
 
-void plot_solution(Tsp_prob *instance) {
+void plot_edges(Tsp_prob *instance) {
 
     printf("\n%s\n", "--start plot_path method");
 

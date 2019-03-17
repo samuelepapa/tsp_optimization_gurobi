@@ -4,43 +4,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "Utils.h"
-#include "Tsp_MTZ.h"
+#include "utils.h"
+#include "tsp_MTZ.h"
 
-int ypos(int i, int j, Tsp_prob *instance){
+int ypos(int i, int j, Tsp_prob *instance);
+int upos(int i, Tsp_prob *instance);
 
-    return i*instance->nnode + j;
-}
 
-int upos(int i, Tsp_prob *instance) {
-    int latest_y_pos = ypos(instance->nnode - 1, instance->nnode - 1, instance);
-    return latest_y_pos + 1 + i;
-}
-
-void print_GRB_error(int error, GRBenv *env, char *msg) {
-    if (error) {
-        printf("%s\n", msg);
-        printf("%s\n", GRBgeterrormsg(env));
-        exit(1);
-    }
-}
-
-void quit(GRBenv *env, GRBmodel *model, int error) {
-
-    /*error reporting*/
-    if(error) {
-        printf("ERROR: %s\n", GRBgeterrormsg(env));
-        exit(1);
-    }
-
-    /*free model*/
-    GRBfreemodel(model);
-
-    /*free environment*/
-    GRBfreeenv(env);
-}
-
-void preprocessing_MTZ_model_create(Tsp_prob *instance) {
+void MTZ_model_create(Tsp_prob *instance) {
     GRBenv *env = NULL;
     GRBmodel *MTZ_model = NULL;
     int error = 0;
@@ -96,9 +67,7 @@ void preprocessing_MTZ_model_create(Tsp_prob *instance) {
     }
 
     /*error = GRBaddvars(MTZ_model, n_nodes, 0, NULL, NULL, NULL, u_obj_val, u_low_bound, u_up_bound, u_type, u_name);
-    if (error) {
-        quit(env, MTZ_model, error);
-    }*/
+    quit_on_GRB_error(env, MTZ_model, error);*/
 
 
     /*create environment*/
@@ -111,21 +80,15 @@ void preprocessing_MTZ_model_create(Tsp_prob *instance) {
     /*Create an empty model*/
     error = GRBnewmodel(env, &MTZ_model, "MTZ", 0, NULL, NULL, NULL, NULL, NULL);
 
-    if(error) {
-        quit(env, MTZ_model, error);
-    }
+    quit_on_GRB_error(env, MTZ_model, error);
 
     /* Change objective sense to maximization */
     /*error = GRBsetintattr(MTZ_model, GRB_INT_ATTR_MODELSENSE, GRB_MAXIMIZE);
-    if (error) {
-        quit(env, MTZ_model, error);
-    }*/
+    quit_on_GRB_error(env, MTZ_model, error);*/
 
     /*Add objective function elements*/
     error = GRBaddvars(MTZ_model, n_variables, 0, NULL, NULL, NULL, obj_coeff, low_bound, up_bound, var_type, variables_names);
-    if (error) {
-        quit(env, MTZ_model, error);
-    }
+    quit_on_GRB_error(env, MTZ_model, error);
 
     /***********
      * CONSTRAINTS
@@ -146,9 +109,7 @@ void preprocessing_MTZ_model_create(Tsp_prob *instance) {
 
         sprintf(constr_name, "indeg(%d)", h + 1);
         error = GRBaddconstr(MTZ_model, n_nodes, constr_index, constr_value, GRB_EQUAL, rhs, constr_name);
-        if (error) {
-            quit(env, MTZ_model, error);
-        }
+        quit_on_GRB_error(env, MTZ_model, error);
         index_cur_constr++;
     }
 
@@ -161,9 +122,7 @@ void preprocessing_MTZ_model_create(Tsp_prob *instance) {
 
         sprintf(constr_name, "outdeg(%d)", h + 1);
         error = GRBaddconstr(MTZ_model, n_nodes, constr_index, constr_value, GRB_EQUAL, rhs, constr_name);
-        if (error) {
-            quit(env, MTZ_model, error);
-        }
+        quit_on_GRB_error(env, MTZ_model, error);
         index_cur_constr++;
     }
 
@@ -171,9 +130,9 @@ void preprocessing_MTZ_model_create(Tsp_prob *instance) {
 
     /*Add lazy constraints for y(i,j) + y(j, i) <= 1*/
     /*With a value of 1, the constraint can be used to cut off a feasible solution, but it won’t
-necessarily be pulled in if another lazy constraint also cuts off the solution. With a value of 2, all
-lazy constraints that are violated by a feasible solution will be pulled into the model. With a value
-of 3, lazy constraints that cut off the relaxation solution at the root node are also pulled in.
+    necessarily be pulled in if another lazy constraint also cuts off the solution. With a value of 2, all
+    lazy constraints that are violated by a feasible solution will be pulled into the model. With a value
+    of 3, lazy constraints that cut off the relaxation solution at the root node are also pulled in.
      */
 
     int var_index[2];
@@ -186,14 +145,10 @@ of 3, lazy constraints that cut off the relaxation solution at the root node are
             sprintf(constr_name, "lazy_constr_(%d,%d)", i+1, j+1);
 
             error = GRBaddconstr(MTZ_model, 2, var_index, constr_val, GRB_LESS_EQUAL, rhs, constr_name);
-            if (error) {
-                quit(env, MTZ_model, error);
-            }
+            quit_on_GRB_error(env, MTZ_model, error);
 
             error = GRBsetintattrelement(MTZ_model, "Lazy", index_cur_constr, 1);
-            if (error) {
-                quit(env, MTZ_model, error);
-            }
+            quit_on_GRB_error(env, MTZ_model, error);
             index_cur_constr++;
         }
     }
@@ -215,14 +170,10 @@ of 3, lazy constraints that cut off the relaxation solution at the root node are
                 sprintf(constr_name, "MTZ_constr_(%d,%d)", i+1, j+1);
 
                 error = GRBaddconstr(MTZ_model, 3, MTZ_index, MTZ_value, GRB_LESS_EQUAL, M - 1, constr_name);
-                if (error) {
-                    quit(env, MTZ_model, error);
-                }
+                quit_on_GRB_error(env, MTZ_model, error);
 
                 error = GRBsetintattrelement(MTZ_model, "Lazy", index_cur_constr, 1);
-                if (error) {
-                    quit(env, MTZ_model, error);
-                }
+                quit_on_GRB_error(env, MTZ_model, error);
                 index_cur_constr++;
             }
         }
@@ -230,42 +181,28 @@ of 3, lazy constraints that cut off the relaxation solution at the root node are
 
     /*consolidate the model parameters*/
     error = GRBupdatemodel(MTZ_model);
-    if (error) {
-        quit(env, MTZ_model, error);
-    }
+    quit_on_GRB_error(env, MTZ_model, error);
 
     /*write model in an  output file*/
     error = GRBwrite(MTZ_model, "output_MTZ_model.lp");
-    if (error) {
-        quit(env, MTZ_model, error);
-    }
+    quit_on_GRB_error(env, MTZ_model, error);
 
     /*launch gurobi solver with the selected model*/
     error = GRBoptimize(MTZ_model);
-    if (error) {
-        quit(env, MTZ_model, error);
-    }
+    quit_on_GRB_error(env, MTZ_model, error);
 
-    /* Capture solution informations */
+    /* Capture solution information */
     error = GRBgetintattr(MTZ_model, GRB_INT_ATTR_STATUS, &optim_status);
-    if (error) {
-        quit(env, MTZ_model, error);
-    }
+    quit_on_GRB_error(env, MTZ_model, error);
 
     error = GRBgetdblattr(MTZ_model, GRB_DBL_ATTR_OBJVAL, &obj_val);
-    if (error) {
-        quit(env, MTZ_model, error);
-    }
+    quit_on_GRB_error(env, MTZ_model, error);
 
     /*error = GRBgetdblattrarray(MTZ_model, GRB_DBL_ATTR_X, 0, n_nodes, &sol);
-    if (error) {
-        quit(env, MTZ_model, error);
-    }*/
+    quit_on_GRB_error(env, MTZ_model, error);*/
     /*print solution in a file*/
     error = GRBwrite(MTZ_model, "MTZ_solution.sol");
-    if (error) {
-        quit(env, MTZ_model, error);
-    }
+    quit_on_GRB_error(env, MTZ_model, error);
 
     /*print solution informations*/
     printf("\nOptimization complete\n");
@@ -285,4 +222,26 @@ of 3, lazy constraints that cut off the relaxation solution at the root node are
     }
 
     free(variables_names);
+}
+
+/**
+ * Formulation-specific transformation used to get the id of the edge in the model.
+ * @param i starting node
+ * @param j ending node
+ * @param instance the tsp instance
+ * @return the id of the variable that identifies the edge from i to j
+ */
+int ypos(int i, int j, Tsp_prob *instance){
+    return i*instance->nnode + j;
+}
+/**
+ * Formulation-specific transformation used to get the id of the variable used to eliminate sub-tours by forcing an
+ * ordered cycle.
+ * @param i the node
+ * @param instance the tsp instance
+ * @return the id of the variable which determines the position of node i in the cycle
+ */
+int upos(int i, Tsp_prob *instance) {
+    int latest_y_pos = ypos(instance->nnode - 1, instance->nnode - 1, instance);
+    return latest_y_pos + 1 + i;
 }

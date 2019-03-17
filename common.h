@@ -41,11 +41,12 @@ typedef struct{
 
     char *filename; //TODO free memory after allocation
 
-    int **solution;
+    int **solution; //TODO free memory after allocation
     int solution_size;
 
+    GRBenv *env;
+    GRBmodel *model;
+
 } Tsp_prob;
-
-
 
 #endif //UNTITLED_COMMON_H

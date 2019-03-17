@@ -8,11 +8,11 @@ include_directories(/opt/gurobi810/linux64/include)
 
 find_library(C_GUROBI_LIB NAMES libgurobi81.so PATHS /opt/gurobi810/linux64/lib)
 
-add_library(gnuplot STATIC Plot_graph.c)
-add_library(utils STATIC Utils.c)
-add_library(tsp STATIC Tsp.c)
-add_library(inputOutput STATIC Input_output.c)
-add_library(tspMTZ STATIC Tsp_MTZ.c)
+add_library(gnuplot STATIC plot_graph.c)
+add_library(utils STATIC utils.c)
+add_library(tsp STATIC tsp.c)
+add_library(inputOutput STATIC input_output.c)
+add_library(tspMTZ STATIC tsp_MTZ.c)
 
 add_executable(tsp_optimize main.c)
 

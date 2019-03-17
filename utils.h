@@ -37,4 +37,8 @@ void close_instance(Tsp_prob *instance);
  */
 void add_edge_to_solution(Tsp_prob * instance, int * edge);
 
+
+void quit_on_GRB_error(GRBenv *env, GRBmodel *model, int error);
+
+
 #endif //TSP_OPTIMIZATION_GUROBI_UTILS_H

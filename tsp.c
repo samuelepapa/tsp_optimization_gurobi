@@ -9,24 +9,20 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "Tsp.h"
-#include "Utils.h"
+#include "tsp.h"
+#include "utils.h"
 
 #define MAX_VARNAME_SIZE 100
-
-void print_GRB_error(int error, GRBenv *env, char *msg);
-
-int in_solution(Tsp_prob *instance, int node);
 
 int varname_to_varnum(Tsp_prob *instance, char *varname);
 
 
-void preprocessing_model_create(Tsp_prob *instance) {
+void model_create(Tsp_prob *instance) {
     GRBenv *env = NULL;
     GRBmodel *model = NULL;
     int error = 0;
     int n_node = instance->nnode;
-    int n_variables = (int) (0.5 * (n_node * n_node - n_node));
+    int n_variables = (int) (0.5 * (n_node * n_node - n_node)); //this number is always even
     printf("%d", n_variables);
     double upper_bounds[n_variables];
     double lower_bounds[n_variables];
@@ -35,6 +31,7 @@ void preprocessing_model_create(Tsp_prob *instance) {
     char **variables_names = (char **) calloc(n_variables, sizeof(char *));
 
     int coord = 0;
+    //Create variables
     for (int i = 0; i < n_node; i++) {
         for (int j = i + 1; j < n_node; j++) {
             coord = xpos(i, j, instance);
@@ -55,17 +52,21 @@ void preprocessing_model_create(Tsp_prob *instance) {
         printf("Error: couldn't create empty environment.\n");
         exit(1);
     }
-    print_GRB_error(error, env, "Error in environment creation.\n");
+    quit_on_GRB_error(env, model, error);
+
     error = GRBstartenv(env);
-    print_GRB_error(error, env, "Error in environment starting.\n");
+    quit_on_GRB_error(env, model, error);
 
     error = GRBnewmodel(env, &model, instance->name, 0, NULL, NULL, NULL, NULL, NULL);
-    print_GRB_error(error, env, "Error in creation of new model.\n");
+    quit_on_GRB_error(env, model, error);
 
+    //Add variables to model
     error = GRBaddvars(model, n_variables, 0, NULL, NULL, NULL,
                        objective_coeffs, lower_bounds, upper_bounds, variable_type, variables_names);
-    print_GRB_error(error, env, "Error in adding variables.\n");
+    quit_on_GRB_error(env, model, error);
 
+
+    //Define constraints
     int indexes[n_node - 1];
     double coefficients[n_node - 1];
     int k = 0;
@@ -83,27 +84,27 @@ void preprocessing_model_create(Tsp_prob *instance) {
         }
         sprintf(constr_name, "deg(%d)", i+1);
         error = GRBaddconstr(model, n_node - 1, indexes, coefficients, GRB_EQUAL, rhs, constr_name);
-        print_GRB_error(error, env, "Error in adding constraint.\n");
+        quit_on_GRB_error(env, model, error);
     }
 
     error = GRBupdatemodel(model);
-    print_GRB_error(error, env, "Error in updating the model.\n");
+    quit_on_GRB_error(env, model, error);
 
     error = GRBwrite(model, "output_model.lp");
-    print_GRB_error(error, env, "Error in output");
+    quit_on_GRB_error(env, model, error);
 
     error = GRBoptimize(model);
-    print_GRB_error(error, env, "Error in optimization.\n");
+    quit_on_GRB_error(env, model, error);
 
     double solution;
 
     error = GRBgetdblattr(model, GRB_DBL_ATTR_OBJVAL, &solution);
-    print_GRB_error(error, env, "Error in getting solution.\n");
+    quit_on_GRB_error(env, model, error);
 
     printf("Solution: %g\n", solution);
 
     error = GRBwrite(model, "solution.sol");
-    print_GRB_error(error, env, "Error in printing solution.\n");
+    quit_on_GRB_error(env, model, error);
 
     parse_solution_file(instance, "solution.sol");
 
@@ -111,24 +112,13 @@ void preprocessing_model_create(Tsp_prob *instance) {
         printf("SOL %d = (%d, %d)\n", j, instance->solution[j][0],instance->solution[j][1] );
     }
 
-}
-
-void print_GRB_error(int error, GRBenv *env, char *msg) {
-    if (error) {
-        printf("%s\n", msg);
-        printf("%s\n", GRBgeterrormsg(env));
-        exit(1);
+    //Freeing memory
+    free(constr_name);
+    for(int i = 0 ; i < sizeof(variables_names);i++){
+        free(variables_names[i]);
     }
-}
+    free(variables_names);
 
-int in_solution(Tsp_prob *instance, int node) {
-    int found = 0;
-    for (int i = 0; i < instance->solution_size; i++) {
-        if ((int) (instance->solution[i]) == node) {
-            found = 1;
-        }
-    }
-    return found;
 }
 
 int parse_solution_file(Tsp_prob *instance, char *filename) {

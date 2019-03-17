@@ -5,13 +5,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "Input_output.h"
+#include "input_output.h"
 
 
 void parse_input(int argc, char **argv, Tsp_prob *instance) {
     int c;
     size_t filename_length;
-    while ((c = getopt(argc, argv, "f:")) != -1) {
+    while ((c = getopt(argc, argv, "f:v::t::")) != -1) {
         switch (c) {
             case 'f':
                 filename_length = strlen(optarg);
@@ -23,7 +23,7 @@ void parse_input(int argc, char **argv, Tsp_prob *instance) {
                 //verbosity level
                 instance->verbosity = atoi(optarg);
                 break;
-            case 'tlim':
+            case 't':
                 //time limit
                 instance->time_limit = atof(optarg);
                 break;
@@ -218,7 +218,7 @@ int init_instance(Tsp_prob *instance) {
     }
 
     // This means that the dimension was given after the coordinates, or coordinates are missing
-    //For the moment this is useless
+    //For the moment this is useless, it tries to interpret different files
     /*
     if (instance->nnode > 0 && began_importing_coords == 0) {
         fseek(model_file, 0, SEEK_SET);
@@ -261,10 +261,10 @@ int init_instance(Tsp_prob *instance) {
     }
      */
 
-    /*if (began_importing_coords == 2 || instance->nnode < 1) {
-        printf("Unable to import coordinates, they or the dimension might be missing.\n");
+    if (instance->nnode < 1) {
+        printf("Unable to import dimension.\n");
         valid_instance = 0;
-    }*/
+    }
 
     /*for (int i = 0; i < instance->nnode; i++) {
         printf("i: %d X: %g, Y: %g \n", i + 1, instance->coord_x[i], instance->coord_y[i]);
@@ -274,4 +274,8 @@ int init_instance(Tsp_prob *instance) {
     fclose(model_file);
     //TODO parse strange files too
     return valid_instance;
+}
+
+int plot_solution(GRBmodel *model, GRBenv *env){
+
 }

@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
-#include "Utils.h"
+#include "utils.h"
 
 /**
  * Used to free the solution array, if size is negative returns with no error. This is a "private" function.
@@ -17,6 +17,22 @@
  */
 void free_solution_array(Tsp_prob * instance);
 
+
+void quit_on_GRB_error(GRBenv *env, GRBmodel *model, int error) {
+
+    if(error) {
+        /*error reporting*/
+        printf("ERROR: %s\n", GRBgeterrormsg(env));
+
+        /*free model*/
+        GRBfreemodel(model);
+
+        /*free environment*/
+        GRBfreeenv(env);
+        exit(1);
+    }
+
+}
 
 int xpos(int i, int j, Tsp_prob * instance){
     if(i==j) {
