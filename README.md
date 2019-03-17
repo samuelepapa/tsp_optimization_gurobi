@@ -27,7 +27,6 @@ so isolation is achieved.
 Third, plot solution found. Investigate whether solution can be plotted while it is being found.
 
 ### TODO
-* Make plot_instance work using call to GRB function (use tolerance).
 * Define level of verbosity for logging and take it as input.
 * Make code work with more types of files of input.
 * Define help text for command line.
