@@ -127,12 +127,15 @@ void preprocessing_MTZ_model_create(Tsp_prob *instance) {
         quit(env, MTZ_model, error);
     }
 
+    /***********
+     * CONSTRAINTS
+     ***********/
 
     int constr_index[n_nodes];
     double constr_value[n_nodes];
     double rhs = 1.0;
     char *constr_name = (char *) calloc(100, sizeof(char));
-    int indexNextConstraints = 0;
+    int index_cur_constr = 0;
 
     /*Add constraints for indegree*/
     for (int h = 0; h < n_nodes; h++) {
@@ -146,7 +149,7 @@ void preprocessing_MTZ_model_create(Tsp_prob *instance) {
         if (error) {
             quit(env, MTZ_model, error);
         }
-        indexNextConstraints++;
+        index_cur_constr++;
     }
 
     /*Add constraints for outdegree*/
@@ -161,7 +164,7 @@ void preprocessing_MTZ_model_create(Tsp_prob *instance) {
         if (error) {
             quit(env, MTZ_model, error);
         }
-        indexNextConstraints++;
+        index_cur_constr++;
     }
 
 
@@ -172,48 +175,32 @@ necessarily be pulled in if another lazy constraint also cuts off the solution. 
 lazy constraints that are violated by a feasible solution will be pulled into the model. With a value
 of 3, lazy constraints that cut off the relaxation solution at the root node are also pulled in.
      */
-    int constr_ind[2];
-    double constr_val[2] = {1.0, 1.0};
 
+    int var_index[2];
+    double constr_val[2] = {1.0, 1.0};
 
     for (int i = 0; i < n_nodes; i++) {
         for (int j = i+1; j < n_nodes; j++) {
-            constr_ind[0] = ypos(i, j, instance);
-            constr_ind[1] = ypos(j, i, instance);
+            var_index[0] = ypos(i, j, instance);
+            var_index[1] = ypos(j, i, instance);
             sprintf(constr_name, "lazy_constr_(%d,%d)", i+1, j+1);
 
-            error = GRBaddconstr(MTZ_model, 2, constr_ind, constr_val, GRB_LESS_EQUAL, rhs, constr_name);
+            error = GRBaddconstr(MTZ_model, 2, var_index, constr_val, GRB_LESS_EQUAL, rhs, constr_name);
             if (error) {
                 quit(env, MTZ_model, error);
             }
 
-            error = GRBsetintattrelement(MTZ_model, "Lazy", indexNextConstraints, 2);
+            error = GRBsetintattrelement(MTZ_model, "Lazy", index_cur_constr, 1);
             if (error) {
                 quit(env, MTZ_model, error);
             }
-            error = GRBupdatemodel(MTZ_model);
-            if (error) {
-                quit(env, MTZ_model, error);
-            }
-            indexNextConstraints++;
+            index_cur_constr++;
         }
     }
 
-    /*Add constrain y(i, i) = 0 <=> 0 <= y(i,i) <= 0*/
-
-    /*for (int i = 0; i < n_nodes; i++) {
-        constr_index[i] = ypos(i, i, instance);
-        constr_value[i] = 1.0;
-    }
-
-    error = GRBaddconstr(MTZ_model, n_nodes, constr_index, constr_value, GRB_EQUAL, 0.0, NULL);
-    if (error) {
-        quit(env, MTZ_model, error);
-    }*/
-
-
 
     /*Add MTZ lazy constraints: u(j) >= u(i) +1 - M * (1 - y(i,j))*/
+    // u(i) - u(j) + M * y(i,j) <= M - 1
     int M = n_nodes;
     int MTZ_index[3];
     double MTZ_value[3] = {1.0, -1.0, M};
@@ -232,21 +219,14 @@ of 3, lazy constraints that cut off the relaxation solution at the root node are
                     quit(env, MTZ_model, error);
                 }
 
-                error = GRBsetintattrelement(MTZ_model, "Lazy", indexNextConstraints, 2);
+                error = GRBsetintattrelement(MTZ_model, "Lazy", index_cur_constr, 1);
                 if (error) {
                     quit(env, MTZ_model, error);
                 }
-                error = GRBupdatemodel(MTZ_model);
-                if (error) {
-                    quit(env, MTZ_model, error);
-                }
-                indexNextConstraints++;
+                index_cur_constr++;
             }
         }
     }
-
-
-
 
     /*consolidate the model parameters*/
     error = GRBupdatemodel(MTZ_model);
