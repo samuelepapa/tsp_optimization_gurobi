@@ -67,6 +67,8 @@ int init_instance(Tsp_prob *instance) {
     int valid_instance = 1;
     //flag to check whether nnode was defined before importing coordinates
     int began_importing_coords = 0;
+
+    int useless_chars = 3;
     //scan entire file
     while (fgets(line, sizeof(line), model_file) != NULL) {
 
@@ -81,11 +83,17 @@ int init_instance(Tsp_prob *instance) {
             printf("param: %s\n", param);
 
             if (strncmp(param, "NAME", 4) == 0) {
-                // the -2 is due to first space and newline characters
-                str_len = strlen(pointer_to_line) - 3;
+                printf("pointer_line: |%c|\n", pointer_to_line[0]);
+                if(pointer_to_line[0] == ':'){
+                    useless_chars = 3;
+                }else if(pointer_to_line[0] == ' '){
+                    useless_chars = 2;
+                }
+                // the useless_chars is due to first space and newline characters
+                str_len = strlen(pointer_to_line) - useless_chars;
                 instance->name = calloc(str_len, 1);
                 //remove the first space
-                strncpy(instance->name, pointer_to_line + 2, str_len);
+                strncpy(instance->name, pointer_to_line + useless_chars - 1, str_len);
 
                 //There are still parameters to look at, if it was in coord input, change mode now
                 current_mode = 0;
@@ -93,19 +101,29 @@ int init_instance(Tsp_prob *instance) {
             }
 
             if (strncmp(param, "COMMENT", 7) == 0) {
-                // the -2 is due to first space and newline characters
-                str_len = strlen(pointer_to_line) - 3;
+                if(pointer_to_line[0] == ':'){
+                    useless_chars = 3;
+                }else if(pointer_to_line[0] == ' '){
+                    useless_chars = 2;
+                }
+                // the useless_chars is due to first space and newline characters
+                str_len = strlen(pointer_to_line) - useless_chars;
                 instance->comment = calloc(str_len, 1);
                 //remove the first space
-                strncpy(instance->comment, pointer_to_line + 2, str_len);
+                strncpy(instance->comment, pointer_to_line + useless_chars - 1, str_len);
 
                 current_mode = 0;
                 printf("param_content: |%s|\n", instance->comment);
             }
 
             if (strncmp(param, "TYPE", 4) == 0) {
-                str_len = strlen(pointer_to_line) - 3;
-                strncpy(buffer, pointer_to_line + 2, str_len);
+                if(pointer_to_line[0] == ':'){
+                    useless_chars = 3;
+                }else if(pointer_to_line[0] == ' '){
+                    useless_chars = 2;
+                }
+                str_len = strlen(pointer_to_line) - useless_chars;
+                strncpy(buffer, pointer_to_line + useless_chars + 1, str_len);
                 if (strncmp(buffer, "TSP", 3) == 0) {
                     instance->type = 0;
                 }
@@ -115,9 +133,14 @@ int init_instance(Tsp_prob *instance) {
             }
 
             if (strncmp(param, "DIMENSION", 9) == 0) {
-                str_len = strlen(pointer_to_line) - 3;
+                if(pointer_to_line[0] == ':'){
+                    useless_chars = 3;
+                }else if(pointer_to_line[0] == ' '){
+                    useless_chars = 2;
+                }
+                str_len = strlen(pointer_to_line) - useless_chars;
                 //remove the first space and copy in buffer
-                strncpy(buffer, pointer_to_line + 2, str_len);
+                strncpy(buffer, pointer_to_line + useless_chars - 1, str_len);
                 //convert to int safely (possible error catching in future)
                 instance->nnode = (int) strtol(buffer, NULL, 10);
 
@@ -136,8 +159,13 @@ int init_instance(Tsp_prob *instance) {
             *  5 = ATT          : special distance function for problems att48 and att532 (pseudo-Euclidean)
             */
             if (strncmp(param, "EDGE_WEIGHT_TYPE", 16) == 0) {
-                str_len = strlen(pointer_to_line) - 3;
-                strncpy(buffer, pointer_to_line + 2, str_len);
+                if(pointer_to_line[0] == ':'){
+                    useless_chars = 3;
+                }else if(pointer_to_line[0] == ' '){
+                    useless_chars = 2;
+                }
+                str_len = strlen(pointer_to_line) - useless_chars;
+                strncpy(buffer, pointer_to_line + useless_chars - 1, str_len);
 
                 if (strncmp(buffer, "EUC_2D", 6) == 0) {
                     instance->weight_type = 0;
@@ -316,7 +344,6 @@ void free_solution_list(Solution_list *edges_list){
 }
 int plot_solution(Tsp_prob *instance, GRBmodel *model, GRBenv *env, int (*var_pos)(int, int, Tsp_prob*)){
     //this function assumes that var_pos converts coordinates into the correct identifier in the GRB model
-    int nedges = (instance->nnode)*(instance->nnode);
     Solution_list edges_list={
             .size = 0
     };
@@ -346,6 +373,6 @@ int plot_solution(Tsp_prob *instance, GRBmodel *model, GRBenv *env, int (*var_po
 
     plot_edges(&edges_list, instance);
 
-    //free_solution_list(&edges_list);
+    free_solution_list(&edges_list);
 
 }

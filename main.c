@@ -34,7 +34,8 @@ int main(int argc, char **argv) {
 
     valid_instance = init_instance(&instance);
 
-    printf("weight type: %d", instance.weight_type);
+    printf("weight type: %d\n", instance.weight_type);
+    printf("nnodes: %d\n", instance.nnode);
 
     if (valid_instance) {
 

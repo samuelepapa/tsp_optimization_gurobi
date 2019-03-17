@@ -11,13 +11,6 @@
 #include <limits.h>
 #include "utils.h"
 
-/**
- * Used to free the solution array, if size is negative returns with no error. This is a "private" function.
- * @param instance the Tsp_prob instance where the solution is stored
- */
-void free_solution_array(Tsp_prob * instance);
-
-
 void quit_on_GRB_error(GRBenv *env, GRBmodel *model, int error) {
 
     if(error) {
