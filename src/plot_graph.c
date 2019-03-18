@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include "common.h"
 #include "plot_graph.h"
 
@@ -8,8 +11,14 @@ void plot_instance(Tsp_prob *inst) {
 
     printf("\n%s\n", "--start plot_instance method");
 
+    struct stat st = {0};
+
+    if (stat("graph", &st) == -1) {
+        mkdir("graph", 0700);
+    }
+
     //file to store the points coordinates
-    FILE *data = fopen("data.dat", "w");
+    FILE *data = fopen("graph/data.dat", "w");
 
     for(int i = 0; i < inst->nnode; i++) {
         fprintf(data, "%lf %lf %d\n", inst->coord_x[i], inst->coord_y[i], i+1);
@@ -30,7 +39,7 @@ enhanced color \"Helvetica\" 8");
     //fprintf(gnuplot_pipe, "%s \n", "set size 1,1"); //set size of canvas
 
     //output file
-    fprintf(gnuplot_pipe, "%s\n", "set output 'nodes.eps'");
+    fprintf(gnuplot_pipe, "%s\n", "set output 'graph/nodes.eps'");
 
     //fprintf(gnuplot_pipe, "%s\n", "set title 'Graph nodes'"); //plot title
 
@@ -50,9 +59,11 @@ enhanced color \"Helvetica\" 8");
     //fprintf(gnuplot_pipe, "%s\n", "set offset 1,1,1,1");
 
     //plot path with point style and label
-    fprintf(gnuplot_pipe, "%s\n", "plot 'data.dat' with labels point pointtype 7 offset char 1,-1.0 notitle");
+    fprintf(gnuplot_pipe, "%s\n", "plot 'graph/data.dat' with labels point pointtype 7 offset char 1,-1.0 notitle");
 
     pclose(gnuplot_pipe);
+
+    remove("graph/data.dat");
 
     printf("\n%s\n", "--plot completed");
 
@@ -147,8 +158,14 @@ void plot_edges(Solution_list *edges_list, Tsp_prob * instance) {
 
     printf("\n%s\n", "--start plot_path method");
 
+     struct stat st = {0};
+
+     if (stat("graph", &st) == -1) {
+         mkdir("graph", 0700);
+     }
+
     //file to store the points coordinates of the path
-    FILE *data = fopen("path.dat", "w");
+    FILE *data = fopen("graph/path.dat", "w");
 
     //FIRST SOLUTION
     for(int i = 0; i < edges_list->size; i++) {
@@ -175,7 +192,7 @@ void plot_edges(Solution_list *edges_list, Tsp_prob * instance) {
     //fprintf(gnuplot_pipe, "%s \n", "set size 1,1"); //set size of canvas
 
     //output file
-    fprintf(gnuplot_pipe, "%s\n", "set output 'path.eps'");
+    fprintf(gnuplot_pipe, "%s\n", "set output 'graph/path.eps'");
 
     //fprintf(gnuplot_pipe, "%s\n", "set title 'TSP"); //plot title
 
@@ -203,9 +220,11 @@ void plot_edges(Solution_list *edges_list, Tsp_prob * instance) {
 									linetype 1 linewidth 1" );
 
     //plot path with point style and label
-    fprintf(gnuplot_pipe, "%s\n", "plot 'path.dat' with linespoints linestyle 1, '' with labels offset char 1,-1.0 point pointtype 7 lc rgb '#0060ad' notitle");
+    fprintf(gnuplot_pipe, "%s\n", "plot 'graph/path.dat' with linespoints linestyle 1, '' with labels offset char 1,-1.0 point pointtype 7 lc rgb '#0060ad' notitle");
 
     pclose(gnuplot_pipe);
+
+    remove("graph/path.dat");
 
     printf("\n%s\n", "--plot completed");
 

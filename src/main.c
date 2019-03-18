@@ -41,8 +41,8 @@ int main(int argc, char **argv) {
 
         plot_instance(&instance);
 
-        //model_create(&instance);
-        MTZ_model_create(&instance);
+        model_create(&instance);
+        //MTZ_model_create(&instance);
 
         //plot_edges(&instance);
 
