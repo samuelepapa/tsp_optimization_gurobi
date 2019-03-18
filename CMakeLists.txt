@@ -3,6 +3,11 @@ project(tsp_optimization_gurobi)
 
 set(CMAKE_C_STANDARD 11)
 
+#set new path cmake output files
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/build/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/build/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/build/bin)
+
 #Bring the headers (.h) into the project
 include_directories(include)
 #Bring the source files (.c) into the project

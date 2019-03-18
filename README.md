@@ -5,6 +5,8 @@ the University of Padova during the 2018/2019 academic year.
 
 We study how to find an optimal solution to the Travelling Salesman problem using state-of-the-art software.
 
+### Run/Debug configurations
+In the program arguments of tsp_optimize configuration add -f ../ALL_tsp/name_of_tsp_data_file.tsp 
 ### Style guidelines
 Underscore to name variable `name_of_variable`.
  
