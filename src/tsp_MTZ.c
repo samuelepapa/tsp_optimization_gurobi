@@ -144,7 +144,7 @@ void MTZ_model_create(Tsp_prob *instance) {
             error = GRBaddconstr(MTZ_model, 2, var_index, constr_val, GRB_LESS_EQUAL, rhs, constr_name);
             quit_on_GRB_error(env, MTZ_model, error);
 
-            error = GRBsetintattrelement(MTZ_model, "Lazy", index_cur_constr, 1);
+            error = GRBsetintattrelement(MTZ_model, "Lazy", index_cur_constr, 2);
             quit_on_GRB_error(env, MTZ_model, error);
             index_cur_constr++;
         }
@@ -169,7 +169,7 @@ void MTZ_model_create(Tsp_prob *instance) {
                 error = GRBaddconstr(MTZ_model, 3, MTZ_index, MTZ_value, GRB_LESS_EQUAL, M - 1, constr_name);
                 quit_on_GRB_error(env, MTZ_model, error);
 
-                error = GRBsetintattrelement(MTZ_model, "Lazy", index_cur_constr, 1);
+                error = GRBsetintattrelement(MTZ_model, "Lazy", index_cur_constr, 2);
                 quit_on_GRB_error(env, MTZ_model, error);
                 index_cur_constr++;
             }

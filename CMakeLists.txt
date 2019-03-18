@@ -3,18 +3,23 @@ project(tsp_optimization_gurobi)
 
 set(CMAKE_C_STANDARD 11)
 
+#Bring the headers (.h) into the project
+include_directories(include)
+#Bring the source files (.c) into the project
+include_directories(src)
+#Bring the gurobi header into the project
 include_directories(/opt/gurobi810/linux64/include)
 #link_directories(/opt/gurobi810/linux64/lib)
 
 find_library(C_GUROBI_LIB NAMES libgurobi81.so PATHS /opt/gurobi810/linux64/lib)
 
-add_library(gnuplot STATIC plot_graph.c)
-add_library(utils STATIC utils.c)
-add_library(tsp STATIC tsp.c)
-add_library(inputOutput STATIC input_output.c)
-add_library(tspMTZ STATIC tsp_MTZ.c)
+add_library(gnuplot STATIC src/plot_graph.c)
+add_library(utils STATIC src/utils.c)
+add_library(tsp STATIC src/tsp.c)
+add_library(inputOutput STATIC src/input_output.c)
+add_library(tspMTZ STATIC src/tsp_MTZ.c)
 
-add_executable(tsp_optimize main.c)
+add_executable(tsp_optimize src/main.c)
 
 # for future use: m is the math.h library, it is not automatically linked by cmake
 target_link_libraries(tsp_optimize utils gnuplot tsp inputOutput tspMTZ m)
