@@ -343,6 +343,7 @@ void free_solution_list(Solution_list *edges_list){
     //no free on edge_list because we assume that it was statically allocated
 }
 int plot_solution(Tsp_prob *instance, GRBmodel *model, GRBenv *env, int (*var_pos)(int, int, Tsp_prob*)){
+    int valid_plot = 1;
     //this function assumes that var_pos converts coordinates into the correct identifier in the GRB model
     Solution_list edges_list={
             .size = 0
@@ -375,4 +376,5 @@ int plot_solution(Tsp_prob *instance, GRBmodel *model, GRBenv *env, int (*var_po
 
     free_solution_list(&edges_list);
 
+    return valid_plot;
 }
