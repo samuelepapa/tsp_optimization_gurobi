@@ -11,6 +11,13 @@
 #include <limits.h>
 #include "utils.h"
 
+
+/**
+ * Print the error message associated by error integer value and free the gurobi model and the gurobi environment
+ * @param env The pointer to the gurobi environment
+ * @param model The pointer to the gurobi model
+ * @param error Integer error value returned by the gurobi methods
+ */
 void quit_on_GRB_error(GRBenv *env, GRBmodel *model, int error) {
 
     if(error) {
@@ -27,12 +34,22 @@ void quit_on_GRB_error(GRBenv *env, GRBmodel *model, int error) {
 
 }
 
-
+/**
+ * Round the distance to the nearest integer value
+ * @param x Value of the distance
+ * @return Nearest integer value of x
+ */
 
 int nint(double x) {
     return (int) (x+0.5);
 }
 
+/**
+ * Select the maximum value between two number
+ * @param i First number
+ * @param j Second number
+ * @return Maximum value between i and j
+ */
 int max(int i, int j) {
     if(i >= j) {
         return i;
@@ -41,16 +58,29 @@ int max(int i, int j) {
     return j;
 }
 
+/**
+ * Convert coordinate value to geographical latitude or longitude
+ * @param coord Coordinate of the node
+ * @return Latitude or longitude value in radians
+ */
 double lat_long(double coord) {
 
     const double PI = 3.141592;
 
     int deg = nint(coord);
     double min = coord - deg;
-    return PI * (deg + 5.0 * min / 3.0) /180.0;
+    return PI * (deg + 5.0 * min / 3.0) / 180.0;
 
 }
 
+/**
+ * Compute distance between two different nodes
+ * @param i_latitude Latitude of the first node
+ * @param j_latitude Latitude of the second node
+ * @param i_longitude Longitude of the first node
+ * @param j_longitude Longitude of the second node
+ * @return Distance between two different nodes in kilometers
+ */
 int dist_from_geo(double i_latitude, double j_latitude, double i_longitude, double j_longitude) {
 
     const double RRR = 6378.388;
@@ -62,13 +92,11 @@ int dist_from_geo(double i_latitude, double j_latitude, double i_longitude, doub
 }
 
 /**
- * for symmetric travelling salesman problems:
- *  0 = EUC_2D       : weights are Euclidean distances in 2-D
- *  1 = MAX_2D       : weights are maximum distances in 2-D
- *  2 = MAN_2D       : weights are Manhattan distances in 2-D
- *  3 = CEIL_2D      : weights are Euclidean distances in 2-D rounded up
- *  4 = GEO          : weights are geographical distances
- *  5 = ATT          : special distance function for problems att48 and att532 (pseudo-Euclidean)
+ * Compute the distance between two points in two dimensions with the method described in the weight_type value of instance
+ * @param i First point
+ * @param j Second point
+ * @param instance The pointer to the problem instance
+ * @return The distance value from i to j
  */
 int distance(int i, int j, Tsp_prob *instance) {
 
@@ -76,27 +104,27 @@ int distance(int i, int j, Tsp_prob *instance) {
     double yd = instance->coord_y[i] - instance->coord_y[j]; //y coordinates difference
 
     switch (instance->weight_type) {
-        case 0:{
+        case 0:{ //Euclidean distances in 2-D
             return nint(sqrt(xd*xd + yd*yd));
         }
 
-        case 1: {
+        case 1: { //Maximum distances in 2-D
             double x = abs(xd);
             double y = abs(yd);
             return max(nint(x), nint(y));
         }
 
-        case 2: {
+        case 2: { //Manhattan distances in 2-D
             double x = abs(xd);
             double y = abs(yd);
             return nint(x + y);
         }
 
-        case 3: {
+        case 3: { //Euclidean distances in 2-D rounded up
             return (int) ceil(sqrt(xd*xd + yd*yd));
         }
 
-        case 4: {
+        case 4: { //Geographical distances
 
             double i_latitude = lat_long(instance->coord_x[i]);
             double j_latitude = lat_long(instance->coord_x[j]);
@@ -107,7 +135,7 @@ int distance(int i, int j, Tsp_prob *instance) {
             return dist_from_geo(i_latitude, j_latitude, i_longitude, j_longitude);
         }
 
-        case 5: {
+        case 5: { //Special distance function for problems att48 and att532 (pseudo-Euclidean)
             double rij = sqrt((xd*xd + yd*yd) / 10.0);
             int tij = nint(rij);
             if(tij < rij) {
@@ -124,9 +152,10 @@ int distance(int i, int j, Tsp_prob *instance) {
     }
 }
 
-
-
-
+/**
+ * Free memory to avoid leaks, assumes instance is initialized as variable, not dinamically allocated
+ * @param instance The pointer to the problem instance
+ */
 void close_instance(Tsp_prob *instance) {
     free(instance->name);
     free(instance->comment);
@@ -135,5 +164,4 @@ void close_instance(Tsp_prob *instance) {
     free(instance->coord_x);
     //free(instance->weight_matrix);
     //free(instance->solution);
-
 }

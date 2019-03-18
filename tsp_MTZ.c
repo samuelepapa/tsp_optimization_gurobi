@@ -127,10 +127,9 @@ void MTZ_model_create(Tsp_prob *instance) {
 
 
     /*Add lazy constraints for y(i,j) + y(j, i) <= 1*/
-    /*With a value of 1, the constraint can be used to cut off a feasible solution, but it won’t
-    necessarily be pulled in if another lazy constraint also cuts off the solution. With a value of 2, all
-    lazy constraints that are violated by a feasible solution will be pulled into the model. With a value
-    of 3, lazy constraints that cut off the relaxation solution at the root node are also pulled in.
+    /*With a value of 1, the constraint can be used to cut off a feasible solution, but it won’t necessarily be pulled in if another lazy constraint also cuts off the solution.
+     With a value of 2, all lazy constraints that are violated by a feasible solution will be pulled into the model.
+     With a value of 3, lazy constraints that cut off the relaxation solution at the root node are also pulled in.
      */
 
     int var_index[2];

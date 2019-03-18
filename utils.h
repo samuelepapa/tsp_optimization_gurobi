@@ -21,7 +21,12 @@ int distance(int i, int j, Tsp_prob *instance);
  */
 void close_instance(Tsp_prob *instance);
 
-
+/**
+ * Print the error message associated by error integer value and free the gurobi model and the gurobi environment
+ * @param env The pointer to the gurobi environment
+ * @param model The pointer to the gurobi model
+ * @param error Integer error value returned by the gurobi methods
+ */
 void quit_on_GRB_error(GRBenv *env, GRBmodel *model, int error);
 
 
