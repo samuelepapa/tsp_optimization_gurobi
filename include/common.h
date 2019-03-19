@@ -34,6 +34,8 @@ typedef struct{
      *  5 = ATT          : special distance function for problems att48 and att532 (pseudo-Euclidean)
      */
 
+    int model_type;
+
     double *coord_x; //list of x coordinates //TODO free memory after allocation
     double *coord_y; //list of y coordinates //TODO free memory after allocation
 

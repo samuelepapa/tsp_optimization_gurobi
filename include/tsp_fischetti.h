@@ -1,0 +1,6 @@
+#ifndef TSP_OPTIMIZATION_GUROBI_TSP_FISCHETTI_H
+#define TSP_OPTIMIZATION_GUROBI_TSP_FISCHETTI_H
+
+void fischetti_model_create(Tsp_prob *instance);
+
+#endif //TSP_OPTIMIZATION_GUROBI_TSP_FISCHETTI_H

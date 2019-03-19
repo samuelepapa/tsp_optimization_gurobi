@@ -18,10 +18,12 @@
  */
 void add_edge_to_solution(Solution_list *edges_list, int *edge);
 
+int map_model_type(char *optarg);
+
 void parse_input(int argc, char **argv, Tsp_prob *instance) {
     int c;
     size_t filename_length;
-    while ((c = getopt(argc, argv, "f:v::t::")) != -1) {
+    while ((c = getopt(argc, argv, "f:v::t::m::")) != -1) {
         switch (c) {
             case 'f':
                 filename_length = strlen(optarg);
@@ -37,6 +39,9 @@ void parse_input(int argc, char **argv, Tsp_prob *instance) {
                 //time limit
                 instance->time_limit = atof(optarg);
                 break;
+            case 'm':
+                //type of model
+                instance->model_type = map_model_type(optarg);
             case '?':
                 printf("This is the guide.\n");
                 break;
@@ -342,6 +347,7 @@ void free_solution_list(Solution_list *edges_list){
 
     //no free on edge_list because we assume that it was statically allocated
 }
+
 int plot_solution(Tsp_prob *instance, GRBmodel *model, GRBenv *env, int (*var_pos)(int, int, Tsp_prob*)){
     int valid_plot = 1;
     //this function assumes that var_pos converts coordinates into the correct identifier in the GRB model
@@ -377,4 +383,29 @@ int plot_solution(Tsp_prob *instance, GRBmodel *model, GRBenv *env, int (*var_po
     free_solution_list(&edges_list);
 
     return valid_plot;
+}
+
+/**
+ * Map model type string value in integer value
+ * @param optarg Pointer to the value associated to -m value in input
+ * @return Integer value to the string
+ *
+ * The integer values are:
+ * 0 for the standard TSP problem with subtour elimination constraints
+ * 1 for the TSP problem with Miller, Tucker and Zemlin (MTZ) method
+ * 2 for the TSP problem with MAtteo Fischetti lecture method
+ */
+int map_model_type (char *optarg) {
+
+    if(strncmp(optarg, "str", 3) == 0) {
+        return 0;
+    }
+
+    if(strncmp(optarg, "mtz", 3) == 0) {
+        return 1;
+    }
+
+    if(strncmp(optarg, "fischetti", 9) == 0) {
+        return 2;
+    }
 }

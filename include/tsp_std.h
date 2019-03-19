@@ -5,7 +5,7 @@
 #ifndef TSP_OPTIMIZATION_GUROBI_TSP_H
 #define TSP_OPTIMIZATION_GUROBI_TSP_H
 
-void model_create(Tsp_prob *instance);
+void tsp_model_create(Tsp_prob *instance);
 
 /**
  * Used to parse a solution file in the .sol format

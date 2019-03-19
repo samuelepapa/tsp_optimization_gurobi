@@ -9,7 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "tsp.h"
+#include "tsp_std.h"
 #include "utils.h"
 #include "input_output.h"
 
@@ -27,7 +27,7 @@ int varname_to_varnum(Tsp_prob *instance, char *varname);
 int xpos(int i, int j, Tsp_prob * instance);
 
 
-void model_create(Tsp_prob *instance) {
+void tsp_model_create(Tsp_prob *instance) {
     GRBenv *env = NULL;
     GRBmodel *model = NULL;
     int error = 0;

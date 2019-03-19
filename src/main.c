@@ -10,10 +10,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "utils.h"
-#include "tsp.h"
+#include "tsp_std.h"
 #include "plot_graph.h"
 #include "input_output.h"
-#include "tsp_MTZ.h"
+#include "tsp_mtz.h"
 
 int main(int argc, char **argv) {
 
@@ -41,8 +41,9 @@ int main(int argc, char **argv) {
 
         plot_instance(&instance);
 
-        model_create(&instance);
-        //MTZ_model_create(&instance);
+        tsp_model_create(&instance);
+        //mtz_model_create(&instance);
+        //fischetti_model_create(&instance)
 
         //plot_edges(&instance);
 

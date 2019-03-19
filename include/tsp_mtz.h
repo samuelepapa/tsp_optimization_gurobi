@@ -1,6 +1,6 @@
 #ifndef TSP_OPTIMIZATION_GUROBI_TSPMTZ_H
 #define TSP_OPTIMIZATION_GUROBI_TSPMTZ_H
 
-void MTZ_model_create(Tsp_prob *instance);
+void mtz_model_create(Tsp_prob *instance);
 
 #endif //TSP_OPTIMIZATION_GUROBI_TSPMTZ_H

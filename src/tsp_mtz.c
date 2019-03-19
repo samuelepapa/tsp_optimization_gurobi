@@ -5,14 +5,14 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "utils.h"
-#include "tsp_MTZ.h"
+#include "tsp_mtz.h"
 #include "input_output.h"
 
 int ypos(int i, int j, Tsp_prob *instance);
 int upos(int i, Tsp_prob *instance);
 
 
-void MTZ_model_create(Tsp_prob *instance) {
+void mtz_model_create(Tsp_prob *instance) {
     GRBenv *env = NULL;
     GRBmodel *MTZ_model = NULL;
     int error = 0;
@@ -80,12 +80,10 @@ void MTZ_model_create(Tsp_prob *instance) {
 
     /*Create an empty model*/
     error = GRBnewmodel(env, &MTZ_model, "MTZ", 0, NULL, NULL, NULL, NULL, NULL);
-
     quit_on_GRB_error(env, MTZ_model, error);
 
     /*Add objective function elements*/
-    error = GRBaddvars(MTZ_model, n_variables, 0, NULL, NULL, NULL, obj_coeff, low_bound, up_bound, var_type,
-            variables_names);
+    error = GRBaddvars(MTZ_model, n_variables, 0, NULL, NULL, NULL, obj_coeff, low_bound, up_bound, var_type, variables_names);
     quit_on_GRB_error(env, MTZ_model, error);
 
     /***********
@@ -96,7 +94,7 @@ void MTZ_model_create(Tsp_prob *instance) {
     double constr_value[n_nodes];
     double rhs = 1.0;
     char *constr_name = (char *) calloc(100, sizeof(char));
-    int index_cur_constr = 0;
+    int index_cur_constr = 0; //count number of constraints, useful when I add lazy constraints
 
     /*Add constraints for indegree*/
     for (int h = 0; h < n_nodes; h++) {
