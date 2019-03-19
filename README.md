@@ -29,8 +29,6 @@ so isolation is achieved.
 Third, plot solution found. Investigate whether solution can be plotted while it is being found.
 
 ### TODO
-* Define level of verbosity for logging and take it as input.
+* Make appendix on Gurobi usage.
 * Make code work with more types of files of input.
 * Define help text for command line.
-* Fix folder structure.
-* Labels on edges.
