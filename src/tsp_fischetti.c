@@ -146,6 +146,60 @@ void fischetti_model_create(Tsp_prob *instance) {
 
     }
 
+    /*Define and add incompatibility case constraints*/
+    int constr_index[n_node - 1];
+    double constr_value[n_node - 1];
+    rhs = 2.0;
+
+    for (int i = 1; i < n_node; i++) {
+        for (int j = 1; j < n_node; j++) {
+            k = 0;
+            for (int h = 2; h < n_node; h++) {
+                for (int t = 1; t < n_node; t++) {
+                    if(t <= h) {
+                        constr_index[k] = zpos(i, t, instance);
+                        constr_value[k] = 1.0;
+                        k++;
+                    } else if(t >= h + 2) {
+                        constr_index[k] = zpos(j, t, instance);
+                        constr_value[k] = 1.0;
+                        k++;
+                    } else {
+                        constr_index[k] = xpos(i, j, instance);
+                        constr_value[k] = 1.0;
+                        k++;
+                    }
+
+                }
+            }
+            sprintf(constr_name, "zic(%d,%d)", i + 1, j + 1);
+            error = GRBaddconstr(fischetti_model, n_node - 1, constr_index, constr_value, GRB_LESS_EQUAL, rhs, constr_name);
+            quit_on_GRB_error(env, fischetti_model, error);
+            index_cur_constr++;
+        }
+
+    }
+
+    /*Define and add additional information constraints*/
+    int add_constr_index[n_node - 2];
+    double add_constr_value[n_node - 2];
+    rhs = 1.0;
+
+    for (int i = 1; i < n_node ; i++) {
+        k = 0;
+        for (int t = 3; t < n_node - 1; t++) {
+            add_constr_index[k] = zpos(i, t, instance);
+            add_constr_value[k] = 1.0;
+            k++;
+        }
+        add_constr_index[k] = xpos(i, 1, instance);
+        add_constr_value[k] = 1.0;
+        sprintf(constr_name, "addc(%d)", i + 1);
+        error = GRBaddconstr(fischetti_model, n_node - 2, add_constr_index, add_constr_value, GRB_LESS_EQUAL, rhs, constr_name);
+        quit_on_GRB_error(env, fischetti_model, error);
+        index_cur_constr++;
+    }
+
     /*free memory*/
     free(constr_name);
 

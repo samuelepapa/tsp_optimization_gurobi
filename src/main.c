@@ -14,6 +14,7 @@
 #include "plot_graph.h"
 #include "input_output.h"
 #include "tsp_mtz.h"
+#include "tsp_fischetti.h"
 
 int main(int argc, char **argv) {
 
@@ -41,9 +42,9 @@ int main(int argc, char **argv) {
 
         plot_instance(&instance);
 
-        tsp_model_create(&instance);
+        //tsp_model_create(&instance);
         //mtz_model_create(&instance);
-        //fischetti_model_create(&instance)
+        //fischetti_model_create(&instance);
 
         //plot_edges(&instance);
 
