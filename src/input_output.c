@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <ctype.h>
 #include "input_output.h"
 #include "utils.h"
 #include "plot_graph.h"
@@ -85,7 +86,7 @@ int init_instance(Tsp_prob *instance) {
             param = strsep(&pointer_to_line, ": ");
 
 
-            printf("param: %s\n", param);
+            printf("param: |%s|\n", param);
 
             if (strncmp(param, "NAME", 4) == 0) {
                 printf("pointer_line: |%c|\n", pointer_to_line[0]);
@@ -222,32 +223,24 @@ int init_instance(Tsp_prob *instance) {
                 //without waiting for the next cycle
                 if (fgets(line, sizeof(line), model_file) == NULL) {
                     printf("After the coordinate section delimiter the file ended.");
+                    valid_instance = 0;
                 }
                 pointer_to_line = line;
-                param = strsep(&pointer_to_line, ": ");
+
+                param = strsep(&pointer_to_line, " ");
             }
 
-            /*if (strncmp(param, "EDGE_WEIGHT_SECTION", 19) == 0) {
-
-                int n_node = instance->nnode;
-                int **arr = (int **)malloc(n_node * sizeof(int *));
-                for (int i=0; i < n_node; i++) {
-                    arr[i] = (int *)malloc(n_node * sizeof(int));
-                }
-
-                current_mode = 2;
-                //This is done because I start reading the next line immediately
-                //without waiting for the next cycle
-                if (fgets(line, sizeof(line), model_file) == NULL) {
-                    printf("After the coordinate section delimiter the file ended.");
-                }
-                pointer_to_line = line;
-                param = strsep(&pointer_to_line, ": ");
-
-            }*/
-
             if (current_mode == 1 && instance->nnode > 0) {
-                began_importing_coords = 1;
+                if(strlen(param) ==  0){
+                    printf("Param was empty, line is: %s;\n", pointer_to_line);
+                    param = strsep(&pointer_to_line, " ");
+                    printf("line: %s\n", param);
+                }
+                if(!isdigit(param[0])){
+                    valid_instance = 0;
+                    //Something is not right, stop the cycle
+                    break;
+                }
                 //the number of the line
                 id_numb = (int) strtol(param, NULL, 10);
                 //the first coordinate
@@ -360,7 +353,7 @@ int plot_solution(Tsp_prob *instance, GRBmodel *model, GRBenv *env, int (*var_po
 
     double sol;
     for(int i = 0; i<instance->nnode; i++){
-        for( int j = 0; j<instance->nnode; j++){
+        for( int j = i + 1; j<instance->nnode; j++){
             sol = 0;
             index = (*var_pos)(i,j,instance);
             if(index == -1){

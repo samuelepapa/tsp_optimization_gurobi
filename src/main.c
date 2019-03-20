@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
 
         //tsp_model_create(&instance);
         //mtz_model_create(&instance);
-        //fischetti_model_create(&instance);
+        fischetti_model_create(&instance);
 
         //plot_edges(&instance);
 

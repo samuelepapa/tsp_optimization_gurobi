@@ -62,9 +62,15 @@ void fischetti_model_create(Tsp_prob *instance) {
         for (int h = 0; h < n_node; h++) {
             coord = zpos(v, h, instance);
             var_type[coord] = GRB_BINARY;
-            if(v == h && v == 1) {
-                low_bound[coord] = up_bound[coord] = 1;
-            }else {
+            if(v == 0) {
+                if (h == 0) {
+                    low_bound[coord] = up_bound[coord] = 1;
+                } else {
+                    low_bound[coord] = up_bound[coord] = 0;
+                }
+            }else if(h == 0) {
+                low_bound[coord] = up_bound[coord] = 0;
+            }else{
                 low_bound[coord] = 0;
                 up_bound[coord] = 1;
             }
@@ -114,11 +120,13 @@ void fischetti_model_create(Tsp_prob *instance) {
     }
 
     /*Define and add first and second z(v,h) assignment constraints*/
+    // variable index
     int z_constr_index[n_node];
+    // coefficient
     double z_constr_value[n_node];
     rhs = 1.0;
 
-    for (int v = 0; v < n_node; v++) {
+    for (int v = 1; v < n_node; v++) {
         k = 0;
         for (int h = 0; h < n_node; h++) {
             z_constr_index[k] = zpos(v, h, instance);
@@ -148,8 +156,8 @@ void fischetti_model_create(Tsp_prob *instance) {
     }
 
     /*Define and add incompatibility case constraints*/
-    int constr_index[n_node];
-    double constr_value[n_node];
+    int constr_index[n_node - 1];
+    double constr_value[n_node - 1];
     rhs = 2.0;
 
     for (int i = 1; i < n_node; i++) {
@@ -158,7 +166,7 @@ void fischetti_model_create(Tsp_prob *instance) {
             if(i != j) {
                 for (int h = 2; h < n_node - 1; h++) {
                     k = 0;
-                    for (int t = 0; t < n_node; t++) {
+                    for (int t = 1; t < n_node; t++) {
                         if(t < h) {
                             constr_index[k] = zpos(i, t, instance);
                             constr_value[k] = 1.0;
@@ -176,7 +184,7 @@ void fischetti_model_create(Tsp_prob *instance) {
                     constr_value[k] = 1.0;
 
                     sprintf(constr_name, "zic(%d,%d,%d)", i + 1, j + 1, h);
-                    error = GRBaddconstr(fischetti_model, n_node, constr_index, constr_value, GRB_LESS_EQUAL, rhs, constr_name);
+                    error = GRBaddconstr(fischetti_model, n_node - 1, constr_index, constr_value, GRB_LESS_EQUAL, rhs, constr_name);
                     quit_on_GRB_error(env, fischetti_model, error);
                     index_cur_constr++;
                 }
@@ -213,6 +221,13 @@ void fischetti_model_create(Tsp_prob *instance) {
 
     /*write model in an  output file*/
     error = GRBwrite(fischetti_model, "output_fischetti_model.lp");
+    quit_on_GRB_error(env, fischetti_model, error);
+
+    /*launch gurobi solver with the selected model*/
+    error = GRBoptimize(fischetti_model);
+    quit_on_GRB_error(env, fischetti_model, error);
+
+    error = GRBwrite(fischetti_model, "solution_fischetti_model.sol");
     quit_on_GRB_error(env, fischetti_model, error);
 
     /*free memory*/
