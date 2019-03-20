@@ -43,8 +43,8 @@ int main(int argc, char **argv) {
         plot_instance(&instance);
 
         //tsp_model_create(&instance);
-        //mtz_model_create(&instance);
-        fischetti_model_create(&instance);
+        mtz_model_create(&instance);
+        //fischetti_model_create(&instance);
 
         //plot_edges(&instance);
 

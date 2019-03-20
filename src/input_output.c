@@ -353,7 +353,7 @@ int plot_solution(Tsp_prob *instance, GRBmodel *model, GRBenv *env, int (*var_po
 
     double sol;
     for(int i = 0; i<instance->nnode; i++){
-        for( int j = i + 1; j<instance->nnode; j++){
+        for( int j = 0; j<instance->nnode; j++){
             sol = 0;
             index = (*var_pos)(i,j,instance);
             if(index == -1){
