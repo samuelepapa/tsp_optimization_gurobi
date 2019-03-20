@@ -24,7 +24,7 @@ int varname_to_varnum(Tsp_prob *instance, char *varname);
  * @param instance The pointer to the problem instance
  * @return The memory position
  */
-int xpos(int i, int j, Tsp_prob * instance);
+int xpos(int i, int j, Tsp_prob *instance);
 
 
 void tsp_model_create(Tsp_prob *instance) {
@@ -253,14 +253,14 @@ int string_to_coords(char *varname, int *edge) {
     return 1;
 }
 
-int xpos(int i, int j, Tsp_prob * instance){
+int xpos(int i, int j, Tsp_prob *instance){
     if(i==j) {
         //printf("Index i=j\n");
         //exit(1);
         return -1;
     }
     if(i>j){
-        return xpos(j,i,instance);
+        return xpos(j, i, instance);
     }
     return i*instance->nnode + j - ((i+1)*(i+2))/2;
 }

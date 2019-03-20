@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include "common.h"
 #include "plot_graph.h"
+#include "utils.h"
 
 void plot_instance(Tsp_prob *inst) {
 
@@ -156,7 +157,7 @@ void plot_edges(Tsp_prob *instance) {
 
 void plot_edges(Solution_list *edges_list, Tsp_prob * instance) {
 
-    printf("\n%s\n", "--start plot_path method");
+    printf("\n%s\n", "--start plot_edges function");
 
      struct stat st = {0};
 
@@ -172,8 +173,8 @@ void plot_edges(Solution_list *edges_list, Tsp_prob * instance) {
 
         int node1 = edges_list->solution[i][0];
         int node2 = edges_list->solution[i][1];
-        fprintf(data, "%lf %lf %d\n", instance->coord_x[node1-1], instance->coord_y[node1-1], node1);
-        fprintf(data, "%lf %lf %d\n", instance->coord_x[node2-1], instance->coord_y[node2-1], node2);
+        fprintf(data, "%lf %lf %d\n", instance->coord_x[node1], instance->coord_y[node1], node1+1);
+        fprintf(data, "%lf %lf %d\n", instance->coord_x[node2], instance->coord_y[node2], node2+1);
         fprintf(data, "%s\n\n", "");
 
     }
@@ -218,6 +219,11 @@ void plot_edges(Solution_list *edges_list, Tsp_prob * instance) {
     fprintf(gnuplot_pipe, "%s\n",  "set style line 1 \
 									linecolor rgb '#0060ad' \
 									linetype 1 linewidth 1" );
+
+    char *model_name = calloc(64, 1);
+    inverse_map_model_type(instance->model_type, model_name);
+    printf("Plot name: %d\n", instance->model_type);
+    fprintf(gnuplot_pipe, "set title \"%s using %s\"\n", instance->name, model_name);
 
     //plot path with point style and label
     fprintf(gnuplot_pipe, "%s\n", "plot 'graph/path.dat' with linespoints linestyle 1, '' with labels offset char 1,-1.0 point pointtype 7 lc rgb '#0060ad' notitle");

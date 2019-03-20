@@ -19,12 +19,10 @@
  */
 void add_edge_to_solution(Solution_list *edges_list, int *edge);
 
-int map_model_type(char *optarg);
-
 void parse_input(int argc, char **argv, Tsp_prob *instance) {
     int c;
     size_t filename_length;
-    while ((c = getopt(argc, argv, "f:v::t::m::")) != -1) {
+    while ((c = getopt(argc, argv, "f:v::t::m:")) != -1) {
         switch (c) {
             case 'f':
                 filename_length = strlen(optarg);
@@ -42,6 +40,7 @@ void parse_input(int argc, char **argv, Tsp_prob *instance) {
                 break;
             case 'm':
                 //type of model
+                printf("optarg: %s\n", optarg);
                 instance->model_type = map_model_type(optarg);
             case '?':
                 printf("This is the guide.\n");
@@ -245,10 +244,10 @@ int init_instance(Tsp_prob *instance) {
                 id_numb = (int) strtol(param, NULL, 10);
                 //the first coordinate
                 param = strsep(&pointer_to_line, " \n");
-                instance->coord_x[id_numb - 1] = (double) strtol(param, NULL, 10);
+                instance->coord_x[id_numb - 1] = strtod(param, NULL);
                 //the second coordinate
                 param = strsep(&pointer_to_line, " \n");
-                instance->coord_y[id_numb - 1] = (double) strtol(param, NULL, 10);
+                instance->coord_y[id_numb - 1] = strtod(param, NULL);
             }
         }
     }
@@ -378,27 +377,3 @@ int plot_solution(Tsp_prob *instance, GRBmodel *model, GRBenv *env, int (*var_po
     return valid_plot;
 }
 
-/**
- * Map model type string value in integer value
- * @param optarg Pointer to the value associated to -m value in input
- * @return Integer value to the string
- *
- * The integer values are:
- * 0 for the standard TSP problem with subtour elimination constraints
- * 1 for the TSP problem with Miller, Tucker and Zemlin (MTZ) method
- * 2 for the TSP problem with MAtteo Fischetti lecture method
- */
-int map_model_type (char *optarg) {
-
-    if(strncmp(optarg, "str", 3) == 0) {
-        return 0;
-    }
-
-    if(strncmp(optarg, "mtz", 3) == 0) {
-        return 1;
-    }
-
-    if(strncmp(optarg, "fischetti", 9) == 0) {
-        return 2;
-    }
-}

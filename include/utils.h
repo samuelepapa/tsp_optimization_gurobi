@@ -30,4 +30,17 @@ void close_instance(Tsp_prob *instance);
 void quit_on_GRB_error(GRBenv *env, GRBmodel *model, int error);
 
 
+void inverse_map_model_type (int model_type, char *target_string);
+/**
+ * Map model type string value in integer value
+ * @param optarg Pointer to the value associated to -m value in input
+ * @return Integer value to the string
+ *
+ * The integer values are:
+ * 0 for the standard TSP problem with subtour elimination constraints
+ * 1 for the TSP problem with Miller, Tucker and Zemlin (MTZ) method
+ * 2 for the TSP problem with MAtteo Fischetti lecture method
+ */
+int map_model_type (char *optarg);
+
 #endif //TSP_OPTIMIZATION_GUROBI_UTILS_H

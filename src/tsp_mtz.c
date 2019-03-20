@@ -8,8 +8,8 @@
 #include "tsp_mtz.h"
 #include "input_output.h"
 
-int ypos(int i, int j, Tsp_prob *instance);
-int upos(int i, Tsp_prob *instance);
+int ypos_mtz(int i, int j, Tsp_prob *instance);
+int upos_mtz(int i, Tsp_prob *instance);
 
 
 void mtz_model_create(Tsp_prob *instance) {
@@ -34,7 +34,7 @@ void mtz_model_create(Tsp_prob *instance) {
 
     for (int i = 0; i < n_nodes; i++) {
         for (int j = 0; j < n_nodes; j++) {
-            coord = ypos(i, j, instance);
+            coord = ypos_mtz(i, j, instance);
             var_type[coord] = GRB_BINARY;
             low_bound[coord] = 0;
             if (i == j) {
@@ -52,7 +52,7 @@ void mtz_model_create(Tsp_prob *instance) {
     /*Add variables u*/
 
     for (int i = 0; i < n_nodes; i++) {
-        coord = upos(i, instance);
+        coord = upos_mtz(i, instance);
         obj_coeff[coord] = 0.0;
         if (i == 0) {
             low_bound[coord] = 1.0;
@@ -99,7 +99,7 @@ void mtz_model_create(Tsp_prob *instance) {
     /*Add constraints for indegree*/
     for (int h = 0; h < n_nodes; h++) {
         for (int j = 0; j < n_nodes; j++) {
-            constr_index[j] = ypos(j, h, instance);
+            constr_index[j] = ypos_mtz(j, h, instance);
             constr_value[j] = 1.0;
         }
 
@@ -112,7 +112,7 @@ void mtz_model_create(Tsp_prob *instance) {
     /*Add constraints for outdegree*/
     for (int h = 0; h < n_nodes; h++) {
         for (int j = 0; j < n_nodes; j++) {
-            constr_index[j] = ypos(h, j, instance);
+            constr_index[j] = ypos_mtz(h, j, instance);
             constr_value[j] = 1.0;
         }
 
@@ -135,8 +135,8 @@ void mtz_model_create(Tsp_prob *instance) {
 
     for (int i = 0; i < n_nodes; i++) {
         for (int j = i+1; j < n_nodes; j++) {
-            var_index[0] = ypos(i, j, instance);
-            var_index[1] = ypos(j, i, instance);
+            var_index[0] = ypos_mtz(i, j, instance);
+            var_index[1] = ypos_mtz(j, i, instance);
             sprintf(constr_name, "lazy_constr_(%d,%d)", i+1, j+1);
 
             error = GRBaddconstr(MTZ_model, 2, var_index, constr_val, GRB_LESS_EQUAL, rhs, constr_name);
@@ -159,9 +159,9 @@ void mtz_model_create(Tsp_prob *instance) {
     for (int i = 1; i < n_nodes; i++) {
         for (int j = 1; j < n_nodes; j++) {
             if(i != j) {
-                MTZ_index[0] = upos(i, instance);
-                MTZ_index[1] = upos(j, instance);
-                MTZ_index[2] = ypos(i, j, instance);
+                MTZ_index[0] = upos_mtz(i, instance);
+                MTZ_index[1] = upos_mtz(j, instance);
+                MTZ_index[2] = ypos_mtz(i, j, instance);
                 sprintf(constr_name, "MTZ_constr_(%d,%d)", i+1, j+1);
 
                 error = GRBaddconstr(MTZ_model, 3, MTZ_index, MTZ_value, GRB_LESS_EQUAL, M - 1, constr_name);
@@ -209,7 +209,7 @@ void mtz_model_create(Tsp_prob *instance) {
         printf("Optimization was stopped early\n");
     }
 
-    plot_solution(instance, MTZ_model, env, &ypos);
+    plot_solution(instance, MTZ_model, env, &ypos_mtz);
 
     /*free memory*/
     free(constr_name);
@@ -228,7 +228,7 @@ void mtz_model_create(Tsp_prob *instance) {
  * @param instance the tsp instance
  * @return the id of the variable that identifies the edge from i to j
  */
-int ypos(int i, int j, Tsp_prob *instance){
+int ypos_mtz(int i, int j, Tsp_prob *instance){
     return i*instance->nnode + j;
 }
 /**
@@ -238,7 +238,7 @@ int ypos(int i, int j, Tsp_prob *instance){
  * @param instance the tsp instance
  * @return the id of the variable which determines the position of node i in the cycle
  */
-int upos(int i, Tsp_prob *instance) {
-    int latest_y_pos = ypos(instance->nnode - 1, instance->nnode - 1, instance);
+int upos_mtz(int i, Tsp_prob *instance) {
+    int latest_y_pos = ypos_mtz(instance->nnode - 1, instance->nnode - 1, instance);
     return latest_y_pos + 1 + i;
 }

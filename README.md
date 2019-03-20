@@ -17,6 +17,10 @@ same file can be declared and used there directly
 
 [C GNU styleguide](https://www.gnu.org/prep/standards/html_node/Writing-C.html)
 
+The functions used to find the position in the model should be name `xpos_nameofmodel` where x 
+is meant to be the name of the set of variable this function refers to (this to avoid error 
+about redefining functions).
+
 ### Model definition
 
 First define the environment, the model. Then start by adding all variables, specifying the 

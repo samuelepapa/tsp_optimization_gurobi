@@ -10,11 +10,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "utils.h"
-#include "tsp_std.h"
 #include "plot_graph.h"
 #include "input_output.h"
+#include "tsp_std.h"
 #include "tsp_mtz.h"
 #include "tsp_fischetti.h"
+#include "tsp_flow1.h"
 
 int main(int argc, char **argv) {
 
@@ -26,7 +27,8 @@ int main(int argc, char **argv) {
     }
 
     Tsp_prob instance = {
-            .nnode = -1
+            .nnode = -1,
+            .model_type = 0
     };
 
     int valid_instance = 0;
@@ -42,17 +44,33 @@ int main(int argc, char **argv) {
 
         plot_instance(&instance);
 
+        switch(instance.model_type){
+            case 0:
+                tsp_model_create(&instance);
+                break;
+            case 1:
+                mtz_model_create(&instance);
+                break;
+            case 2:
+                fischetti_model_create(&instance);
+                break;
+            case 3:
+                flow1_model_create(&instance);
+                break;
+            default:
+                tsp_model_create(&instance);
+        }
         //tsp_model_create(&instance);
-        mtz_model_create(&instance);
+        //mtz_model_create(&instance);
         //fischetti_model_create(&instance);
+        //flow1_model_create(&instance);
 
         //plot_edges(&instance);
 
-        close_instance(&instance);
-
     }else{
+
         printf("Error in parsing file");
-        exit(1);
     }
+    close_instance(&instance);
     return 0;
 }

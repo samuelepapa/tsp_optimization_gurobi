@@ -8,8 +8,8 @@
 #include "tsp_fischetti.h"
 #include "input_output.h"
 
-int xpos(int i, int j, Tsp_prob *instance);
-int zpos(int i, int j, Tsp_prob *instance);
+int xpos_fischetti(int i, int j, Tsp_prob *instance);
+int zpos_fischetti(int i, int j, Tsp_prob *instance);
 
 void fischetti_model_create(Tsp_prob *instance) {
     GRBenv *env = NULL;
@@ -36,7 +36,7 @@ void fischetti_model_create(Tsp_prob *instance) {
     //create x variables
     for (int i = 0; i < n_node; i++) {
         for (int j = i+1; j < n_node ; j++) {
-            coord = xpos(i, j, instance);
+            coord = xpos_fischetti(i, j, instance);
             var_type[coord] = GRB_BINARY;
             low_bound[coord] = 0;
             up_bound[coord] = 1;
@@ -49,7 +49,7 @@ void fischetti_model_create(Tsp_prob *instance) {
 
     //add z(v,h) variables
     //case z(1,1)
-    /*coord = zpos(1, 1, instance);
+    /*coord = zpos_fischetti(1, 1, instance);
     var_type[coord] = GRB_BINARY;
 
     obj_coeff[coord] = 0;
@@ -60,7 +60,7 @@ void fischetti_model_create(Tsp_prob *instance) {
     //other cases
     for (int v = 0; v < n_node; v++) {
         for (int h = 0; h < n_node; h++) {
-            coord = zpos(v, h, instance);
+            coord = zpos_fischetti(v, h, instance);
             var_type[coord] = GRB_BINARY;
             if(v == 0) {
                 if (h == 0) {
@@ -108,7 +108,7 @@ void fischetti_model_create(Tsp_prob *instance) {
         k = 0;
         for (int j = 0; j < n_node; j++) {
             if (i != j) {
-                x_constr_index[k] = xpos(i, j, instance);
+                x_constr_index[k] = xpos_fischetti(i, j, instance);
                 x_constr_value[k] = 1.0;
                 k++;
             }
@@ -129,7 +129,7 @@ void fischetti_model_create(Tsp_prob *instance) {
     for (int v = 1; v < n_node; v++) {
         k = 0;
         for (int h = 0; h < n_node; h++) {
-            z_constr_index[k] = zpos(v, h, instance);
+            z_constr_index[k] = zpos_fischetti(v, h, instance);
             z_constr_value[k] = 1.0;
             k++;
         }
@@ -143,7 +143,7 @@ void fischetti_model_create(Tsp_prob *instance) {
     for (int h = 0; h < n_node; h++) {
         k = 0;
         for (int v = 0; v < n_node; v++) {
-            z_constr_index[k] = zpos(v, h, instance);
+            z_constr_index[k] = zpos_fischetti(v, h, instance);
             z_constr_value[k] = 1.0;
             k++;
 
@@ -168,19 +168,19 @@ void fischetti_model_create(Tsp_prob *instance) {
                     k = 0;
                     for (int t = 1; t < n_node; t++) {
                         if(t < h) {
-                            constr_index[k] = zpos(i, t, instance);
+                            constr_index[k] = zpos_fischetti(i, t, instance);
                             constr_value[k] = 1.0;
                             k++;
                         }
 
                         if(t >= h + 1) {
-                            constr_index[k] = zpos(j, t, instance);
+                            constr_index[k] = zpos_fischetti(j, t, instance);
                             constr_value[k] = 1.0;
                             k++;
                         }
                     }
                     //add x(i,j)
-                    constr_index[k] = xpos(i, j, instance);
+                    constr_index[k] = xpos_fischetti(i, j, instance);
                     constr_value[k] = 1.0;
 
                     sprintf(constr_name, "zic(%d,%d,%d)", i + 1, j + 1, h);
@@ -202,12 +202,12 @@ void fischetti_model_create(Tsp_prob *instance) {
     for (int i = 1; i < n_node ; i++) {
         k = 0;
         for (int t = 2; t < n_node - 1; t++) {
-            add_constr_index[k] = zpos(i, t, instance);
+            add_constr_index[k] = zpos_fischetti(i, t, instance);
             add_constr_value[k] = 1.0;
             k++;
         }
         //add x(i,1)
-        add_constr_index[k] = xpos(i, 0, instance);
+        add_constr_index[k] = xpos_fischetti(i, 0, instance);
         add_constr_value[k] = 1.0;
 
         sprintf(constr_name, "addc(%d)", i + 1);
@@ -230,6 +230,8 @@ void fischetti_model_create(Tsp_prob *instance) {
     error = GRBwrite(fischetti_model, "solution_fischetti_model.sol");
     quit_on_GRB_error(env, fischetti_model, error);
 
+    plot_solution(instance, fischetti_model, env, &xpos_fischetti);
+
     /*free memory*/
     free(constr_name);
 
@@ -241,19 +243,19 @@ void fischetti_model_create(Tsp_prob *instance) {
 
 }
 
-int xpos(int i, int j, Tsp_prob * instance){
+int xpos_fischetti(int i, int j, Tsp_prob *instance){
     if(i==j) {
         //printf("Index i=j\n");
         //exit(1);
         return -1;
     }
     if(i>j){
-        return xpos(j,i,instance);
+        return xpos_fischetti(j, i, instance);
     }
     return i*instance->nnode + j - ((i+1)*(i+2))/2;
 }
 
-int zpos(int i, int j, Tsp_prob *instance) {
-    int latest_x_pos = xpos(instance->nnode - 2, instance->nnode - 1, instance);
+int zpos_fischetti(int i, int j, Tsp_prob *instance) {
+    int latest_x_pos = xpos_fischetti(instance->nnode - 2, instance->nnode - 1, instance);
     return latest_x_pos + 1 + i * instance->nnode + j;
 }

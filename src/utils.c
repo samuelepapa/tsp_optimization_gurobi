@@ -152,6 +152,46 @@ int distance(int i, int j, Tsp_prob *instance) {
     }
 }
 
+int map_model_type (char *optarg) {
+
+    printf("options: %s", optarg);
+    if(strncmp(optarg, "std", 3) == 0) {
+        return 0;
+    }
+
+    if(strncmp(optarg, "mtz", 3) == 0) {
+        return 1;
+    }
+
+    if(strncmp(optarg, "fischetti", 9) == 0) {
+        return 2;
+    }
+
+    if(strncmp(optarg, "flow1", 5) == 0) {
+        return 3;
+    }
+}
+
+void inverse_map_model_type (int model_type, char *target_string) {
+
+    switch(model_type){
+        case 0:
+            strcpy(target_string, "std");
+            break;
+        case 1:
+            strcpy(target_string, "mtz");
+            break;
+        case 2:
+            strcpy(target_string, "fischetti");
+            break;
+        case 3:
+            strcpy(target_string, "flow1");
+            break;
+        default:
+            strcpy(target_string, "not a model");
+    }
+
+}
 /**
  * Free memory to avoid leaks, assumes instance is initialized as variable, not dinamically allocated
  * @param instance The pointer to the problem instance
