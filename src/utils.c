@@ -67,7 +67,7 @@ double lat_long(double coord) {
 
     const double PI = 3.141592;
 
-    double deg = nint(coord);
+    double deg = (int) coord;
     double min = coord - deg;
     return PI * (deg + 5.0 * min / 3.0) / 180.0;
 
