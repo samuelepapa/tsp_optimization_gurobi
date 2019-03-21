@@ -9,7 +9,11 @@
 #include "input_output.h"
 
 #define LAZY_LEVEL 1
-
+/*LAZY_LEVEL
+ * With a value of 1, the constraint can be used to cut off a feasible solution, but it won’t necessarily be pulled in if another lazy constraint also cuts off the solution.
+ * With a value of 2, all lazy constraints that are violated by a feasible solution will be pulled into the model.
+ * With a value of 3, lazy constraints that cut off the relaxation solution at the root node are also pulled in.
+ */
 int ypos_mtz(int i, int j, Tsp_prob *instance);
 int upos_mtz(int i, Tsp_prob *instance);
 
