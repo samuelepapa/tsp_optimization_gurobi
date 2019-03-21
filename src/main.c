@@ -16,6 +16,7 @@
 #include "tsp_mtz.h"
 #include "tsp_fischetti.h"
 #include "tsp_flow1.h"
+#include "tsp_timed_stage3.h"
 
 int main(int argc, char **argv) {
 
@@ -40,7 +41,7 @@ int main(int argc, char **argv) {
     printf("weight type: %d\n", instance.weight_type);
     printf("nnodes: %d\n", instance.nnode);
 
-    if (valid_instance) {
+   if (valid_instance) {
 
         plot_instance(&instance);
 
@@ -57,6 +58,8 @@ int main(int argc, char **argv) {
             case 3:
                 flow1_model_create(&instance);
                 break;
+            case 4:
+                timed_stage3_model_create(&instance);
             default:
                 tsp_model_create(&instance);
         }
@@ -64,6 +67,7 @@ int main(int argc, char **argv) {
         //mtz_model_create(&instance);
         //fischetti_model_create(&instance);
         //flow1_model_create(&instance);
+        //timed_stage3_model_create(&instance);
 
         //plot_edges(&instance);
 

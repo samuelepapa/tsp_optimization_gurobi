@@ -67,7 +67,7 @@ double lat_long(double coord) {
 
     const double PI = 3.141592;
 
-    int deg = nint(coord);
+    double deg = nint(coord);
     double min = coord - deg;
     return PI * (deg + 5.0 * min / 3.0) / 180.0;
 
@@ -170,6 +170,10 @@ int map_model_type (char *optarg) {
     if(strncmp(optarg, "flow1", 5) == 0) {
         return 3;
     }
+
+    if(strncmp(optarg, "ts3", 3) == 0) {
+        return 4;
+    }
 }
 
 void inverse_map_model_type (int model_type, char *target_string) {
@@ -186,6 +190,9 @@ void inverse_map_model_type (int model_type, char *target_string) {
             break;
         case 3:
             strcpy(target_string, "flow1");
+            break;
+        case 4:
+            strcpy(target_string, "ts3");
             break;
         default:
             strcpy(target_string, "not a model");
