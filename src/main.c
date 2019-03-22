@@ -16,6 +16,8 @@
 #include "tsp_mtz.h"
 #include "tsp_fischetti.h"
 #include "tsp_flow1.h"
+#include "tsp_flow2.h"
+#include "tsp_flow3.h"
 #include "tsp_timed_stage3.h"
 
 int main(int argc, char **argv) {
@@ -45,7 +47,7 @@ int main(int argc, char **argv) {
 
         plot_instance(&instance);
 
-        switch(instance.model_type){
+        /*switch(instance.model_type){
             case 0:
                 tsp_model_create(&instance);
                 break;
@@ -59,14 +61,21 @@ int main(int argc, char **argv) {
                 flow1_model_create(&instance);
                 break;
             case 4:
+                flow2_model_create(&instance);
+                break;
+            case 5:
+                flow3_model_create(&instance);
+            case 6:
                 timed_stage3_model_create(&instance);
             default:
                 tsp_model_create(&instance);
-        }
+        }*/
         //tsp_model_create(&instance);
         //mtz_model_create(&instance);
         //fischetti_model_create(&instance);
         //flow1_model_create(&instance);
+        flow2_model_create(&instance);
+        //flow3_model_create(&instance);
         //timed_stage3_model_create(&instance);
 
         //plot_edges(&instance);

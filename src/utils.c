@@ -171,8 +171,16 @@ int map_model_type (char *optarg) {
         return 3;
     }
 
+    if(strncmp(optarg, "flow2", 5) == 0) {
+        return  4;
+    }
+
+    if(strncmp(optarg, "flow3", 5) == 0) {
+        return 5;
+    }
+
     if(strncmp(optarg, "ts3", 3) == 0) {
-        return 4;
+        return 6;
     }
 }
 

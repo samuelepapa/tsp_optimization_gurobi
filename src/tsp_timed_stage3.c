@@ -38,7 +38,7 @@ void timed_stage3_model_create(Tsp_prob *instance) {
             coord = xpos_ts3(i, j, instance);
             var_type[coord] = GRB_BINARY;
             low_bound[coord] = 0.0;
-            if(i == j) {
+            if (i == j) {
                 up_bound[coord] = 0.0;
                 obj_coeff[coord] = 0.0;
             } else {
@@ -72,7 +72,7 @@ void timed_stage3_model_create(Tsp_prob *instance) {
     }
 
     error = GRBloadenv(&env, "timed_stage_3.log");
-    if(error || env == NULL) {
+    if (error || env == NULL) {
         printf("Error: couldn't create empty environment.\n");
         exit(1);
     }
@@ -97,7 +97,7 @@ void timed_stage3_model_create(Tsp_prob *instance) {
     for (int i = 0; i < n_node; i++) {
         l = 0;
         for (int j = 0; j < n_node; j++) {
-            if(i != j){
+            if (i != j){
                 constr_var_index[l] = xpos_ts3(j, i, instance);
                 constr_value[l] = 1.0;
                 l++;
@@ -113,7 +113,7 @@ void timed_stage3_model_create(Tsp_prob *instance) {
     for (int i = 0; i < n_node; i++) {
         l = 0;
         for (int j = 0; j < n_node; j++) {
-            if(i != j){
+            if (i != j){
                 constr_var_index[l] = xpos_ts3(i, j, instance);
                 constr_value[l] = 1.0;
                 l++;
@@ -132,7 +132,7 @@ void timed_stage3_model_create(Tsp_prob *instance) {
 
     for (int i = 0; i < n_node; i++) {
         for (int j = 0; j < n_node; j++) {
-            if(i != j) {
+            if (i != j) {
                 l = 0;
                 for (int t = 0; t < n_node; t++) {
                     constr_1_index[l] = ypos_ts3(i, j, t, instance);

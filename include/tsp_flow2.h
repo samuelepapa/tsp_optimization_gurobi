@@ -1,0 +1,6 @@
+#ifndef TSP_OPTIMIZATION_GUROBI_TSP_FLOW2_H
+#define TSP_OPTIMIZATION_GUROBI_TSP_FLOW2_H
+
+void flow2_model_create(Tsp_prob *instance);
+
+#endif //TSP_OPTIMIZATION_GUROBI_TSP_FLOW2_H
