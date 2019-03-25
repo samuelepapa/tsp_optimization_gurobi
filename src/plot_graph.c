@@ -188,7 +188,7 @@ void plot_edges(Solution_list *edges_list, Tsp_prob * instance) {
     FILE *gnuplot_pipe = popen("gnuplot -persistent", "w");
 
     //set teminal type with parameters, size in inch
-    fprintf(gnuplot_pipe, "%s\n", "set terminal postscript portrait size 10, 8 enhanced color \"Helvetica\" 6");
+    fprintf(gnuplot_pipe, "%s\n", "set terminal postscript portrait size 10, 8 enhanced color \"Helvetica\" 7");
 
     //fprintf(gnuplot_pipe, "%s \n", "set size 1,1"); //set size of canvas
 
