@@ -222,7 +222,7 @@ void plot_edges(Solution_list *edges_list, Tsp_prob * instance) {
 
     char *model_name = calloc(64, 1);
     inverse_map_model_type(instance->model_type, model_name);
-    printf("Plot name: %d\n", instance->model_type);
+
     fprintf(gnuplot_pipe, "set title \"%s using %s\"\n", instance->name, model_name);
 
     //plot path with point style and label

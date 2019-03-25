@@ -163,7 +163,7 @@ int map_model_type (char *optarg) {
         return 1;
     }
 
-    if(strncmp(optarg, "fischetti", 9) == 0) {
+    if(strncmp(optarg, "badcompact", 9) == 0) {
         return 2;
     }
 
@@ -194,12 +194,18 @@ void inverse_map_model_type (int model_type, char *target_string) {
             strcpy(target_string, "mtz");
             break;
         case 2:
-            strcpy(target_string, "fischetti");
+            strcpy(target_string, "badcompact");
             break;
         case 3:
             strcpy(target_string, "flow1");
             break;
         case 4:
+            strcpy(target_string, "flow2");
+            break;
+        case 5:
+            strcpy(target_string, "flow3");
+            break;
+        case 6:
             strcpy(target_string, "ts3");
             break;
         default:

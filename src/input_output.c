@@ -10,7 +10,7 @@
 #include "utils.h"
 #include "plot_graph.h"
 
-#define MODEL_TOLERANCE 10E-4
+#define MODEL_TOLERANCE 0.001
 
 /**
  * Adds an edge to the solution array. If the size is negative an error is triggered, and exits with 1.
@@ -89,9 +89,9 @@ int init_instance(Tsp_prob *instance) {
 
             if (strncmp(param, "NAME", 4) == 0) {
                 printf("pointer_line: |%c|\n", pointer_to_line[0]);
-                if(pointer_to_line[0] == ':'){
+                if (pointer_to_line[0] == ':') {
                     useless_chars = 3;
-                }else if(pointer_to_line[0] == ' '){
+                } else if (pointer_to_line[0] == ' ') {
                     useless_chars = 2;
                 }
                 // the useless_chars is due to first space and newline characters
@@ -106,9 +106,9 @@ int init_instance(Tsp_prob *instance) {
             }
 
             if (strncmp(param, "COMMENT", 7) == 0) {
-                if(pointer_to_line[0] == ':'){
+                if (pointer_to_line[0] == ':') {
                     useless_chars = 3;
-                }else if(pointer_to_line[0] == ' '){
+                } else if (pointer_to_line[0] == ' ') {
                     useless_chars = 2;
                 }
                 // the useless_chars is due to first space and newline characters
@@ -122,9 +122,9 @@ int init_instance(Tsp_prob *instance) {
             }
 
             if (strncmp(param, "TYPE", 4) == 0) {
-                if(pointer_to_line[0] == ':'){
+                if (pointer_to_line[0] == ':') {
                     useless_chars = 3;
-                }else if(pointer_to_line[0] == ' '){
+                } else if (pointer_to_line[0] == ' ') {
                     useless_chars = 2;
                 }
                 str_len = strlen(pointer_to_line) - useless_chars;
@@ -138,9 +138,9 @@ int init_instance(Tsp_prob *instance) {
             }
 
             if (strncmp(param, "DIMENSION", 9) == 0) {
-                if(pointer_to_line[0] == ':'){
+                if (pointer_to_line[0] == ':') {
                     useless_chars = 3;
-                }else if(pointer_to_line[0] == ' '){
+                } else if (pointer_to_line[0] == ' ') {
                     useless_chars = 2;
                 }
                 str_len = strlen(pointer_to_line) - useless_chars;
@@ -164,9 +164,9 @@ int init_instance(Tsp_prob *instance) {
             *  5 = ATT          : special distance function for problems att48 and att532 (pseudo-Euclidean)
             */
             if (strncmp(param, "EDGE_WEIGHT_TYPE", 16) == 0) {
-                if(pointer_to_line[0] == ':'){
+                if (pointer_to_line[0] == ':') {
                     useless_chars = 3;
-                }else if(pointer_to_line[0] == ' '){
+                } else if (pointer_to_line[0] == ' ') {
                     useless_chars = 2;
                 }
                 str_len = strlen(pointer_to_line) - useless_chars;
@@ -197,12 +197,14 @@ int init_instance(Tsp_prob *instance) {
                 }
 
                 if (strncmp(buffer, "EXPLICIT", 8) == 0) {
-                    printf("%s\n", "Wrong edge weight type, this program resolve only 2D TSP case with coordinate type.");
+                    printf("%s\n",
+                           "Wrong edge weight type, this program resolve only 2D TSP case with coordinate type.");
                     exit(1);
                 }
 
                 if (strncmp(buffer, "SPECIAL", 7) == 0 || strncmp(buffer, "EUC_3D", 6) == 0 ||
-                    strncmp(buffer, "EUC_3D", 6) == 0 || strncmp(buffer, "MAN_3D", 6) == 0 || strncmp(buffer, "XRAY1", 3) == 0 ||
+                    strncmp(buffer, "EUC_3D", 6) == 0 || strncmp(buffer, "MAN_3D", 6) == 0 ||
+                    strncmp(buffer, "XRAY1", 3) == 0 ||
                     strncmp(buffer, "XRAY2", 3) == 0) {
                     printf("%s\n", "Wrong edge weight type, this program resolve only 2D TSP case.");
                     exit(1);
@@ -230,12 +232,12 @@ int init_instance(Tsp_prob *instance) {
             }
 
             if (current_mode == 1 && instance->nnode > 0) {
-                if(strlen(param) ==  0){
+                while (strlen(param) == 0) {
                     printf("Param was empty, line is: %s;\n", pointer_to_line);
                     param = strsep(&pointer_to_line, " ");
-                    printf("line: %s\n", param);
+                    printf("line: |%s|\n", param);
                 }
-                if(!isdigit(param[0])){
+                if (!isdigit(param[0])) {
                     valid_instance = 0;
                     //Something is not right, stop the cycle
                     break;
@@ -310,40 +312,41 @@ int init_instance(Tsp_prob *instance) {
     //TODO parse strange files too
     return valid_instance;
 }
+
 void add_edge_to_solution(Solution_list *edges_list, int *edge) {
-    if(edge == NULL){
+    if (edge == NULL) {
         printf("The edge is NULL, allocate it before passing it as argument. \n");
         exit(1);
     }
-    if(edges_list->size == 0){
+    if (edges_list->size == 0) {
         edges_list->solution = calloc(1, sizeof(int *));
         edges_list->size = 1;
-    }else if(edges_list->size > 0) {
+    } else if (edges_list->size > 0) {
         edges_list->size += 1;
         edges_list->solution = realloc(edges_list->solution, edges_list->size * sizeof(int *));
-    }else{
+    } else {
         printf("Error while adding edge to solution, the size is negative. \n");
         exit(1);
     }
     edges_list->solution[edges_list->size - 1] = edge;
 }
 
-void free_solution_list(Solution_list *edges_list){
-    if(edges_list->size < 0){
+void free_solution_list(Solution_list *edges_list) {
+    if (edges_list->size < 0) {
         printf("Solution array was not initialized (sol size is negative).\n");
         return;
     }
-    for(int i = 0; i< edges_list->size; i++){
+    for (int i = 0; i < edges_list->size; i++) {
         free(edges_list->solution[i]);
     }
 
     //no free on edge_list because we assume that it was statically allocated
 }
 
-int plot_solution(Tsp_prob *instance, GRBmodel *model, GRBenv *env, int (*var_pos)(int, int, Tsp_prob*)){
+int plot_solution(Tsp_prob *instance, GRBmodel *model, GRBenv *env, int (*var_pos)(int, int, Tsp_prob *)) {
     int valid_plot = 1;
     //this function assumes that var_pos converts coordinates into the correct identifier in the GRB model
-    Solution_list edges_list={
+    Solution_list edges_list = {
             .size = 0
     };
 
@@ -351,17 +354,17 @@ int plot_solution(Tsp_prob *instance, GRBmodel *model, GRBenv *env, int (*var_po
     int error = 0;
 
     double sol;
-    for(int i = 0; i<instance->nnode; i++){
-        for( int j = 0; j<instance->nnode; j++){
+    for (int i = 0; i < instance->nnode; i++) {
+        for (int j = 0; j < instance->nnode; j++) {
             sol = 0;
-            index = (*var_pos)(i,j,instance);
-            if(index == -1){
+            index = (*var_pos)(i, j, instance);
+            if (index == -1) {
                 //this is a tsp where self edges are not defined
                 continue;
             }
-            error = GRBgetdblattrelement(model, "X",index, &sol);
+            error = GRBgetdblattrelement(model, "X", index, &sol);
             quit_on_GRB_error(env, model, error);
-            if(sol>1-MODEL_TOLERANCE){
+            if (sol > 1 - MODEL_TOLERANCE) {
                 int *edge = calloc(2, sizeof(int));
                 edge[0] = i;
                 edge[1] = j;

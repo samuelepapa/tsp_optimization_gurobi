@@ -43,30 +43,32 @@ int main(int argc, char **argv) {
     printf("weight type: %d\n", instance.weight_type);
     printf("nnodes: %d\n", instance.nnode);
 
-   if (valid_instance) {
+    if (valid_instance) {
 
         plot_instance(&instance);
 
         switch(instance.model_type){
             case 0:
-                tsp_model_create(&instance);
+                tsp_model_create(&instance); //std
                 break;
             case 1:
-                mtz_model_create(&instance);
+                mtz_model_create(&instance); //mtz
                 break;
             case 2:
-                fischetti_model_create(&instance);
+                fischetti_model_create(&instance); //badcompact
                 break;
             case 3:
-                flow1_model_create(&instance);
+                flow1_model_create(&instance); //flow1
                 break;
             case 4:
-                flow2_model_create(&instance);
+                flow2_model_create(&instance); //flow2
                 break;
             case 5:
-                flow3_model_create(&instance);
+                flow3_model_create(&instance); //flow3
+                break;
             case 6:
-                timed_stage3_model_create(&instance);
+                timed_stage3_model_create(&instance); //ts3
+                break;
             default:
                 tsp_model_create(&instance);
         }

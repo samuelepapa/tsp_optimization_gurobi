@@ -8,6 +8,13 @@
 #include "input_output.h"
 #include "tsp_flow3.h"
 
+#define LAZY_LEVEL 2
+/*LAZY_LEVEL
+ * With a value of 1, the constraint can be used to cut off a feasible solution, but it won’t necessarily be pulled in if another lazy constraint also cuts off the solution.
+ * With a value of 2, all lazy constraints that are violated by a feasible solution will be pulled into the model.
+ * With a value of 3, lazy constraints that cut off the relaxation solution at the root node are also pulled in.
+ */
+
 int xpos_flow3(int i, int j, Tsp_prob *instance);
 
 int ypos_flow3(int i, int j, int k, Tsp_prob *instance);
@@ -143,6 +150,9 @@ void flow3_model_create(Tsp_prob *instance) {
                 sprintf(constr_name, "First_F3_constraint_for_i=%d_y=%d_k=%d", i + 1, j + 1, k + 1);
                 error = GRBaddconstr(flow3_model, 2, first_constr_var_index, first_constr_value, GRB_LESS_EQUAL, rhs, constr_name);
                 quit_on_GRB_error(env, flow3_model, error);
+
+                error = GRBsetintattrelement(flow3_model, "Lazy", index_cur_constr, LAZY_LEVEL);
+                quit_on_GRB_error(env, flow3_model, error);
                 index_cur_constr++;
             }
         }
@@ -163,6 +173,9 @@ void flow3_model_create(Tsp_prob *instance) {
         sprintf(constr_name, "Second_F3_constraint_for_k=%d", k + 1);
         error = GRBaddconstr(flow3_model, n_node, third_constr_var_index, third_constr_value, GRB_EQUAL, rhs, constr_name);
         quit_on_GRB_error(env, flow3_model, error);
+
+        error = GRBsetintattrelement(flow3_model, "Lazy", index_cur_constr, LAZY_LEVEL);
+        quit_on_GRB_error(env, flow3_model, error);
         index_cur_constr++;
     }
 
@@ -178,6 +191,9 @@ void flow3_model_create(Tsp_prob *instance) {
         }
         sprintf(constr_name, "Third_F3_constraint_for_k=%d", k + 1);
         error = GRBaddconstr(flow3_model, n_node, third_constr_var_index, third_constr_value, GRB_EQUAL, rhs, constr_name);
+        quit_on_GRB_error(env, flow3_model, error);
+
+        error = GRBsetintattrelement(flow3_model, "Lazy", index_cur_constr, LAZY_LEVEL);
         quit_on_GRB_error(env, flow3_model, error);
         index_cur_constr++;
     }
@@ -195,6 +211,9 @@ void flow3_model_create(Tsp_prob *instance) {
         sprintf(constr_name, "Fourth_T3_constraint_for_k=%d", k + 1);
         error = GRBaddconstr(flow3_model, n_node, third_constr_var_index, third_constr_value, GRB_EQUAL, rhs, constr_name);
         quit_on_GRB_error(env, flow3_model, error);
+
+        error = GRBsetintattrelement(flow3_model, "Lazy", index_cur_constr, LAZY_LEVEL);
+        quit_on_GRB_error(env, flow3_model, error);
         index_cur_constr++;
     }
 
@@ -211,12 +230,15 @@ void flow3_model_create(Tsp_prob *instance) {
         sprintf(constr_name, "Fifth_T3_constraint_for_k=%d", k + 1);
         error = GRBaddconstr(flow3_model, n_node, third_constr_var_index, third_constr_value, GRB_EQUAL, rhs, constr_name);
         quit_on_GRB_error(env, flow3_model, error);
+
+        error = GRBsetintattrelement(flow3_model, "Lazy", index_cur_constr, LAZY_LEVEL);
+        quit_on_GRB_error(env, flow3_model, error);
         index_cur_constr++;
     }
 
     /*Add sixth F3 constraints*/
     int sixth_constr_var_index[2 * (n_node - 1)];
-    double sixth_constr_value[2 * (n_node - 1)];
+    double sixth_constr_value[2 * (n_node - 1) ];
     rhs = 0.0;
 
     for (int k = 1; k < n_node; k++) {
@@ -241,6 +263,9 @@ void flow3_model_create(Tsp_prob *instance) {
                 }
                 sprintf(constr_name, "Sixth_T3_constraint_for_j=%d_k=%d", j + 1, k + 1);
                 error = GRBaddconstr(flow3_model, 2 * (n_node - 1), sixth_constr_var_index, sixth_constr_value, GRB_EQUAL, rhs, constr_name);
+                quit_on_GRB_error(env, flow3_model, error);
+
+                error = GRBsetintattrelement(flow3_model, "Lazy", index_cur_constr, LAZY_LEVEL);
                 quit_on_GRB_error(env, flow3_model, error);
                 index_cur_constr++;
             }

@@ -7,6 +7,12 @@
 #include "utils.h"
 #include "input_output.h"
 #include "tsp_timed_stage3.h"
+#define LAZY_LEVEL 2
+/*LAZY_LEVEL
+ * With a value of 1, the constraint can be used to cut off a feasible solution, but it won’t necessarily be pulled in if another lazy constraint also cuts off the solution.
+ * With a value of 2, all lazy constraints that are violated by a feasible solution will be pulled into the model.
+ * With a value of 3, lazy constraints that cut off the relaxation solution at the root node are also pulled in.
+ */
 
 int xpos_ts3(int i, int j, Tsp_prob *instance);
 
@@ -145,6 +151,9 @@ void timed_stage3_model_create(Tsp_prob *instance) {
                 sprintf(constr_name, "First_constraint_(%d,%d)", i + 1, j+1);
                 error = GRBaddconstr(ts3_model, n_node + 1, constr_1_index, constr_1_value, GRB_EQUAL, rhs, constr_name);
                 quit_on_GRB_error(env, ts3_model, error);
+
+                error = GRBsetintattrelement(ts3_model, "Lazy", index_cur_constr, LAZY_LEVEL);
+                quit_on_GRB_error(env, ts3_model, error);
                 index_cur_constr++;
             }
         }
@@ -187,6 +196,9 @@ void timed_stage3_model_create(Tsp_prob *instance) {
 
             sprintf(constr_name, "Fourth_T3_constraint(%d,%d)", i + 1, t + 1);
             error = GRBaddconstr(ts3_model, 2 * n_node, constr_2_index, constr_2_value, GRB_EQUAL, rhs, constr_name);
+            quit_on_GRB_error(env, ts3_model, error);
+
+            error = GRBsetintattrelement(ts3_model, "Lazy", index_cur_constr, LAZY_LEVEL);
             quit_on_GRB_error(env, ts3_model, error);
             index_cur_constr++;
         }
