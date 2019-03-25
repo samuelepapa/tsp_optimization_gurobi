@@ -254,6 +254,164 @@ int init_instance(Tsp_prob *instance) {
         }
     }
 
+    /*FILE *fin = fopen(instance->input_file, "r");
+
+	if (fin == NULL) {
+		print_error("File not found");
+	}
+
+	instance->num_nodes = -1;
+
+	int coordinate_section = 0;
+
+	char text_line[200];
+	char *param;
+	char *token;
+
+	while(fgets(text_line, sizeof(text_line), fin) != NULL) {
+
+		printf("\nLine read: %s \n", text_line);
+
+		if(strlen(text_line) <= 1) {
+			continue;
+		}
+
+		param = strtok(text_line, " :");
+
+		printf("Parameter name: %s \n", param);
+
+		if(strncmp(param, "NAME", 4) == 0) {
+			coordinate_section = 0;
+			continue;
+		}
+
+		if(strncmp(param, "COMMENT", 7) == 0) {
+			coordinate_section = 0;
+			continue;
+		}
+
+		if(strncmp(param, "TYPE", 4) == 0) {
+			token = strtok(NULL, " :");
+			if(strncmp(token, "TSP", 3) == 0) {
+				instance->type = 0;
+				coordinate_section = 0;
+				continue;
+			} else {
+				print_error("Type is not TSP");
+				break;
+			}
+		}
+
+		if(strncmp(param, "DIMENSION", 9) == 0) {
+			if(instance->num_nodes >= 0){
+				print_error("File contains another DIMENSION parameter.");
+				continue;
+			}
+			token = strtok(NULL, " :");
+			instance->num_nodes = atoi(token);
+			printf("---Number of nodes: %d \n", instance->num_nodes);
+			coordinate_section = 0;
+			continue;
+
+		}
+
+        if (strncmp(param, "EDGE_WEIGHT_TYPE", 16) == 0) {
+            if (pointer_to_line[0] == ':') {
+                useless_chars = 3;
+            } else if (pointer_to_line[0] == ' ') {
+                useless_chars = 2;
+            }
+            str_len = strlen(pointer_to_line) - useless_chars;
+            strncpy(buffer, pointer_to_line + useless_chars - 1, str_len);
+
+            if (strncmp(buffer, "EUC_2D", 6) == 0) {
+                instance->weight_type = 0;
+            }
+
+            if (strncmp(buffer, "MAX_2D", 6) == 0) {
+                instance->weight_type = 1;
+            }
+
+            if (strncmp(buffer, "MAN_2D", 6) == 0) {
+                instance->weight_type = 2;
+            }
+
+            if (strncmp(buffer, "CEIL_2D", 7) == 0) {
+                instance->weight_type = 3;
+            }
+
+            if (strncmp(buffer, "GEO", 3) == 0) {
+                instance->weight_type = 4;
+            }
+
+            if (strncmp(buffer, "ATT", 3) == 0) {
+                instance->weight_type = 5;
+            }
+
+            if (strncmp(buffer, "EXPLICIT", 8) == 0) {
+                printf("%s\n",
+                       "Wrong edge weight type, this program resolve only 2D TSP case with coordinate type.");
+                exit(1);
+            }
+
+            if (strncmp(buffer, "SPECIAL", 7) == 0 || strncmp(buffer, "EUC_3D", 6) == 0 ||
+                strncmp(buffer, "EUC_3D", 6) == 0 || strncmp(buffer, "MAN_3D", 6) == 0 ||
+                strncmp(buffer, "XRAY1", 3) == 0 ||
+                strncmp(buffer, "XRAY2", 3) == 0) {
+                printf("%s\n", "Wrong edge weight type, this program resolve only 2D TSP case.");
+                exit(1);
+            }
+
+            current_mode = 0;
+            printf("param_content: |%d|\n", instance->weight_type);
+            continue;
+        }
+
+        if (strncmp(param, "NODE_COORD_SECTION", 18) == 0) {
+            //initialize the the array of coordinates
+            instance->coord_x = calloc((size_t) instance->nnode, sizeof(double));
+            instance->coord_y = calloc((size_t) instance->nnode, sizeof(double));
+
+            current_mode = 1;
+            //This is done because I start reading the next line immediately
+            //without waiting for the next cycle
+            if (fgets(line, sizeof(line), model_file) == NULL) {
+                printf("After the coordinate section delimiter the file ended.");
+                valid_instance = 0;
+            }
+            pointer_to_line = line;
+
+            param = strsep(&pointer_to_line, " ");
+            continue;
+        }
+
+        if(strncmp(param, "EOF", 3) == 0) {
+            coordinate_section = 0;
+            printf("End of file \n");
+            break;
+        }
+
+        if(coordinate_section == 1) {
+            int i = atoi(param) - 1;
+            if(i < 0 || i >= instance->num_nodes) {
+                print_error("--- unknown node in NODE_COORD_SECTION");
+            }
+            token = strtok(NULL, " :,");
+            instance->coord_x[i] = atof(token);
+            token = strtok(NULL, " :,");
+            instance->coord_y[i] = atof(token);
+            printf("---Node %d has coordinate (%f, %f) \n", i+1, instance->coord_x[i], instance->coord_y[i]);
+            continue;
+        }
+
+        printf(" final coordinate section %d\n", coordinate_section);
+        print_error(" ... wrong format for the current parser!");
+    }
+
+    fclose(fin);
+
+     */
+
     // This means that the dimension was given after the coordinates, or coordinates are missing
     //For the moment this is useless, it tries to interpret different files
     /*
