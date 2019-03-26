@@ -22,8 +22,6 @@
 
 int main(int argc, char **argv) {
 
-    DEBUG_PRINT(("prova %s\n", "prova"));
-
     if (argc < 2) {
         printf("Not enough arguments.\n");
         exit(1);
@@ -40,8 +38,8 @@ int main(int argc, char **argv) {
 
     valid_instance = init_instance(&instance);
 
-    printf("weight type: %d\n", instance.weight_type);
-    printf("nnodes: %d\n", instance.nnode);
+    DEBUG_PRINT(("weight type: %d\n", instance.weight_type));
+    DEBUG_PRINT(("nnodes: %d\n", instance.nnode));
 
     if (valid_instance) {
 
@@ -83,7 +81,6 @@ int main(int argc, char **argv) {
         //plot_edges(&instance);
 
     }else{
-
         printf("Error in parsing file");
     }
     close_instance(&instance);

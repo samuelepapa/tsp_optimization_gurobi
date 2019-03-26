@@ -26,7 +26,7 @@ void timed_stage3_model_create(Tsp_prob *instance) {
     int n_x_variables = n_node * n_node; //number of x(i,j) variables
     int n_y_variables = n_node * n_node * n_node; //number of y(i,j,t) variables
     int n_variables = n_x_variables + n_y_variables; //total space to allocate for the variable-gurobi map
-    printf("Number of nodes: %d\nNumber of variables: %d\n", n_node, n_variables);
+    DEBUG_PRINT(("Number of nodes: %d\nNumber of variables: %d\n", n_node, n_variables));
 
     char var_type[n_variables];
     double low_bound[n_variables];

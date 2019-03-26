@@ -5,7 +5,7 @@
 #ifndef UNTITLED_COMMON_H
 #define UNTITLED_COMMON_H
 
-#define DEBUG 1
+#define DEBUG
 
 #include "gurobi_c.h"
 

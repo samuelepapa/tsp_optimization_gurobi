@@ -154,7 +154,7 @@ int distance(int i, int j, Tsp_prob *instance) {
 
 int map_model_type (char *optarg) {
 
-    printf("options: %s", optarg);
+    DEBUG_PRINT(("options: %s", optarg));
     if(strncmp(optarg, "std", 3) == 0) {
         return 0;
     }

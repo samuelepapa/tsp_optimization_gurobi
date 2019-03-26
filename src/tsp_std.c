@@ -33,7 +33,7 @@ void tsp_model_create(Tsp_prob *instance) {
     int error = 0;
     int n_node = instance->nnode;
     int n_variables = (int) (0.5 * (n_node * n_node - n_node)); //this number is always even
-    printf("%d", n_variables);
+    DEBUG_PRINT(("%d", n_variables));
     double upper_bounds[n_variables];
     double lower_bounds[n_variables];
     char variable_type[n_variables];
@@ -51,7 +51,7 @@ void tsp_model_create(Tsp_prob *instance) {
             objective_coeffs[coord] = distance(i, j, instance);
             variables_names[coord] = (char *) calloc(MAX_VARNAME_SIZE, sizeof(char)); //TODO dealloc after
             sprintf(variables_names[coord], "x(%d,%d)", i + 1, j + 1);
-            printf("i: %d, ; j: %d\n", i + 1, j + 1);
+            DEBUG_PRINT(("i: %d, ; j: %d\n", i + 1, j + 1));
         }
     }
 

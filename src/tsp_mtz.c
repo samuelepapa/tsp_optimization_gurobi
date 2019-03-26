@@ -24,7 +24,7 @@ void mtz_model_create(Tsp_prob *instance) {
     int error = 0;
     int n_nodes = instance->nnode;
     int n_variables = n_nodes*n_nodes + n_nodes;
-    printf("Number of nodes: %d\n Number of variables: %d\n", n_nodes, n_variables);
+    DEBUG_PRINT(("Number of nodes: %d\n Number of variables: %d\n", n_nodes, n_variables));
 
     char var_type[n_variables];
     double low_bound[n_variables];
@@ -51,7 +51,7 @@ void mtz_model_create(Tsp_prob *instance) {
             obj_coeff[coord] = distance(i, j, instance);
             variables_names[coord] = (char*) calloc(100, sizeof(char));
             sprintf(variables_names[coord], "y(%d,%d)", i + 1, j + 1);
-            printf("i:%d, j: %d\n", i + 1, j + 1);
+            DEBUG_PRINT(("i:%d, j: %d\n", i + 1, j + 1));
         }
     }
 

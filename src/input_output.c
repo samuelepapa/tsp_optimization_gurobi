@@ -10,7 +10,7 @@
 #include "utils.h"
 #include "plot_graph.h"
 
-#define MODEL_TOLERANCE 0.001
+#define MODEL_TOLERANCE 10E-4
 
 /**
  * Adds an edge to the solution array. If the size is negative an error is triggered, and exits with 1.
@@ -28,7 +28,7 @@ void parse_input(int argc, char **argv, Tsp_prob *instance) {
                 filename_length = strlen(optarg);
                 instance->filename = calloc(filename_length, 1);
                 strcpy(instance->filename, optarg);
-                printf("Filename: %s \n", instance->filename);
+                DEBUG_PRINT(("Filename: %s \n", instance->filename));
                 break;
             case 'v':
                 //verbosity level
@@ -40,13 +40,13 @@ void parse_input(int argc, char **argv, Tsp_prob *instance) {
                 break;
             case 'm':
                 //type of model
-                printf("optarg: %s\n", optarg);
+                DEBUG_PRINT(("optarg: %s\n", optarg));
                 instance->model_type = map_model_type(optarg);
             case '?':
-                printf("This is the guide.\n");
+                DEBUG_PRINT(("This is the guide.\n"));
                 break;
             default:
-                printf("Something went wrong in input.\n");
+                DEBUG_PRINT(("Something went wrong in input.\n"));
         }
     }
 }
@@ -55,7 +55,7 @@ int init_instance(Tsp_prob *instance) {
     //opening file
     FILE *model_file = fopen(instance->filename, "r");
     if (model_file == NULL) {
-        printf("File not found or filename not defined.\n");
+        DEBUG_PRINT(("File not found or filename not defined.\n"));
         exit(1);
     }
 
@@ -78,17 +78,17 @@ int init_instance(Tsp_prob *instance) {
     while (fgets(line, sizeof(line), model_file) != NULL) {
 
         if (strncmp(line, "EOF", 3) == 0) {
-            printf("File ended.\n");
+            DEBUG_PRINT(("File ended.\n"));
             current_mode = -1;
         } else {
             pointer_to_line = line;
-            param = strsep(&pointer_to_line, ": ");
+            param = strsep(&pointer_to_line, ": \t");
 
 
-            printf("param: |%s|\n", param);
+            DEBUG_PRINT(("param: |%s|\n", param));
 
             if (strncmp(param, "NAME", 4) == 0) {
-                printf("pointer_line: |%c|\n", pointer_to_line[0]);
+                DEBUG_PRINT(("pointer_line: |%c|\n", pointer_to_line[0]));
                 if (pointer_to_line[0] == ':') {
                     useless_chars = 3;
                 } else if (pointer_to_line[0] == ' ') {
@@ -102,7 +102,7 @@ int init_instance(Tsp_prob *instance) {
 
                 //There are still parameters to look at, if it was in coord input, change mode now
                 current_mode = 0;
-                printf("param_content: |%s|\n", instance->name);
+                DEBUG_PRINT(("param_content: |%s|\n", instance->name));
             }
 
             if (strncmp(param, "COMMENT", 7) == 0) {
@@ -118,7 +118,7 @@ int init_instance(Tsp_prob *instance) {
                 strncpy(instance->comment, pointer_to_line + useless_chars - 1, str_len);
 
                 current_mode = 0;
-                printf("param_content: |%s|\n", instance->comment);
+                DEBUG_PRINT(("param_content: |%s|\n", instance->comment));
             }
 
             if (strncmp(param, "TYPE", 4) == 0) {
@@ -134,7 +134,7 @@ int init_instance(Tsp_prob *instance) {
                 }
 
                 current_mode = 0;
-                printf("param_content: |%d|\n", instance->type);
+                DEBUG_PRINT(("param_content: |%d|\n", instance->type));
             }
 
             if (strncmp(param, "DIMENSION", 9) == 0) {
@@ -150,7 +150,7 @@ int init_instance(Tsp_prob *instance) {
                 instance->nnode = (int) strtol(buffer, NULL, 10);
 
                 current_mode = 0;
-                printf("param_content: |%d|\n", instance->nnode);
+                DEBUG_PRINT(("param_content: |%d|\n", instance->nnode));
             }
 
 
@@ -211,7 +211,7 @@ int init_instance(Tsp_prob *instance) {
                 }
 
                 current_mode = 0;
-                printf("param_content: |%d|\n", instance->weight_type);
+                DEBUG_PRINT(("param_content: |%d|\n", instance->weight_type));
             }
 
             if (strncmp(param, "NODE_COORD_SECTION", 18) == 0) {
@@ -228,16 +228,15 @@ int init_instance(Tsp_prob *instance) {
                 }
                 pointer_to_line = line;
 
-                param = strsep(&pointer_to_line, " ");
+                param = strsep(&pointer_to_line, " \t\n");
             }
 
             if (current_mode == 1 && instance->nnode > 0) {
                 while (strlen(param) == 0) {
-                    printf("Param was empty, line is: %s;\n", pointer_to_line);
-                    param = strsep(&pointer_to_line, " ");
-                    printf("line: |%s|\n", param);
+                    param = strsep(&pointer_to_line, " \t\n");
+                    DEBUG_PRINT(("line: |%s|\n", param));
                 }
-                if (!isdigit(param[0])) {
+                if (!isdigit(param[0]) && param[0] != '-') {
                     valid_instance = 0;
                     //Something is not right, stop the cycle
                     break;
@@ -245,10 +244,28 @@ int init_instance(Tsp_prob *instance) {
                 //the number of the line
                 id_numb = (int) strtol(param, NULL, 10);
                 //the first coordinate
-                param = strsep(&pointer_to_line, " \n");
+                param = strsep(&pointer_to_line, " \t\n");
+                while (strlen(param) == 0) {
+                    param = strsep(&pointer_to_line, " \t\n");
+                    DEBUG_PRINT(("line: |%s|\n", param));
+                }
+                if (!isdigit(param[0]) && param[0] != '-') {
+                    valid_instance = 0;
+                    //Something is not right, stop the cycle
+                    break;
+                }
                 instance->coord_x[id_numb - 1] = strtod(param, NULL);
                 //the second coordinate
-                param = strsep(&pointer_to_line, " \n");
+                param = strsep(&pointer_to_line, " \t\n");
+                while (strlen(param) == 0) {
+                    param = strsep(&pointer_to_line, " \t\n");
+                    DEBUG_PRINT(("line: |%s|\n", param));
+                }
+                if (!isdigit(param[0]) && param[0] != '-') {
+                    valid_instance = 0;
+                    //Something is not right, stop the cycle
+                    break;
+                }
                 instance->coord_y[id_numb - 1] = strtod(param, NULL);
             }
         }
@@ -461,9 +478,9 @@ int init_instance(Tsp_prob *instance) {
         valid_instance = 0;
     }
 
-    /*for (int i = 0; i < instance->nnode; i++) {
-        printf("i: %d X: %g, Y: %g \n", i + 1, instance->coord_x[i], instance->coord_y[i]);
-    }*/
+    for (int i = 0; i < instance->nnode; i++) {
+        DEBUG_PRINT(("i: %d X: %g, Y: %g \n", i + 1, instance->coord_x[i], instance->coord_y[i]));
+    }
 
 
     fclose(model_file);

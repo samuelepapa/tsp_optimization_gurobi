@@ -10,7 +10,7 @@
 
 void plot_instance(Tsp_prob *inst) {
 
-    printf("\n%s\n", "--start plot_instance method");
+    DEBUG_PRINT(("\n%s\n", "--start plot_instance method"));
 
     struct stat st = {0};
 
@@ -66,7 +66,7 @@ enhanced color \"Helvetica\" 8");
 
     remove("graph/data.dat");
 
-    printf("\n%s\n", "--plot completed");
+    DEBUG_PRINT(("\n%s\n", "--plot completed"));
 
 }
 //TODO change solution format
@@ -157,7 +157,7 @@ void plot_edges(Tsp_prob *instance) {
 
 void plot_edges(Solution_list *edges_list, Tsp_prob * instance) {
 
-    printf("\n%s\n", "--start plot_edges function");
+    DEBUG_PRINT(("\n%s\n", "--start plot_edges function"));
 
      struct stat st = {0};
 
@@ -170,7 +170,6 @@ void plot_edges(Solution_list *edges_list, Tsp_prob * instance) {
 
     //FIRST SOLUTION
     for(int i = 0; i < edges_list->size; i++) {
-
         int node1 = edges_list->solution[i][0];
         int node2 = edges_list->solution[i][1];
         fprintf(data, "%lf %lf %d\n", instance->coord_x[node1], instance->coord_y[node1], node1+1);
