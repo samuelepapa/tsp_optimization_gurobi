@@ -32,9 +32,8 @@ void mtz_model_create(Tsp_prob *instance) {
     double obj_coeff[n_variables];
     int optim_status;
     double obj_val;
-    double sol;
 
-    char **variables_names = (char **) calloc(n_variables, sizeof(char *));
+    char **variables_names = (char **) calloc((size_t) n_variables, sizeof(char *));
 
     int coord = 0;
 

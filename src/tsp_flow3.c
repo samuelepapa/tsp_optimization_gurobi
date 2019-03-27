@@ -34,11 +34,10 @@ void flow3_model_create(Tsp_prob *instance) {
     double low_bound[n_variables];
     double up_bound[n_variables];
     double obj_coeff[n_variables];
-    char **variables_names = (char **) calloc(n_variables, sizeof(char *));
+    char **variables_names = (char **) calloc((size_t) n_variables, sizeof(char *));
     int optim_status;
     double obj_val;
-    double sol;
-    int coord = -1;
+    int coord;
 
     for (int i = 0; i < n_node; i++) {
         for (int j = 0; j < n_node; j++) {

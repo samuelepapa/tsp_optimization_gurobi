@@ -19,6 +19,7 @@
 #include "tsp_flow2.h"
 #include "tsp_flow3.h"
 #include "tsp_timed_stage3.h"
+#include "tsp_loop.h"
 
 int main(int argc, char **argv) {
 
@@ -66,6 +67,9 @@ int main(int argc, char **argv) {
                 break;
             case 6:
                 timed_stage3_model_create(&instance); //ts3
+                break;
+            case 7:
+                tsp_loop_model_create(&instance); //loop additional SEC
                 break;
             default:
                 tsp_model_create(&instance);

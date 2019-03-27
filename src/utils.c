@@ -182,6 +182,10 @@ int map_model_type (char *optarg) {
     if(strncmp(optarg, "ts3", 3) == 0) {
         return 6;
     }
+
+    if(strncmp(optarg, "loop", 4) == 0) {
+        return 7;
+    }
 }
 
 void inverse_map_model_type (int model_type, char *target_string) {
@@ -207,6 +211,9 @@ void inverse_map_model_type (int model_type, char *target_string) {
             break;
         case 6:
             strcpy(target_string, "ts3");
+            break;
+        case 7:
+            strcpy(target_string, "loop");
             break;
         default:
             strcpy(target_string, "not a model");
