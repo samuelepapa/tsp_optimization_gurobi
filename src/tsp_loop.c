@@ -262,7 +262,7 @@ void add_sec_constraints(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Conne
 
     for (int c = 0; c < n_comps; c++) {
         selected_comp = comp->list_of_comps[c];
-        for (int i = 0; (i < nnodes) && !(comp->visit_flag[i]) ; i++) {
+        for (int i = 0; (i < nnodes) && !(comp->visit_flag[i]); i++) {
             if (comp->comps[i] != selected_comp) {
                 continue;
             }
@@ -287,11 +287,8 @@ void add_sec_constraints(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Conne
             error = GRBsetintattrelement(model, "Lazy", index_cur_constr, LAZY_LEVEL);
             quit_on_GRB_error(env, model, error);
             index_cur_constr++;
-
         }
     }
-
-
 
     free(constr_name);
 }
@@ -308,6 +305,7 @@ int has_component(const int *comp_list, int curr_comp, int num_comp) {
 }
 
 double get_solution(GRBenv *env, GRBmodel *model, int xpos) {
+
     double x_value;
     int error = GRBgetdblattrelement(model, "X", xpos, &x_value);
     quit_on_GRB_error(env, model, error);
