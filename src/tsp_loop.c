@@ -229,25 +229,26 @@ void find_connected_comps(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Conn
     }
 
     int num_comp = comp->number_of_comps;
-    int sort_comp[num_comp];
-    int new_num_items_list[num_comp];
+    int sort_comp_list[num_comp];
+    int sort_num_items_list[num_comp];
 
     for (int i = 0; i < num_comp; i++) {
-        sort_comp[i] = -1;
-        new_num_items_list[i] = -1;
+        sort_comp_list[i] = -1;
+        sort_num_items_list[i] = -1;
     }
-
+    int t = 0;
     for (int i = 0; i < nnode; i++) {
         int cc = comp_list[i];
-        if (has_component(sort_comp, cc, num_comp) != 0) {
+        if (has_component(sort_comp_list, cc, num_comp) != 0) {
             continue;
         }
-        sort_comp[i] = cc;
-        new_num_items_list[i] = num_item_list[cc];
+        sort_comp_list[t] = cc;
+        sort_num_items_list[t] = num_item_list[cc];
+        t = t + 1;
     }
 
-    comp->list_of_comps = sort_comp;
-    comp->number_of_items = new_num_items_list;
+    comp->list_of_comps = sort_comp_list;
+    comp->number_of_items = sort_num_items_list;
 }
 
 void add_sec_constraints(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_comp *comp, int index_cur_constr) {
