@@ -23,11 +23,11 @@
  */
 
 typedef struct{
-    int *comps;
-    int number_of_comps;
-    int *number_of_items;
-    int *list_of_comps;
-    int *visit_flag;
+    int *comps; //list correlation node component
+    int number_of_comps; //number of component
+    int *number_of_items; //number of node in each component
+    int *list_of_comps; //list of component name
+    //int *visit_flag; //visited node
 }Connected_comp;
 
 /**
@@ -45,9 +45,11 @@ void find_connected_comps(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Conn
 
 void add_sec_constraints(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_comp *comp, int index_cur_constr);
 
-int has_component(const int *comp_list, int curr_comp, int num_comp);
+int has_component(Connected_comp *comp, int curr_comp, int num_comp);
 
 double get_solution(GRBenv *env, GRBmodel *model, int xpos);
+
+void free_comp_struc(Connected_comp * comp);
 
 
 void tsp_loop_model_create(Tsp_prob *instance){
@@ -62,11 +64,11 @@ void tsp_loop_model_create(Tsp_prob *instance){
     char variable_type[n_variables];
     double objective_coeffs[n_variables];
     char **variables_names = (char **) calloc((size_t) n_variables, sizeof(char *));
-    Connected_comp comp = {.comps = NULL,
+    Connected_comp comp = {.comps = calloc(n_node, sizeof(int)),
                            .number_of_comps = 0,
-                           .number_of_items = NULL,
-                           .list_of_comps = NULL,
-                           .visit_flag = NULL
+                           .number_of_items = calloc(n_node, sizeof(int)),
+                           .list_of_comps = NULL/*,
+                           .visit_flag = calloc(n_node, sizeof(int))*/
     };
 
     int coord = 0;
@@ -122,7 +124,7 @@ void tsp_loop_model_create(Tsp_prob *instance){
                 k = k + 1;
             }
         }
-        sprintf(constr_name, "deg(%d)", i+1);
+        sprintf(constr_name, "deg(%d)", i + 1);
         error = GRBaddconstr(loop_model, n_node - 1, constr_index, constr_value, GRB_EQUAL, rhs, constr_name);
         quit_on_GRB_error(env, loop_model, error);
         index_cur_constr++;
@@ -145,6 +147,17 @@ void tsp_loop_model_create(Tsp_prob *instance){
         quit_on_GRB_error(env, loop_model, error);
 
         printf("Solution: %g\n", solution);
+
+        error = GRBwrite(loop_model, "solution.sol");
+        quit_on_GRB_error(env, loop_model, error);
+
+        //parse_solution_file(instance, "solution.sol");
+
+        /*for(int j = 0; j< instance->solution_size; j++){
+            printf("SOL %d = (%d, %d)\n", j, instance->solution[j][0],instance->solution[j][1] );
+        }*/
+
+        plot_solution(instance,loop_model, env, &xpos_loop);
 
         find_connected_comps(env, loop_model, instance, &comp);
 
@@ -173,6 +186,8 @@ void tsp_loop_model_create(Tsp_prob *instance){
     }
     free(variables_names);
 
+    free_comp_struc(&comp);
+
 }
 
 int xpos_loop(int i, int j, Tsp_prob *instance){
@@ -194,37 +209,32 @@ int xpos_loop(int i, int j, Tsp_prob *instance){
 
 void find_connected_comps(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_comp *comp){
     int nnode = instance -> nnode;
-    int* comp_list = calloc(nnode, sizeof(int)); //TODO free
-    int* num_item_list = calloc(nnode, sizeof(int)); //TODO free
-    int* flag = calloc(nnode, sizeof(int)); //TODO free
-    //int num_item_list[nnode];
-    //int flag[nnode];
 
-    if (comp->comps == NULL) {
+    //if (comp->comps != NULL) {
 
         for (int i = 0; i < nnode; i++) {
-            comp_list[i] = i;
-            num_item_list[i] = 1;
-            flag[i] = 0;
+            comp->comps[i] = i;
+            comp->number_of_items[i] = 1;
+            //comp->visit_flag[i] = 0;
         }
 
-        comp->comps = comp_list;
         comp->number_of_comps = nnode;
-        comp->number_of_items = num_item_list;
-        comp->visit_flag = flag;
-    }
+
+    //}
+
+    int c1, c2;
 
     for (int i = 0; i < nnode; i++) {
         for (int j = i + 1; j < nnode; j++) {
-            if (get_solution(env, model, xpos_loop(i, j, instance))>1-TOLERANCE) {
-                if (comp_list[i] != comp_list[j]) {
-                    int c1 = comp_list[i];
-                    int c2 = comp_list[j];
-                    for (int v = 0; v < nnode; v++) {
-                        if (comp_list[v] == c2) {
-                            comp_list[v] = c1;
-                            num_item_list[c1]++;
-                            num_item_list[c2]--;
+            if (get_solution(env, model, xpos_loop(i, j, instance)) > 1-TOLERANCE) {
+                if (comp->comps[i] != comp->comps[j]) {
+                    c1 = comp->comps[i];
+                    c2 = comp->comps[j];
+                    for (int v = 0; v < nnode; v++) { //update nodes
+                        if (comp->comps[v] == c2) {
+                            comp->comps[v] = c1;
+                            comp->number_of_items[c1]++;
+                            comp->number_of_items[c2]--;
                         }
                     }
                     comp->number_of_comps--;
@@ -234,36 +244,29 @@ void find_connected_comps(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Conn
     }
 
     int num_comp = comp->number_of_comps;
-    //int sort_comp_list[num_comp];
-    int* sort_comp_list = calloc(num_comp, sizeof(int)); //TODO free
-    int* sort_num_items_list = calloc(num_comp, sizeof(int)); //TODO free
+    comp->list_of_comps = calloc(num_comp, sizeof(int));
 
     //int sort_num_items_list[num_comp];
 
     for (int i = 0; i < num_comp; i++) {
-        sort_comp_list[i] = -1;
-        sort_num_items_list[i] = -1;
+        comp->list_of_comps[i] = -1;
     }
     int t = 0;
     for (int i = 0; i < nnode; i++) {
-        int cc = comp_list[i];
-        if (has_component(sort_comp_list, cc, num_comp) != 0) {
+        int cc = comp->comps[i];
+        if (has_component(comp, cc, num_comp) != 0) {
             continue;
         }
-        sort_comp_list[t] = cc;
-        sort_num_items_list[t] = num_item_list[cc];
-        t = t + 1;
+        comp->list_of_comps[t] = cc;
+        t++;
     }
-
-    comp->list_of_comps = sort_comp_list;
-    comp->number_of_items = sort_num_items_list;
 }
 
 void add_sec_constraints(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_comp *comp, int index_cur_constr) {
     int error;
     int nnz = 0; //number of non-zero value
     double rhs;
-    int nnodes = instance->nnode;
+    int nnode = instance->nnode;
     int n_comps = comp->number_of_comps;
     int selected_comp = 0;
 
@@ -271,43 +274,44 @@ void add_sec_constraints(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Conne
 
     for (int c = 0; c < n_comps; c++) {
         selected_comp = comp->list_of_comps[c];
-        rhs = comp->number_of_items[selected_comp] - 1;
-        for (int i = 0; i < nnodes; i++) {
+        int n_item = comp->number_of_items[selected_comp];
+        rhs = n_item - 1;
+        int total_item = (n_item * (n_item- 1)) / 2;
+        int constr_index[total_item];
+        double constr_value[total_item];
+        nnz = 0;
+        for (int i = 0; i < nnode; i++) {
             if (comp->comps[i] != selected_comp) {
                 continue;
             }
-            if(comp->visit_flag[i]){
-                continue;
-            }
-            int constr_index[comp->number_of_items[c]];
-            double constr_value[comp->number_of_items[c]];
-            for (int j = i + 1; j < nnodes; j++) {
+
+            for (int j = i + 1; j < nnode; j++) {
                 if (comp->comps[j] == selected_comp) {
                     constr_index[nnz] = xpos_loop(i, j, instance);
                     constr_value[nnz] = 1.0;
-                    sprintf(constr_name, "lazy_constr_(%d,%d)", i + 1, j + 1);
                     nnz++;
-                    comp->visit_flag[j] = 1;
-                    comp->visit_flag[i] = 1;
                 }
+
             }
-
-            error = GRBaddconstr(model, nnz, constr_index, constr_value, GRB_LESS_EQUAL, rhs, constr_name);
-            quit_on_GRB_error(env, model, error);
-
-            //error = GRBsetintattrelement(model, "Lazy", index_cur_constr, LAZY_LEVEL);
-            //quit_on_GRB_error(env, model, error);
-            index_cur_constr++;
         }
+
+        sprintf(constr_name, "add_constr_subtour_%d", selected_comp);
+
+        error = GRBaddconstr(model, nnz, constr_index, constr_value, GRB_LESS_EQUAL, rhs, constr_name);
+        quit_on_GRB_error(env, model, error);
+
+        //error = GRBsetintattrelement(model, "Lazy", index_cur_constr, LAZY_LEVEL);
+        //quit_on_GRB_error(env, model, error);
+        index_cur_constr++;
     }
 
     free(constr_name);
 }
 
-int has_component(const int *comp_list, int curr_comp, int num_comp) {
+int has_component(Connected_comp *comp, int curr_comp, int num_comp) {
 
     for (int i = 0; i < num_comp; i++) {
-        if (curr_comp == comp_list[i]) {
+        if (curr_comp == comp->list_of_comps[i]) {
             return 1;
         }
     }
@@ -321,4 +325,11 @@ double get_solution(GRBenv *env, GRBmodel *model, int xpos) {
     int error = GRBgetdblattrelement(model, "X", xpos, &x_value);
     quit_on_GRB_error(env, model, error);
     return x_value;
+}
+
+void free_comp_struc(Connected_comp * comp) {
+    free(comp->comps);
+    free(comp->list_of_comps);
+    free(comp->number_of_items);
+    //free(comp->visit_flag);
 }
