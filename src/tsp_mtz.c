@@ -219,6 +219,8 @@ void mtz_model_create(Tsp_prob *instance) {
     }
 
     free(variables_names);
+
+    free_gurobi(env, MTZ_model);
 }
 
 /**

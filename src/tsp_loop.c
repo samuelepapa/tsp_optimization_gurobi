@@ -39,16 +39,47 @@ typedef struct{
  */
 int xpos_loop(int i, int j, Tsp_prob *instance);
 
-//void tsp_loop(Tsp_prob *instance);
-
+/**
+ * Find connected components returned by the MIP solver
+ * @param env The pointer to the gurobi environment
+ * @param model The pointer to the gurobi model
+ * @param instance The pointer to the problem instance
+ * @param comp The pointer to the connected component structure
+ */
 void find_connected_comps(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_comp *comp);
 
+/**
+ * Add subtour elimination constraints to the model
+ * @param env The pointer to the gurobi environment
+ * @param model The pointer to the gurobi model
+ * @param instance The pointer to the problem instance
+ * @param comp The pointer to the connected component structure
+ * @param index_cur_constr Index of the added constraints
+ */
 void add_sec_constraints(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_comp *comp, int index_cur_constr);
 
+/**
+ * Verify if the identifier of the connected component is present in the list
+ * @param comp The pointer to the connected component structure
+ * @param curr_comp The identifier of the current connected component
+ * @param num_comp The number of node in the connected component
+ * @return
+ */
 int has_component(Connected_comp *comp, int curr_comp, int num_comp);
 
+/**
+ * Return the solution value of the x variables
+ * @param env The pointer to the gurobi environment
+ * @param model The pointer to the gurobi model
+ * @param xpos The memory location of the x variable
+ * @return The value of x after the resolution of the model
+ */
 double get_solution(GRBenv *env, GRBmodel *model, int xpos);
 
+/**
+ * Free memory allocated to connected component elements
+ * @param comp The pointer to the connected component structure
+ */
 void free_comp_struc(Connected_comp * comp);
 
 
@@ -132,7 +163,9 @@ void tsp_loop_model_create(Tsp_prob *instance){
 
     int done = 0;
     double solution;
-
+    /*
+     * Add SEC constraints
+     */
     while (!done) {
         error = GRBupdatemodel(loop_model);
         quit_on_GRB_error(env, loop_model, error);
@@ -181,12 +214,16 @@ void tsp_loop_model_create(Tsp_prob *instance){
 
     //Freeing memory
     free(constr_name);
+
     for(int i = 0 ; i < sizeof(variables_names);i++){
         free(variables_names[i]);
     }
+
     free(variables_names);
 
     free_comp_struc(&comp);
+
+    free_gurobi(env, loop_model);
 
 }
 
@@ -200,27 +237,17 @@ int xpos_loop(int i, int j, Tsp_prob *instance){
     return i*instance->nnode + j - ((i+1)*(i+2))/2;
 }
 
-/*void tsp_loop(Tsp_prob *instance){
-    int nnode = instance -> nnode;
-    int comp[nnode];
-    int comp_count;
-    //find_connected_comps()
-}*/
+
 
 void find_connected_comps(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_comp *comp){
     int nnode = instance -> nnode;
 
-    //if (comp->comps != NULL) {
+    for (int i = 0; i < nnode; i++) {
+        comp->comps[i] = i;
+        comp->number_of_items[i] = 1;
+    }
 
-        for (int i = 0; i < nnode; i++) {
-            comp->comps[i] = i;
-            comp->number_of_items[i] = 1;
-            //comp->visit_flag[i] = 0;
-        }
-
-        comp->number_of_comps = nnode;
-
-    //}
+    comp->number_of_comps = nnode;
 
     int c1, c2;
 

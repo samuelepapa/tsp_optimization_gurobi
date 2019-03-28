@@ -35,6 +35,20 @@ void quit_on_GRB_error(GRBenv *env, GRBmodel *model, int error) {
 }
 
 /**
+ * Free the gurobi model and the gurobi environment
+ * @param env The pointer to the gurobi environment
+ * @param model The pointer to the gurobi model
+ */
+void free_gurobi(GRBenv *env, GRBmodel *model) {
+
+    /*free model*/
+    GRBfreemodel(model);
+
+    /*free environment*/
+    GRBfreeenv(env);
+}
+
+/**
  * Round the distance to the nearest integer value
  * @param x Value of the distance
  * @return Nearest integer value of x

@@ -29,6 +29,12 @@ void close_instance(Tsp_prob *instance);
  */
 void quit_on_GRB_error(GRBenv *env, GRBmodel *model, int error);
 
+/**
+ * Free the gurobi model and the gurobi environment
+ * @param env The pointer to the gurobi environment
+ * @param model The pointer to the gurobi model
+ */
+void free_gurobi(GRBenv *env, GRBmodel *model);
 
 void inverse_map_model_type (int model_type, char *target_string);
 /**

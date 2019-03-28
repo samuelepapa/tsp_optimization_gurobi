@@ -359,6 +359,8 @@ void flow2_model_create(Tsp_prob *instance) {
 
     free(variables_names);
 
+    free_gurobi(env, flow2_model);
+
 }
 
 int xpos_flow2(int i, int j, Tsp_prob *instance) {

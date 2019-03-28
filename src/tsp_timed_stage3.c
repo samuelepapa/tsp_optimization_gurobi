@@ -248,6 +248,8 @@ void timed_stage3_model_create(Tsp_prob *instance) {
 
     free(variables_names);
 
+    free_gurobi(env, ts3_model);
+
 }
 
 int xpos_ts3(int i, int j, Tsp_prob *instance){

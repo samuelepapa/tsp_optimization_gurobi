@@ -241,6 +241,8 @@ void fischetti_model_create(Tsp_prob *instance) {
 
     free(variables_names);
 
+    free_gurobi(env, fischetti_model);
+
 }
 
 int xpos_fischetti(int i, int j, Tsp_prob *instance){

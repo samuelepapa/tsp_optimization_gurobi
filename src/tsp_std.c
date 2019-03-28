@@ -131,6 +131,8 @@ void tsp_model_create(Tsp_prob *instance) {
     }
     free(variables_names);
 
+    free_gurobi(env, model);
+
 }
 /*
 int parse_solution_file(Tsp_prob *instance, char *filename) {
