@@ -33,6 +33,6 @@ add_library(tspLoop STATIC src/tsp_loop.c)
 add_executable(tsp_optimize src/main.c include/common.h)
 
 # for future use: m is the math.h library, it is not automatically linked by cmake
-target_link_libraries(tsp_optimize tspLoop putils tspStd inputOutput gnuplot tspMTZ tspFischetti tspFlow1 tspFlow2 tspFlow3 tspTS3 m)
+target_link_libraries(tsp_optimize tspLoop utils tspStd inputOutput gnuplot tspMTZ tspFischetti tspFlow1 tspFlow2 tspFlow3 tspTS3 m)
 # for future reference, link gurobi separately from other libraries, no idea why
 target_link_libraries(tsp_optimize ${C_GUROBI_LIB})
