@@ -193,12 +193,20 @@ int map_model_type (char *optarg) {
         return 5;
     }
 
-    if(strncmp(optarg, "ts3", 3) == 0) {
+    if(strncmp(optarg, "ts1", 3) == 0) {
         return 6;
     }
 
-    if(strncmp(optarg, "loop", 4) == 0) {
+    if(strncmp(optarg, "ts2", 3) == 0) {
         return 7;
+    }
+
+    if(strncmp(optarg, "ts3", 3) == 0) {
+        return 8;
+    }
+
+    if(strncmp(optarg, "loop", 4) == 0) {
+        return 9;
     }
 }
 
@@ -224,9 +232,15 @@ void inverse_map_model_type (int model_type, char *target_string) {
             strcpy(target_string, "flow3");
             break;
         case 6:
-            strcpy(target_string, "ts3");
+            strcpy(target_string, "ts1");
             break;
         case 7:
+            strcpy(target_string, "ts2");
+            break;
+        case 8:
+            strcpy(target_string, "ts3");
+            break;
+        case 9:
             strcpy(target_string, "loop");
             break;
         default:

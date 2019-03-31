@@ -179,7 +179,7 @@ void timed_stage3_model_create(Tsp_prob *instance) {
     index_cur_constr++;
 
     int constr_2_index[2 * n_node];
-    double constr_2_value[2* n_node];
+    double constr_2_value[2 * n_node];
     rhs = 0.0;
 
     for (int i = 1; i < n_node; i++) {
