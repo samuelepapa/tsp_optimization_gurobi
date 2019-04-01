@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 #include "utils.h"
 #include "plot_graph.h"
 #include "input_output.h"
@@ -30,6 +31,9 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
+    clock_t start, end;
+    double cpu_time_used;
+
     Tsp_prob instance = {
             .nnode = -1,
             .model_type = 0
@@ -47,6 +51,9 @@ int main(int argc, char **argv) {
     if (valid_instance) {
 
         plot_instance(&instance);
+
+        //Start the timer
+        start = clock();
 
         switch(instance.model_type){
             case 0:
@@ -82,6 +89,10 @@ int main(int argc, char **argv) {
             default:
                 tsp_model_create(&instance);
         }
+
+        end = clock();
+        cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+        DEBUG_PRINT(("Time taken in seconds: %g", cpu_time_used));
         //tsp_model_create(&instance);
         //mtz_model_create(&instance);
         //fischetti_model_create(&instance);

@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 #include "common.h"
 #include "utils.h"
 #include "input_output.h"
@@ -54,9 +55,9 @@ void find_connected_comps(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Conn
  * @param model The pointer to the gurobi model
  * @param instance The pointer to the problem instance
  * @param comp The pointer to the connected component structure
- * @param index_cur_constr Index of the added constraints
+ * @param iteration Index of the added constraints
  */
-void add_sec_constraints(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_comp *comp, int index_cur_constr);
+void add_sec_constraints(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_comp *comp, int iteration);
 
 /**
  * Verify if the identifier of the connected component is present in the list
@@ -164,9 +165,21 @@ void tsp_loop_model_create(Tsp_prob *instance){
     int done = 0;
     double solution;
     /*
-     * Add SEC constraints
+     * Add SEC constraints and cicle
      */
+    double time_limit = 5;
+    int number_of_increments = 4;
+    int number_of_iterations = 10;
+    int current_number_of_increments = 0;
+    int current_number_of_iterations = 0;
+
+    int status_code = 0;
+
+    int current_iteration = 0;
     while (!done) {
+        error = GRBsetdblparam(GRBgetenv(loop_model), "TimeLimit", time_limit);
+        quit_on_GRB_error(env, loop_model, error);
+
         error = GRBupdatemodel(loop_model);
         quit_on_GRB_error(env, loop_model, error);
 
@@ -189,16 +202,36 @@ void tsp_loop_model_create(Tsp_prob *instance){
         /*for(int j = 0; j< instance->solution_size; j++){
             printf("SOL %d = (%d, %d)\n", j, instance->solution[j][0],instance->solution[j][1] );
         }*/
+        //Get termination condition
+        error = GRBgetintattr(loop_model,"Status", &status_code);
+        quit_on_GRB_error(env, loop_model, error);
+        DEBUG_PRINT(("status: %d\n", status_code));
 
-        plot_solution(instance,loop_model, env, &xpos_loop);
+        //plot_solution(instance,loop_model, env, &xpos_loop);
 
         find_connected_comps(env, loop_model, instance, &comp);
 
+        DEBUG_PRINT(("Found %d connected components\n", comp.number_of_comps));
+
+        if(status_code == GRB_TIME_LIMIT){
+            current_number_of_iterations++;
+        }
+        //the number of iterations with this time limit is enough
+        if((current_number_of_increments < number_of_increments) && (current_number_of_iterations >= number_of_iterations)){
+            time_limit = time_limit * 2;
+            current_number_of_increments++;
+        }
+        if(current_number_of_increments>number_of_increments){
+            time_limit = INFINITY;
+        }
         if (comp.number_of_comps >= 2) {
-            add_sec_constraints(env, loop_model, instance, &comp, index_cur_constr);
+            add_sec_constraints(env, loop_model, instance, &comp, current_iteration);
+        } else if(status_code == GRB_TIME_LIMIT) {
+            time_limit = INFINITY;
         } else {
             done = 1;
         }
+        current_iteration++;
     }
 
     error = GRBwrite(loop_model, "solution.sol");
@@ -261,7 +294,7 @@ void find_connected_comps(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Conn
                         if (comp->comps[v] == c2) {
                             comp->comps[v] = c1;
                             comp->number_of_items[c1]++;
-                            comp->number_of_items[c2]--;
+                            comp->number_of_items[c2]--;//TODO this operation can be removed, if everything works correctly, at the end of the cycle it will always be equal to 0.
                         }
                     }
                     comp->number_of_comps--;
@@ -289,13 +322,13 @@ void find_connected_comps(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Conn
     }
 }
 
-void add_sec_constraints(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_comp *comp, int index_cur_constr) {
+void add_sec_constraints(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_comp *comp, int iteration) {
     int error;
     int nnz = 0; //number of non-zero value
     double rhs;
     int nnode = instance->nnode;
     int n_comps = comp->number_of_comps;
-    int selected_comp = 0;
+    int selected_comp = -1;
 
     char *constr_name = (char *) calloc(100, sizeof(char));
 
@@ -322,14 +355,14 @@ void add_sec_constraints(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Conne
             }
         }
 
-        sprintf(constr_name, "add_constr_subtour_%d", selected_comp);
+        sprintf(constr_name, "add_constr_subtour_%d_%d", iteration, selected_comp);
 
         error = GRBaddconstr(model, nnz, constr_index, constr_value, GRB_LESS_EQUAL, rhs, constr_name);
         quit_on_GRB_error(env, model, error);
 
         //error = GRBsetintattrelement(model, "Lazy", index_cur_constr, LAZY_LEVEL);
         //quit_on_GRB_error(env, model, error);
-        index_cur_constr++;
+        //index_cur_constr++;
     }
 
     free(constr_name);
