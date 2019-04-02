@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
+#include "argtable2.h"
 #include "utils.h"
 #include "plot_graph.h"
 #include "input_output.h"
@@ -27,7 +28,7 @@
 int main(int argc, char **argv) {
 
     if (argc < 2) {
-        printf("Not enough arguments.\n");
+        printf("Not enough arguments. Type --help for list of arguments.\n");
         exit(1);
     }
 

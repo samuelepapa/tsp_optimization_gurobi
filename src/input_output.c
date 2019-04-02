@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
+#include "argtable2.h"
 #include "input_output.h"
 #include "utils.h"
 #include "plot_graph.h"
@@ -22,7 +23,7 @@ void add_edge_to_solution(Solution_list *edges_list, int *edge);
 void parse_input(int argc, char **argv, Tsp_prob *instance) {
     int c;
     size_t filename_length;
-    while ((c = getopt(argc, argv, "f:v::t::m:")) != -1) {
+    /*while ((c = getopt(argc, argv, "f:v::t::m:r::")) != -1) {
         switch (c) {
             case 'f':
                 filename_length = strlen(optarg);
@@ -42,13 +43,53 @@ void parse_input(int argc, char **argv, Tsp_prob *instance) {
                 //type of model
                 DEBUG_PRINT(("optarg: %s\n", optarg));
                 instance->model_type = map_model_type(optarg);
+            case 'r':
+
             case '?':
-                DEBUG_PRINT(("This is the guide.\n"));
+                printf("This is the guide.\n");
                 break;
             default:
                 DEBUG_PRINT(("Something went wrong in input.\n"));
         }
     }
+        */
+    struct arg_file *filename = arg_file0("f", "filename", "<filename>", "path to file where the tsp instance or a trial "
+                                                                        "file is located (this is the interpretation if "
+                                                                        "the -r argument is present).");
+    struct arg_str *model_name = arg_str0("m", "model", "<tsp_model>", "the tsp model used to solve this (this argument"
+                                                                       " is only used if -r is not present).");
+    struct arg_lit *is_this_trial = arg_lit0("t","run","if this should be interpreted as a test trial.");
+    struct arg_lit *help = arg_lit0(NULL,"help","print this help and exit");
+    struct arg_end *end = arg_end(20);
+    void *argtable[] = {filename, model_name, is_this_trial, help, end};
+    if (arg_nullcheck(argtable) != 0)
+        printf("error: insufficient memory\n");
+    int nerrors = arg_parse(argc,argv,argtable);
+    if(nerrors == 0){
+        if(help->count > 0){
+            printf("Usage: tsp_optimize");
+            arg_print_syntax(stdout,argtable,"\n");
+            arg_print_glossary(stdout,argtable,"  %-20s %s\n");
+        }
+        if(is_this_trial->count > 0){
+
+        }else{
+            if(filename->count > 0) {
+                instance->filename = calloc(strlen(filename->filename[0]), sizeof(char));
+                strcpy(instance->filename, filename->filename[0]);
+            }else{
+                printf("Filename is required.\n");
+                exit(1);
+            }
+            if(model_name->count > 0){
+                instance->model_type = map_model_type((char *)model_name->sval[0]);
+            }
+        }
+    }else{
+        arg_print_errors(stdout,end,"tsp_optimize");
+        exit(1);
+    }
+    arg_freetable(argtable,sizeof(argtable)/sizeof(argtable[0]));
 }
 
 int init_instance(Tsp_prob *instance) {

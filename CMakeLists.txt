@@ -18,6 +18,8 @@ include_directories(/opt/gurobi810/linux64/include)
 
 find_library(C_GUROBI_LIB NAMES libgurobi81.so PATHS /opt/gurobi810/linux64/lib)
 
+find_library(ARGTABLE_LIB NAMES libargtable2.so PATH /usr/local/lib)
+
 add_library(gnuplot STATIC src/plot_graph.c)
 add_library(utils STATIC src/utils.c)
 add_library(tspStd STATIC src/tsp_std.c)
@@ -38,3 +40,5 @@ add_executable(tsp_optimize src/main.c include/common.h)
 target_link_libraries(tsp_optimize tspLoop utils tspStd inputOutput gnuplot tspMTZ tspFischetti tspFlow1 tspFlow2 tspFlow3 tspTS1 tspTS2 tspTS3 m)
 # for future reference, link gurobi separately from other libraries, no idea why
 target_link_libraries(tsp_optimize ${C_GUROBI_LIB})
+
+target_link_libraries(tsp_optimize ${ARGTABLE_LIB})

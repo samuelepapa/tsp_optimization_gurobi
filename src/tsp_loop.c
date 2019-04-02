@@ -168,18 +168,19 @@ void tsp_loop_model_create(Tsp_prob *instance){
      * Add SEC constraints and cicle
      */
     double time_limit = 5;
-    int number_of_increments = 4;
-    int number_of_iterations = 10;
+    int number_of_increments = 2;
+    int number_of_iterations = 5;
     int current_number_of_increments = 0;
     int current_number_of_iterations = 0;
+
+    int fast_phase = 1;
 
     int status_code = 0;
 
     int current_iteration = 0;
+    error = GRBsetintparam(env, "RINS", 10);
+    quit_on_GRB_error(env, loop_model, error);
     while (!done) {
-        error = GRBsetdblparam(GRBgetenv(loop_model), "TimeLimit", time_limit);
-        quit_on_GRB_error(env, loop_model, error);
-
         error = GRBupdatemodel(loop_model);
         quit_on_GRB_error(env, loop_model, error);
 
@@ -220,14 +221,23 @@ void tsp_loop_model_create(Tsp_prob *instance){
         if((current_number_of_increments < number_of_increments) && (current_number_of_iterations >= number_of_iterations)){
             time_limit = time_limit * 2;
             current_number_of_increments++;
+            current_number_of_iterations = 0;
+            error = GRBsetdblparam(env, "TimeLimit", time_limit);
+            quit_on_GRB_error(env, loop_model, error);
         }
         if(current_number_of_increments>number_of_increments){
             time_limit = INFINITY;
+            fast_phase = 0;
+
+            error = GRBsetintparam(env, "RINS", -1);
+            quit_on_GRB_error(env, loop_model, error);
         }
         if (comp.number_of_comps >= 2) {
             add_sec_constraints(env, loop_model, instance, &comp, current_iteration);
         } else if(status_code == GRB_TIME_LIMIT) {
             time_limit = INFINITY;
+            error = GRBsetdblparam(env, "TimeLimit", time_limit);
+            quit_on_GRB_error(env, loop_model, error);
         } else {
             done = 1;
         }

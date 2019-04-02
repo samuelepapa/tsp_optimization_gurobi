@@ -18,6 +18,8 @@
 typedef struct{
     int verbosity;
     double time_limit;
+    double time_taken;
+    int status;
 
     char *name; //TODO free memory after allocation
     char *comment; //TODO free memory after allocation
@@ -50,6 +52,19 @@ typedef struct{
     GRBmodel *model;
 
 } Tsp_prob;
+
+typedef struct{
+    ///number of runs to perform
+    int n_run;
+    ///number of models present
+    int n_models;
+    ///the list of seeds
+    int * seeds;
+    ///the list of instances to run
+    int * instances;
+    ///time limit for each run
+    double time_limit;
+}Trial;
 
 typedef struct{
   int **solution;
