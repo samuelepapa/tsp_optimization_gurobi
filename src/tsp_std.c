@@ -39,6 +39,7 @@ void tsp_model_create(Tsp_prob *instance) {
     char variable_type[n_variables];
     double objective_coeffs[n_variables];
     char **variables_names = (char **) calloc(n_variables, sizeof(char *));
+    int size_variable_names = 0;
 
     int coord = 0;
     //Create variables
@@ -50,6 +51,7 @@ void tsp_model_create(Tsp_prob *instance) {
             variable_type[coord] = GRB_BINARY;
             objective_coeffs[coord] = distance(i, j, instance);
             variables_names[coord] = (char *) calloc(MAX_VARNAME_SIZE, sizeof(char)); //TODO dealloc after
+            size_variable_names++;
             sprintf(variables_names[coord], "x(%d,%d)", i + 1, j + 1);
             DEBUG_PRINT(("i: %d, ; j: %d\n", i + 1, j + 1));
         }
@@ -126,7 +128,7 @@ void tsp_model_create(Tsp_prob *instance) {
 
     //Freeing memory
     free(constr_name);
-    for(int i = 0 ; i < sizeof(variables_names);i++){
+    for(int i = 0 ; i < size_variable_names;i++){
         free(variables_names[i]);
     }
     free(variables_names);

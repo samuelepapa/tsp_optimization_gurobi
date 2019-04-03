@@ -167,7 +167,7 @@ void tsp_loop_model_create(Tsp_prob *instance){
     /*
      * Add SEC constraints and cicle
      */
-    double time_limit = 5;
+    double time_limit = 10;
     int number_of_increments = 2;
     int number_of_iterations = 5;
     int current_number_of_increments = 0;
@@ -178,7 +178,7 @@ void tsp_loop_model_create(Tsp_prob *instance){
     int status_code = 0;
 
     int current_iteration = 0;
-    error = GRBsetintparam(env, "RINS", 10);
+    error = GRBsetintparam(env, GRB_INT_PAR_RINS, 10);
     quit_on_GRB_error(env, loop_model, error);
     while (!done) {
         error = GRBupdatemodel(loop_model);
@@ -208,7 +208,7 @@ void tsp_loop_model_create(Tsp_prob *instance){
         quit_on_GRB_error(env, loop_model, error);
         DEBUG_PRINT(("status: %d\n", status_code));
 
-        //plot_solution(instance,loop_model, env, &xpos_loop);
+        plot_solution(instance,loop_model, env, &xpos_loop);
 
         find_connected_comps(env, loop_model, instance, &comp);
 
@@ -229,7 +229,7 @@ void tsp_loop_model_create(Tsp_prob *instance){
             time_limit = INFINITY;
             fast_phase = 0;
 
-            error = GRBsetintparam(env, "RINS", -1);
+            error = GRBsetintparam(env, GRB_INT_PAR_RINS, -1);
             quit_on_GRB_error(env, loop_model, error);
         }
         if (comp.number_of_comps >= 2) {

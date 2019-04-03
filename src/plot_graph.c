@@ -224,6 +224,7 @@ void plot_edges(Solution_list *edges_list, Tsp_prob * instance) {
 
     fprintf(gnuplot_pipe, "set title \"%s using %s\"\n", instance->name, model_name);
 
+    free(model_name);
     //plot path with point style and label
     fprintf(gnuplot_pipe, "%s\n", "plot 'graph/path.dat' with linespoints linestyle 1, '' with labels offset char 1,-1.0 point pointtype 7 lc rgb '#0060ad' notitle");
 

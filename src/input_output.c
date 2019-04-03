@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
-#include "argtable2.h"
+#include "argtable3.h"
 #include "input_output.h"
 #include "utils.h"
 #include "plot_graph.h"
@@ -53,29 +53,41 @@ void parse_input(int argc, char **argv, Tsp_prob *instance) {
         }
     }
         */
-    struct arg_file *filename = arg_file0("f", "filename", "<filename>", "path to file where the tsp instance or a trial "
-                                                                        "file is located (this is the interpretation if "
-                                                                        "the -r argument is present).");
-    struct arg_str *model_name = arg_str0("m", "model", "<tsp_model>", "the tsp model used to solve this (this argument"
-                                                                       " is only used if -r is not present).");
-    struct arg_lit *is_this_trial = arg_lit0("t","run","if this should be interpreted as a test trial.");
-    struct arg_lit *help = arg_lit0(NULL,"help","print this help and exit");
-    struct arg_end *end = arg_end(20);
-    void *argtable[] = {filename, model_name, is_this_trial, help, end};
+    struct arg_file *filename;
+    struct arg_str *model_name;
+    struct arg_lit *is_this_trial, *help;
+    struct arg_end *end;
+    void * argtable[]= {
+            filename = arg_file0("f", "filename", "<filename>", "path to file where the tsp instance or a trial "
+                                                                "file is located (this is the interpretation if "
+                                                                "the -r argument is present)."),
+            model_name = arg_str0("m", "model", "<tsp_model>", "the tsp model used to solve this (this argument"
+                                                               " is only used if -r is not present)."),
+            is_this_trial = arg_lit0("t", "run", "if this should be interpreted as a test trial."),
+            help = arg_lit0(NULL, "help", "print this help and exit"),
+            end = arg_end(20)
+    };
+    int exitcode = 0;
+    char progname[] = "tsp_optimize";
     if (arg_nullcheck(argtable) != 0)
         printf("error: insufficient memory\n");
     int nerrors = arg_parse(argc,argv,argtable);
+
+    if(help->count>0){
+        printf("Usage: %s", progname);
+        arg_print_syntax(stdout, argtable, "\n");
+        printf("Run tsp optimization models against specified instances.\n\n");
+        arg_print_glossary(stdout, argtable, "  %-25s %s\n");
+        arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
+        exit(0);
+    }
     if(nerrors == 0){
-        if(help->count > 0){
-            printf("Usage: tsp_optimize");
-            arg_print_syntax(stdout,argtable,"\n");
-            arg_print_glossary(stdout,argtable,"  %-20s %s\n");
-        }
         if(is_this_trial->count > 0){
 
         }else{
             if(filename->count > 0) {
-                instance->filename = calloc(strlen(filename->filename[0]), sizeof(char));
+                //+1 due to termination \0 of strcpy
+                instance->filename = calloc(strlen(filename->filename[0]) + 1, sizeof(char));
                 strcpy(instance->filename, filename->filename[0]);
             }else{
                 printf("Filename is required.\n");
@@ -87,6 +99,7 @@ void parse_input(int argc, char **argv, Tsp_prob *instance) {
         }
     }else{
         arg_print_errors(stdout,end,"tsp_optimize");
+        arg_freetable(argtable,sizeof(argtable)/sizeof(argtable[0]));
         exit(1);
     }
     arg_freetable(argtable,sizeof(argtable)/sizeof(argtable[0]));
@@ -104,7 +117,7 @@ int init_instance(Tsp_prob *instance) {
     char line[180];
     //buffer for param values
     char buffer[180];
-    size_t str_len;
+    size_t str_len = 0;
     char *pointer_to_line;
     char *param;
     int id_numb = 0;
@@ -112,7 +125,7 @@ int init_instance(Tsp_prob *instance) {
 
     int valid_instance = 1;
     //flag to check whether nnode was defined before importing coordinates
-    int began_importing_coords = 0;
+    //int began_importing_coords = 0;
 
     int useless_chars = 3;
     //scan entire file
@@ -137,7 +150,8 @@ int init_instance(Tsp_prob *instance) {
                 }
                 // the useless_chars is due to first space and newline characters
                 str_len = strlen(pointer_to_line) - useless_chars;
-                instance->name = calloc(str_len, 1);
+                // +1 due to strcpy
+                instance->name = calloc(str_len + 1, 1);
                 //remove the first space
                 strncpy(instance->name, pointer_to_line + useless_chars - 1, str_len);
 
@@ -154,7 +168,7 @@ int init_instance(Tsp_prob *instance) {
                 }
                 // the useless_chars is due to first space and newline characters
                 str_len = strlen(pointer_to_line) - useless_chars;
-                instance->comment = calloc(str_len, 1);
+                instance->comment = calloc(str_len + 1, 1);
                 //remove the first space
                 strncpy(instance->comment, pointer_to_line + useless_chars - 1, str_len);
 
@@ -555,6 +569,7 @@ void free_solution_list(Solution_list *edges_list) {
     for (int i = 0; i < edges_list->size; i++) {
         free(edges_list->solution[i]);
     }
+    free(edges_list->solution);
 
     //no free on edge_list because we assume that it was statically allocated
 }
