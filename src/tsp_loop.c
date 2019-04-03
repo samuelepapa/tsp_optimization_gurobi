@@ -23,6 +23,7 @@
  * With a value of 3, lazy constraints that cut off the relaxation solution at the root node are also pulled in.
  */
 
+
 typedef struct{
     int *comps; //list correlation node component
     int number_of_comps; //number of component
@@ -180,6 +181,7 @@ void tsp_loop_model_create(Tsp_prob *instance){
     int current_iteration = 0;
     error = GRBsetintparam(env, GRB_INT_PAR_RINS, 10);
     quit_on_GRB_error(env, loop_model, error);
+
     while (!done) {
         error = GRBupdatemodel(loop_model);
         quit_on_GRB_error(env, loop_model, error);
@@ -208,7 +210,7 @@ void tsp_loop_model_create(Tsp_prob *instance){
         quit_on_GRB_error(env, loop_model, error);
         DEBUG_PRINT(("status: %d\n", status_code));
 
-        plot_solution(instance,loop_model, env, &xpos_loop);
+        //plot_solution(instance,loop_model, env, &xpos_loop);
 
         find_connected_comps(env, loop_model, instance, &comp);
 
@@ -370,9 +372,9 @@ void add_sec_constraints(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Conne
         error = GRBaddconstr(model, nnz, constr_index, constr_value, GRB_LESS_EQUAL, rhs, constr_name);
         quit_on_GRB_error(env, model, error);
 
-        //error = GRBsetintattrelement(model, "Lazy", index_cur_constr, LAZY_LEVEL);
-        //quit_on_GRB_error(env, model, error);
-        //index_cur_constr++;
+        /*error = GRBsetintattrelement(model, "Lazy", index_cur_constr, LAZY_LEVEL);
+        quit_on_GRB_error(env, model, error);
+        index_cur_constr++;*/
     }
 
     free(constr_name);
