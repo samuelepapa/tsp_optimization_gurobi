@@ -40,6 +40,10 @@ int main(int argc, char **argv) {
             .model_type = 0
     };
 
+    Trial trial_inst = {
+
+    };
+
     int valid_instance = 0;
 
     parse_input(argc, argv, &instance);

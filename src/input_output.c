@@ -542,6 +542,239 @@ int init_instance(Tsp_prob *instance) {
     //TODO parse strange files too
     return valid_instance;
 }
+/*int init_trial(Trial *trial_inst) {
+    //opening file
+    FILE *trial_file = fopen(trial_inst->filename, "r");
+    if (trial_file == NULL) {
+        DEBUG_PRINT(("Trial file not found or filename not defined.\n"));
+        exit(1);
+    }
+
+    //buffer for line
+    char line[180];
+    //buffer for param values
+    char buffer[180];
+    size_t str_len = 0;
+    char *pointer_to_line;
+    char *param;
+    int id_numb = 0;
+    int current_mode = 0; //0: scanning parameters. 1: input coordinates. -1: param found
+
+    int valid_instance = 1;
+    //flag to check whether nnode was defined before importing coordinates
+    //int began_importing_coords = 0;
+
+    int useless_chars = 3;
+    //scan entire file
+    while (fgets(line, sizeof(line), trial_file) != NULL) {
+
+        if (strncmp(line, "EOF", 3) == 0) {
+            DEBUG_PRINT(("File ended.\n"));
+            current_mode = -1;
+        } else {
+            /*pointer_to_line = line;
+            param = strsep(&pointer_to_line, ": \t");
+            */
+
+  /*          DEBUG_PRINT(("param: |%s|\n", line));
+
+            if (strncmp(line, "NAME", 4) == 0) {
+                if(fgets(line, sizeof(line), trial_file) == NULL){
+                    valid_instance = 0;
+                    printf("Name is not defined");
+                    break;
+                }
+                str_len = strlen(line);
+                // +1 due to strcpy
+                trial_inst->name = calloc(str_len + 1, 1);
+                //remove the first space
+                strncpy(trial_inst->name, line, str_len);
+
+                //There are still parameters to look at, if it was in coord input, change mode now
+                current_mode = 0;
+                DEBUG_PRINT(("param_content: |%s|\n", trial_inst->name));
+            }
+
+            if (strncmp(param, "COMMENT", 7) == 0) {
+                if (pointer_to_line[0] == ':') {
+                    useless_chars = 3;
+                } else if (pointer_to_line[0] == ' ') {
+                    useless_chars = 2;
+                }
+                // the useless_chars is due to first space and newline characters
+                str_len = strlen(pointer_to_line) - useless_chars;
+                instance->comment = calloc(str_len + 1, 1);
+                //remove the first space
+                strncpy(instance->comment, pointer_to_line + useless_chars - 1, str_len);
+
+                current_mode = 0;
+                DEBUG_PRINT(("param_content: |%s|\n", instance->comment));
+            }
+
+            if (strncmp(param, "TYPE", 4) == 0) {
+                if (pointer_to_line[0] == ':') {
+                    useless_chars = 3;
+                } else if (pointer_to_line[0] == ' ') {
+                    useless_chars = 2;
+                }
+                str_len = strlen(pointer_to_line) - useless_chars;
+                strncpy(buffer, pointer_to_line + useless_chars + 1, str_len);
+                if (strncmp(buffer, "TSP", 3) == 0) {
+                    instance->type = 0;
+                }
+
+                current_mode = 0;
+                DEBUG_PRINT(("param_content: |%d|\n", instance->type));
+            }
+
+            if (strncmp(param, "DIMENSION", 9) == 0) {
+                if (pointer_to_line[0] == ':') {
+                    useless_chars = 3;
+                } else if (pointer_to_line[0] == ' ') {
+                    useless_chars = 2;
+                }
+                str_len = strlen(pointer_to_line) - useless_chars;
+                //remove the first space and copy in buffer
+                strncpy(buffer, pointer_to_line + useless_chars - 1, str_len);
+                //convert to int safely (possible error catching in future)
+                instance->nnode = (int) strtol(buffer, NULL, 10);
+
+                current_mode = 0;
+                DEBUG_PRINT(("param_content: |%d|\n", instance->nnode));
+            }
+
+
+            /**
+            * for symmetric travelling salesman problems:
+            *  0 = EUC_2D       : weights are Euclidean distances in 2-D
+            *  1 = MAX_2D       : weights are maximum distances in 2-D
+            *  2 = MAN_2D       : weights are Manhattan distances in 2-D
+            *  3 = CEIL_2D      : weights are Euclidean distances in 2-D rounded up
+            *  4 = GEO          : weights are geographical distances
+            *  5 = ATT          : special distance function for problems att48 and att532 (pseudo-Euclidean)
+            */
+    /*        if (strncmp(param, "EDGE_WEIGHT_TYPE", 16) == 0) {
+                if (pointer_to_line[0] == ':') {
+                    useless_chars = 3;
+                } else if (pointer_to_line[0] == ' ') {
+                    useless_chars = 2;
+                }
+                str_len = strlen(pointer_to_line) - useless_chars;
+                strncpy(buffer, pointer_to_line + useless_chars - 1, str_len);
+
+                if (strncmp(buffer, "EUC_2D", 6) == 0) {
+                    instance->weight_type = 0;
+                }
+
+                if (strncmp(buffer, "MAX_2D", 6) == 0) {
+                    instance->weight_type = 1;
+                }
+
+                if (strncmp(buffer, "MAN_2D", 6) == 0) {
+                    instance->weight_type = 2;
+                }
+
+                if (strncmp(buffer, "CEIL_2D", 7) == 0) {
+                    instance->weight_type = 3;
+                }
+
+                if (strncmp(buffer, "GEO", 3) == 0) {
+                    instance->weight_type = 4;
+                }
+
+                if (strncmp(buffer, "ATT", 3) == 0) {
+                    instance->weight_type = 5;
+                }
+
+                if (strncmp(buffer, "EXPLICIT", 8) == 0) {
+                    printf("%s\n",
+                           "Wrong edge weight type, this program resolve only 2D TSP case with coordinate type.");
+                    exit(1);
+                }
+
+                if (strncmp(buffer, "SPECIAL", 7) == 0 || strncmp(buffer, "EUC_3D", 6) == 0 ||
+                    strncmp(buffer, "EUC_3D", 6) == 0 || strncmp(buffer, "MAN_3D", 6) == 0 ||
+                    strncmp(buffer, "XRAY1", 3) == 0 ||
+                    strncmp(buffer, "XRAY2", 3) == 0) {
+                    printf("%s\n", "Wrong edge weight type, this program resolve only 2D TSP case.");
+                    exit(1);
+                }
+
+                current_mode = 0;
+                DEBUG_PRINT(("param_content: |%d|\n", instance->weight_type));
+            }
+
+            if (strncmp(param, "NODE_COORD_SECTION", 18) == 0) {
+                //initialize the the array of coordinates
+                instance->coord_x = calloc((size_t) instance->nnode, sizeof(double));
+                instance->coord_y = calloc((size_t) instance->nnode, sizeof(double));
+
+                current_mode = 1;
+                //This is done because I start reading the next line immediately
+                //without waiting for the next cycle
+                if (fgets(line, sizeof(line), model_file) == NULL) {
+                    printf("After the coordinate section delimiter the file ended.");
+                    valid_instance = 0;
+                }
+                pointer_to_line = line;
+
+                param = strsep(&pointer_to_line, " \t\n");
+            }
+
+            if (current_mode == 1 && instance->nnode > 0) {
+                while (strlen(param) == 0) {
+                    param = strsep(&pointer_to_line, " \t\n");
+                    DEBUG_PRINT(("line: |%s|\n", param));
+                }
+                if (!isdigit(param[0]) && param[0] != '-') {
+                    valid_instance = 0;
+                    //Something is not right, stop the cycle
+                    break;
+                }
+                //the number of the line
+                id_numb = (int) strtol(param, NULL, 10);
+                //the first coordinate
+                param = strsep(&pointer_to_line, " \t\n");
+                while (strlen(param) == 0) {
+                    param = strsep(&pointer_to_line, " \t\n");
+                    DEBUG_PRINT(("line: |%s|\n", param));
+                }
+                if (!isdigit(param[0]) && param[0] != '-') {
+                    valid_instance = 0;
+                    //Something is not right, stop the cycle
+                    break;
+                }
+                instance->coord_x[id_numb - 1] = strtod(param, NULL);
+                //the second coordinate
+                param = strsep(&pointer_to_line, " \t\n");
+                while (strlen(param) == 0) {
+                    param = strsep(&pointer_to_line, " \t\n");
+                    DEBUG_PRINT(("line: |%s|\n", param));
+                }
+                if (!isdigit(param[0]) && param[0] != '-') {
+                    valid_instance = 0;
+                    //Something is not right, stop the cycle
+                    break;
+                }
+                instance->coord_y[id_numb - 1] = strtod(param, NULL);
+            }
+        }
+    }
+
+    if (instance->nnode < 1) {
+        printf("Unable to import dimension.\n");
+        valid_instance = 0;
+    }
+
+    for (int i = 0; i < instance->nnode; i++) {
+        DEBUG_PRINT(("i: %d X: %g, Y: %g \n", i + 1, instance->coord_x[i], instance->coord_y[i]));
+    }
+
+
+    fclose(model_file);
+    //TODO parse strange files too
+    return valid_instance;
+}*/
 
 void add_edge_to_solution(Solution_list *edges_list, int *edge) {
     if (edge == NULL) {

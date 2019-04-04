@@ -54,16 +54,23 @@ typedef struct{
 } Tsp_prob;
 
 typedef struct{
+    ///the trials file
+    char *filename;
+    char *name;
     ///number of runs to perform
-    int n_run;
+    int n_runs;
     ///number of models present
     int n_models;
     ///the list of seeds
-    int * seeds;
+    int *seeds;
     ///the list of instances to run
-    int * instances;
+    char **instances;
+    ///the list of models to use
+    int *models;
     ///time limit for each run
     double time_limit;
+
+    Tsp_prob *problems;
 }Trial;
 
 typedef struct{
