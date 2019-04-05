@@ -248,6 +248,13 @@ void inverse_map_model_type (int model_type, char *target_string) {
     }
 
 }
+void remove_tr_newline(char *str) {
+    if (str == NULL)
+        return;
+    int length = strlen(str);
+    if (str[length-1] == '\n')
+        str[length-1]  = '\0';
+}
 /**
  * Free memory to avoid leaks, assumes instance is initialized as variable, not dinamically allocated
  * @param instance The pointer to the problem instance
@@ -259,4 +266,11 @@ void close_instance(Tsp_prob *instance) {
     free(instance->coord_y);
     free(instance->coord_x);
     //free(instance->solution);
+}
+void close_trial(Trial *trial_inst){
+    free(trial_inst->seeds);
+    free(trial_inst->filename);
+    free(trial_inst->name);
+    free(trial_inst->models);
+    //TODO FREE REST
 }

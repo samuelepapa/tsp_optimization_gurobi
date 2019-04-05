@@ -59,6 +59,8 @@ typedef struct{
     char *name;
     ///number of runs to perform
     int n_runs;
+    ///number of instances
+    int n_instances;
     ///number of models present
     int n_models;
     ///the list of seeds
@@ -70,7 +72,7 @@ typedef struct{
     ///time limit for each run
     double time_limit;
 
-    Tsp_prob *problems;
+    Tsp_prob **problems;
 }Trial;
 
 typedef struct{

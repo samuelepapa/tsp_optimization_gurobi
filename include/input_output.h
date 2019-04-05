@@ -9,8 +9,9 @@
  * @param argc The number of arguments
  * @param argv The arguments themselves
  * @param instance The pointer to the problem instance we are using
+ * @param trial_inst The pointer to the trial instance
  */
-void parse_input(int argc, char **argv, Tsp_prob *instance);
+int parse_input(int argc, char **argv, Tsp_prob *instance, Trial *trial_inst);
 
 /**
  * Initialize the problem instance
@@ -33,6 +34,5 @@ int init_instance(Tsp_prob *instance);
  */
 int plot_solution(Tsp_prob *instance, GRBmodel *model, GRBenv *env, int (*var_pos)(int, int, Tsp_prob*));
 
-// print the help text for command line
-void print_help();
+int init_trial(Trial *trial_inst);
 #endif //TSP_OPTIMIZATION_GUROBI_INPUTOUTPUT_H

@@ -45,8 +45,13 @@ void inverse_map_model_type (int model_type, char *target_string);
  * The integer values are:
  * 0 for the standard TSP problem with subtour elimination constraints
  * 1 for the TSP problem with Miller, Tucker and Zemlin (MTZ) method
- * 2 for the TSP problem with MAtteo Fischetti lecture method
+ * 2 for the TSP problem with Matteo Fischetti lecture method
  */
 int map_model_type (char *optarg);
+
+//https://siongui.github.io/2013/01/09/c-remove-string-trailing-newline-carriage-return/
+void remove_tr_newline(char *str);
+
+void close_trial(Trial *trial_inst);
 
 #endif //TSP_OPTIMIZATION_GUROBI_UTILS_H
