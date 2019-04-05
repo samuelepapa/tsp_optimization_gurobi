@@ -27,13 +27,15 @@ int parse_input(int argc, char **argv, Tsp_prob *instance, Trial *trial_inst) {
     struct arg_lit *is_this_trial, *help;
     struct arg_end *end;
     void *argtable[] = {
-            filename = arg_file0("f", "filename", "<filename>", "path to file where the tsp instance or a trial "
-                                                                "file is located (this is the interpretation if "
-                                                                "the -r argument is present)."),
-            model_name = arg_str0("m", "model", "<tsp_model>", "the tsp model used to solve this (this argument"
-                                                               " is only used if -r is not present)."),
-            is_this_trial = arg_lit0("t", "run", "if this should be interpreted as a test trial."),
-            help = arg_lit0(NULL, "help", "print this help and exit"),
+            filename = arg_file0("f", "filename", "<filename>",
+                    "path to file where the tsp instance or a trial file is located "
+                    "(this is the interpretation if the -r argument is present)."),
+            model_name = arg_str0("m", "model", "<tsp_model>",
+                    "the tsp model used to solve this (this argument is only used if -r is not present)."),
+            is_this_trial = arg_lit0("t", "run",
+                    "if this should be interpreted as a test trial."),
+            help = arg_lit0(NULL, "help",
+                    "print this help and exit"),
             end = arg_end(20)
     };
     char progname[] = "tsp_optimize";

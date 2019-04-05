@@ -122,15 +122,11 @@ void tsp_loop_model_create(Tsp_prob *instance){
 
 
     //Env creation and starting
-    error = GRBemptyenv(&env);
-    if (env == NULL) {
+    error = GRBloadenv(&env, "tsp_loop.log");
+    if (error || env == NULL) {
         printf("Error: couldn't create empty environment.\n");
         exit(1);
     }
-    quit_on_GRB_error(env, loop_model, error);
-
-    error = GRBstartenv(env);
-    quit_on_GRB_error(env, loop_model, error);
 
     error = GRBnewmodel(env, &loop_model, instance->name, 0, NULL, NULL, NULL, NULL, NULL);
     quit_on_GRB_error(env, loop_model, error);
@@ -169,84 +165,116 @@ void tsp_loop_model_create(Tsp_prob *instance){
     /*
      * Add SEC constraints and cicle
      */
-    double time_limit = 10;
-    int number_of_increments = 2;
-    int number_of_iterations = 5;
-    int current_number_of_increments = 0;
-    int current_number_of_iterations = 0;
+    //Update the model using new constraints
+    error = GRBupdatemodel(loop_model);
+    quit_on_GRB_error(env, loop_model, error);
+    int numnoz = 0;
+    error = GRBgetintattr(loop_model, "NumNZs", &numnoz);
+    quit_on_GRB_error(env, loop_model, error);
+    printf("NUM NZ: %g\n", sqrt((double)numnoz));
+    double node_limit = (double)numnoz/10;
+    int max_increments = 2;
+    int max_iterations = 10;
+    int cur_iter = 0;
+    int cur_incr = 0;
+    int count_nolimit = 0;
 
     int fast_phase = 1;
 
     int status_code = 0;
 
     int current_iteration = 0;
-    error = GRBsetintparam(env, GRB_INT_PAR_RINS, 10);
-    quit_on_GRB_error(env, loop_model, error);
+    error = GRBsetdblparam(GRBgetenv(loop_model), "IterationLimit", node_limit);
+    quit_on_GRB_error(GRBgetenv(loop_model), loop_model, error);
+    //error = GRBsetintparam(env, GRB_INT_PAR_RINS, 10);
+    //quit_on_GRB_error(env, loop_model, error);
 
     while (!done) {
+        //Update the model using new constraints
         error = GRBupdatemodel(loop_model);
         quit_on_GRB_error(env, loop_model, error);
 
+        //write to output file
         error = GRBwrite(loop_model, "output_loop_model.lp");
         quit_on_GRB_error(env, loop_model, error);
 
+        //Run optimization
         error = GRBoptimize(loop_model);
         quit_on_GRB_error(env, loop_model, error);
 
+        //get the current solution
         error = GRBgetdblattr(loop_model, GRB_DBL_ATTR_OBJVAL, &solution);
         quit_on_GRB_error(env, loop_model, error);
-
         printf("Solution: %g\n", solution);
 
+        //write solution to file for inspection
         error = GRBwrite(loop_model, "solution.sol");
         quit_on_GRB_error(env, loop_model, error);
 
-        //parse_solution_file(instance, "solution.sol");
-
-        /*for(int j = 0; j< instance->solution_size; j++){
-            printf("SOL %d = (%d, %d)\n", j, instance->solution[j][0],instance->solution[j][1] );
-        }*/
         //Get termination condition
         error = GRBgetintattr(loop_model,"Status", &status_code);
         quit_on_GRB_error(env, loop_model, error);
+
         DEBUG_PRINT(("status: %d\n", status_code));
 
-        plot_solution(instance,loop_model, env, &xpos_loop);
+        plot_solution(instance, loop_model, env, &xpos_loop);
 
+        //Find the connected components
         find_connected_comps(env, loop_model, instance, &comp);
 
         DEBUG_PRINT(("Found %d connected components\n", comp.number_of_comps));
 
-        if(status_code == GRB_TIME_LIMIT){
-            current_number_of_iterations++;
+        //I have stopped because of the limit imposed, so increment the counter
+        if(status_code == GRB_ITERATION_LIMIT){
+            printf("IterationLimitREACHED");
+            cur_iter++;
+        }else{
+            count_nolimit++;
         }
-        //the number of iterations with this time limit is enough
-        if((current_number_of_increments < number_of_increments) && (current_number_of_iterations >= number_of_iterations)){
-            time_limit = time_limit * 2;
-            current_number_of_increments++;
-            current_number_of_iterations = 0;
-            error = GRBsetdblparam(env, "TimeLimit", time_limit);
-            quit_on_GRB_error(env, loop_model, error);
+        //the number of iterations with this node limit is enough, try and give more time
+        if((cur_incr < max_increments) && (cur_iter >= max_iterations)){
+            node_limit = node_limit * 3;
+            //I have incremented once
+            cur_incr++;
+            //I need to start counting again
+            cur_iter = 0;
+            //Set the new node limit
+            error = GRBsetdblparam(GRBgetenv(loop_model), "IterationLimit", node_limit);
+            quit_on_GRB_error(GRBgetenv(loop_model), loop_model, error);
         }
-        if(current_number_of_increments>number_of_increments){
-            time_limit = INFINITY;
-            fast_phase = 0;
+        //I have reached maximum iterations
+        if(cur_incr>max_increments){
+            node_limit = INFINITY;
+            //Reactivate RINS
+            //error = GRBsetintparam(env, GRB_INT_PAR_RINS, -1);
+            //quit_on_GRB_error(env, loop_model, error);
+        }
+        //I have gone 10 iterations without reaching the time limit, start applying it again
+        if(count_nolimit > 10){
+            cur_incr = 0;
+            cur_iter = 0;
+            node_limit = 10;
+            count_nolimit = 0;
+        }
 
-            error = GRBsetintparam(env, GRB_INT_PAR_RINS, -1);
-            quit_on_GRB_error(env, loop_model, error);
-        }
+        //I have found connected components, add sec
         if (comp.number_of_comps >= 2) {
             add_sec_constraints(env, loop_model, instance, &comp, current_iteration);
-        } else if(status_code == GRB_TIME_LIMIT) {
-            time_limit = INFINITY;
-            error = GRBsetdblparam(env, "TimeLimit", time_limit);
-            quit_on_GRB_error(env, loop_model, error);
-        } else {
+        } else if(status_code == GRB_ITERATION_LIMIT) {
+            //I have reached the node limit in this iteration but only 1 connected component.
+            //Let it run again with no limit
+            node_limit = INFINITY;
+            error = GRBsetdblparam(GRBgetenv(loop_model), "IterationLimit", node_limit);
+            quit_on_GRB_error(GRBgetenv(loop_model), loop_model, error);
+        } else if(status_code == GRB_OPTIMAL){
+            //I have found no connected components and the solution was found without limits
             done = 1;
         }
         current_iteration++;
         free(comp.list_of_comps);
     }
+
+    printf("Number of iterations: %d", current_iteration);
 
     error = GRBwrite(loop_model, "solution.sol");
     quit_on_GRB_error(env, loop_model, error);
