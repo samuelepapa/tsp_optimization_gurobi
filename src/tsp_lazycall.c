@@ -12,6 +12,7 @@
 #include "utils.h"
 #include "input_output.h"
 #include "tsp_lazycall.h"
+#include "union_find.h"
 
 #define TOLERANCE 10E-4
 #define MAX_VARNAME_SIZE 128
@@ -20,6 +21,7 @@ struct callback_data {
     int nvars;
     Tsp_prob *instance;
     int (*var_pos)(int, int, Tsp_prob *);
+    Graph *graph;
 };
 
 int xpos_lazycall(int i, int j, Tsp_prob *instance);
@@ -55,10 +57,36 @@ int __stdcall mycallback(GRBmodel *model, void *cbdata, int where, void *usrdata
             add_lazy_sec_constraints(cbdata, mydata, &comp, 0);
         }
         free(comp.number_of_items);
+
+        free_comp_struc(&comp);
     }
 
     return 0;
 }
+
+
+/*int __stdcall mycallback(GRBmodel *model, void *cbdata, int where, void *usrdata) {
+    struct callback_data *mydata = (struct callback_data *) usrdata;
+    int nvars;
+    int nnode = mydata->instance->nnode;
+
+    if(where == GRB_CB_MIPSOL){
+        Connected_component *conn_comp = calloc(nnode, sizeof(Connected_component));
+        double * solution = calloc(mydata->nvars, sizeof(double));
+        GRBcbget(cbdata, where, GRB_CB_MIPSOL_SOL, solution);
+
+        int number_of_comps = union_find(mydata->graph, solution, &xpos_lazycall, mydata->instance, conn_comp);
+
+        printf("\nThe current solution has: %d connected components \n", number_of_comps);
+        if (number_of_comps >= 2) {
+            //add_lazy_sec_constraints(cbdata, mydata, &comp, 0);
+        }
+
+        free(conn_comp);
+    }
+
+    return 0;
+}*/
 
 void tsp_lazycall_model_create(Tsp_prob *instance) {
     //setup clock, timelimit doesn't work because of repeated runs
@@ -84,6 +112,9 @@ void tsp_lazycall_model_create(Tsp_prob *instance) {
 
     user_cbdata.instance = instance;
     user_cbdata.var_pos = xpos_lazycall;
+
+    user_cbdata.graph = malloc(sizeof(Graph));
+    create_graph_u_f(instance, user_cbdata.graph);
 
     int coord = 0;
     //Create variables
@@ -167,6 +198,19 @@ void tsp_lazycall_model_create(Tsp_prob *instance) {
 
     error = GRBoptimize(lazycall_model);
     quit_on_GRB_error(env, lazycall_model, error);
+
+    //Freeing memory
+    free(constr_name);
+
+    for (int i = 0 ; i < size_variable_names;i++) {
+        free(variables_names[i]);
+    }
+
+    free(variables_names);
+
+    free_graph(user_cbdata.graph);
+
+    free_gurobi(env, lazycall_model);
 
 }
 

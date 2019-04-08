@@ -168,42 +168,42 @@ void plot_edges(Solution_list *edges_list, Tsp_prob * instance) {
 
     fclose(data);
 
-    /*Opens an interface that one can use to send commands as if they were typing into the
-     *     gnuplot command line.  "The -persistent" keeps the plot open even after your
-     *     C program terminates.
-     */
-    FILE *gnuplot_pipe = popen("gnuplot -persistent", "w");
+     /*Opens an interface that one can use to send commands as if they were typing into the
+      *     gnuplot command line.  "The -persistent" keeps the plot open even after your
+      *     C program terminates.
+      */
+     FILE *gnuplot_pipe = popen("gnuplot -persistent", "w");
 
-    //set teminal type with parameters, size in inch
-    fprintf(gnuplot_pipe, "%s\n", "set terminal postscript portrait size 10, 8 enhanced color \"Helvetica\" 7");
+     //set teminal type with parameters, size in inch
+     fprintf(gnuplot_pipe, "%s\n", "set terminal postscript portrait size 10, 8 enhanced color \"Helvetica\" 7");
 
-    //output file
-    fprintf(gnuplot_pipe, "%s\n", "set output 'graph/path.eps'");
+     //output file
+     fprintf(gnuplot_pipe, "%s\n", "set output 'graph/path.eps'");
 
      //set canvas
      set_canvas(gnuplot_pipe);
 
-    //set style of the lines
-    fprintf(gnuplot_pipe, "%s\n",  "set style line 1 \
+     //set style of the lines
+     fprintf(gnuplot_pipe, "%s\n",  "set style line 1 \
 									linecolor rgb '#0060ad' \
 									linetype 1 linewidth 1" );
 
-    char *model_name = calloc(64, 1);
-    inverse_map_model_type(instance->model_type, model_name);
+     char *model_name = calloc(64, 1);
+     inverse_map_model_type(instance->model_type, model_name);
 
-    fprintf(gnuplot_pipe, "set title \"%s using %s\"\n", instance->name, model_name);
+     fprintf(gnuplot_pipe, "set title \"%s using %s\"\n", instance->name, model_name);
 
-    free(model_name);
-    //plot path with point style and label
-    fprintf(gnuplot_pipe, "%s\n", "plot 'graph/path.dat' with linespoints linestyle 1, '' with labels offset char 1,-1.0 point pointtype 7 lc rgb '#0060ad' notitle");
+     free(model_name);
+     //plot path with point style and label
+     fprintf(gnuplot_pipe, "%s\n", "plot 'graph/path.dat' with linespoints linestyle 1, '' with labels offset char 1,-1.0 point pointtype 7 lc rgb '#0060ad' notitle");
 
-    fprintf(gnuplot_pipe,"%s\n", "quit");
+     fprintf(gnuplot_pipe,"%s\n", "quit");
 
-    pclose(gnuplot_pipe);
+     pclose(gnuplot_pipe);
 
-    remove("graph/path.dat");
+     remove("graph/path.dat");
 
-    printf("\n%s\n", "--plot completed");
+     printf("\n%s\n", "--plot completed");
 
 }
 

@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
+#include "union_find.h"
 #include "utils.h"
 /**
  * Verify if the identifier of the connected component is present in the list
@@ -350,8 +351,14 @@ void free_comp_struc(Connected_comp * comp) {
     free(comp->number_of_items);
     //free(comp->visit_flag);
 }
+
+void free_graph(Graph *graph) {
+    free(graph->edge);
+    free(graph);
+}
+
 /**
- * Free memory to avoid leaks, assumes instance is initialized as variable, not dinamically allocated
+ * Free memory to avoid leaks, assumes instance is initialized as variable, not dynamically allocated
  * @param instance The pointer to the problem instance
  */
 void close_instance(Tsp_prob *instance) {

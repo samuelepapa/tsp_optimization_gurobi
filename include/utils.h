@@ -67,5 +67,11 @@ void find_connected_comps(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Conn
  */
 void free_comp_struc(Connected_comp * comp);
 
+/**
+ * Free memory allocated to the graph
+ * @param graph The pointer to the graph structure
+ */
+void free_graph(Graph *graph);
+
 
 #endif //TSP_OPTIMIZATION_GUROBI_UTILS_H
