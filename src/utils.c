@@ -10,7 +10,23 @@
 #include <unistd.h>
 #include <limits.h>
 #include "utils.h"
+/**
+ * Verify if the identifier of the connected component is present in the list
+ * @param comp The pointer to the connected component structure
+ * @param curr_comp The identifier of the current connected component
+ * @param num_comp The number of node in the connected component
+ * @return
+ */
+int has_component(Connected_comp *comp, int curr_comp, int num_comp);
 
+/**
+ * Return the solution value of the x variables
+ * @param env The pointer to the gurobi environment
+ * @param model The pointer to the gurobi model
+ * @param xpos The memory location of the x variable
+ * @return The value of x after the resolution of the model
+ */
+double get_solution(GRBenv *env, GRBmodel *model, int xpos);
 
 /**
  * Print the error message associated by error integer value and free the gurobi model and the gurobi environment
@@ -45,7 +61,7 @@ void free_gurobi(GRBenv *env, GRBmodel *model) {
     GRBfreemodel(model);
 
     /*free environment*/
-    GRBfreeenv(env);
+    //GRBfreeenv(env);
 }
 
 /**
@@ -208,6 +224,10 @@ int map_model_type (char *optarg) {
     if(strncmp(optarg, "loop", 4) == 0) {
         return 9;
     }
+
+    if(strncmp(optarg, "lazycall", 8) == 0) {
+        return 10;
+    }
 }
 
 void inverse_map_model_type (int model_type, char *target_string) {
@@ -243,17 +263,92 @@ void inverse_map_model_type (int model_type, char *target_string) {
         case 9:
             strcpy(target_string, "loop");
             break;
+        case 10:
+            strcpy(target_string, "lazycall");
+            break;
         default:
             strcpy(target_string, "not a model");
     }
 
 }
-void remove_tr_newline(char *str) {
-    if (str == NULL)
-        return;
-    int length = strlen(str);
-    if (str[length-1] == '\n')
-        str[length-1]  = '\0';
+
+void find_connected_comps(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_comp *comp,
+                          int (*var_pos)(int, int, Tsp_prob *)) {
+    int nnode = instance -> nnode;
+
+    for (int i = 0; i < nnode; i++) {
+        comp->comps[i] = i;
+        comp->number_of_items[i] = 1;
+    }
+
+    comp->number_of_comps = nnode;
+
+    int c1, c2;
+
+    for (int i = 0; i < nnode; i++) {
+        for (int j = i + 1; j < nnode; j++) {
+            if (get_solution(env, model, var_pos(i, j, instance)) > 1-TOLERANCE) {
+                if (comp->comps[i] != comp->comps[j]) {
+                    c1 = comp->comps[i];
+                    c2 = comp->comps[j];
+                    for (int v = 0; v < nnode; v++) { //update nodes
+                        if (comp->comps[v] == c2) {
+                            comp->comps[v] = c1;
+                            comp->number_of_items[c1]++;
+                            comp->number_of_items[c2]--;//TODO this operation can be removed, if everything works correctly, at the end of the cycle it will always be equal to 0.
+                        }
+                    }
+                    comp->number_of_comps--;
+                }
+            }
+        }
+    }
+
+    int num_comp = comp->number_of_comps;
+    comp->list_of_comps = calloc(num_comp, sizeof(int));
+
+    //int sort_num_items_list[num_comp];
+
+    for (int i = 0; i < num_comp; i++) {
+        comp->list_of_comps[i] = -1;
+    }
+    int t = 0;
+    for (int i = 0; i < nnode; i++) {
+        int cc = comp->comps[i];
+        if (has_component(comp, cc, num_comp) != 0) {
+            continue;
+        }
+        comp->list_of_comps[t] = cc;
+        t++;
+    }
+}
+
+
+
+int has_component(Connected_comp *comp, int curr_comp, int num_comp) {
+
+    for (int i = 0; i < num_comp; i++) {
+        if (curr_comp == comp->list_of_comps[i]) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+double get_solution(GRBenv *env, GRBmodel *model, int xpos) {
+
+    double x_value;
+    int error = GRBgetdblattrelement(model, "X", xpos, &x_value);
+    quit_on_GRB_error(env, model, error);
+    return x_value;
+}
+
+void free_comp_struc(Connected_comp * comp) {
+    free(comp->comps);
+//    free(comp->list_of_comps);
+    free(comp->number_of_items);
+    //free(comp->visit_flag);
 }
 /**
  * Free memory to avoid leaks, assumes instance is initialized as variable, not dinamically allocated
@@ -265,6 +360,7 @@ void close_instance(Tsp_prob *instance) {
     free(instance->filename);
     free(instance->coord_y);
     free(instance->coord_x);
+    //TODO FREE GUROBI ENV HERE
     //free(instance->solution);
 }
 void close_trial(Trial *trial_inst){
@@ -272,5 +368,6 @@ void close_trial(Trial *trial_inst){
     free(trial_inst->filename);
     free(trial_inst->name);
     free(trial_inst->models);
+    //TODO FREE GUROBI ENVIRONMENT
     //TODO FREE REST
 }

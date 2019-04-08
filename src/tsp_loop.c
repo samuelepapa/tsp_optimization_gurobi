@@ -15,40 +15,12 @@
 #include "tsp_loop.h"
 
 #define MAX_VARNAME_SIZE 100
-#define TOLERANCE 10E-4
 #define LAZY_LEVEL 2
 /*LAZY_LEVEL
  * With a value of 1, the constraint can be used to cut off a feasible solution, but it won’t necessarily be pulled in if another lazy constraint also cuts off the solution.
  * With a value of 2, all lazy constraints that are violated by a feasible solution will be pulled into the model.
  * With a value of 3, lazy constraints that cut off the relaxation solution at the root node are also pulled in.
  */
-
-typedef struct{
-    int *comps; //list correlation node component
-    int number_of_comps; //number of component
-    int *number_of_items; //number of node in each component
-    int *list_of_comps; //list of component name
-    //int *visit_flag; //visited node
-}Connected_comp;
-
-/**
- * Mapping between points of an edge and position in GRB model
- * @param i First point
- * @param j Second point
- * @param instance The pointer to the problem instance
- * @return The memory position
- */
-int xpos_loop(int i, int j, Tsp_prob *instance);
-
-/**
- * Find connected components returned by the MIP solver
- * @param env The pointer to the gurobi environment
- * @param model The pointer to the gurobi model
- * @param instance The pointer to the problem instance
- * @param comp The pointer to the connected component structure
- */
-void find_connected_comps(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_comp *comp);
-
 /**
  * Add subtour elimination constraints to the model
  * @param env The pointer to the gurobi environment
@@ -60,32 +32,22 @@ void find_connected_comps(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Conn
 void add_sec_constraints(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_comp *comp, int iteration);
 
 /**
- * Verify if the identifier of the connected component is present in the list
- * @param comp The pointer to the connected component structure
- * @param curr_comp The identifier of the current connected component
- * @param num_comp The number of node in the connected component
- * @return
+ * Mapping between points of an edge and position in GRB model
+ * @param i First point
+ * @param j Second point
+ * @param instance The pointer to the problem instance
+ * @return The memory position
  */
-int has_component(Connected_comp *comp, int curr_comp, int num_comp);
-
-/**
- * Return the solution value of the x variables
- * @param env The pointer to the gurobi environment
- * @param model The pointer to the gurobi model
- * @param xpos The memory location of the x variable
- * @return The value of x after the resolution of the model
- */
-double get_solution(GRBenv *env, GRBmodel *model, int xpos);
-
-/**
- * Free memory allocated to connected component elements
- * @param comp The pointer to the connected component structure
- */
-void free_comp_struc(Connected_comp * comp);
-
+int xpos_loop(int i, int j, Tsp_prob *instance);
 
 void tsp_loop_model_create(Tsp_prob *instance){
-    GRBenv *env = NULL;
+    //setup clock, timelimit doesn't work because of repeated runs
+    struct timespec start, cur;
+    double time_elapsed;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+
+    int time_limit_reached = 0;
+    GRBenv *env = instance->env;
     GRBmodel *loop_model = NULL;
     int error = 0;
     int n_node = instance->nnode;
@@ -120,13 +82,22 @@ void tsp_loop_model_create(Tsp_prob *instance){
         }
     }
 
-
-    //Env creation and starting
-    error = GRBloadenv(&env, "tsp_loop.log");
-    if (error || env == NULL) {
-        printf("Error: couldn't create empty environment.\n");
-        exit(1);
+    if(env == NULL){
+        printf("Env was NULL\n");
+        //Env creation and starting
+        error = GRBloadenv(&env, "tsp_loop.log");
+        if (error || env == NULL) {
+            printf("Error: couldn't create empty environment.\n");
+            exit(1);
+        }
     }
+
+    double curtimelimit = -1;
+    error = GRBgetdblparam(env, "TimeLimit", &curtimelimit);
+    printf("erros: %d\n", error);
+    printf("Time limit is: %g\n", curtimelimit);
+
+
 
     error = GRBnewmodel(env, &loop_model, instance->name, 0, NULL, NULL, NULL, NULL, NULL);
     quit_on_GRB_error(env, loop_model, error);
@@ -163,7 +134,7 @@ void tsp_loop_model_create(Tsp_prob *instance){
     int done = 0;
     double solution;
     /*
-     * Add SEC constraints and cicle
+     * Add SEC constraints and cycle
      */
     //Update the model using new constraints
     error = GRBupdatemodel(loop_model);
@@ -220,13 +191,13 @@ void tsp_loop_model_create(Tsp_prob *instance){
         plot_solution(instance, loop_model, env, &xpos_loop);
 
         //Find the connected components
-        find_connected_comps(env, loop_model, instance, &comp);
+        find_connected_comps(env, loop_model, instance, &comp, &xpos_loop);
 
         DEBUG_PRINT(("Found %d connected components\n", comp.number_of_comps));
 
         //I have stopped because of the limit imposed, so increment the counter
         if(status_code == GRB_ITERATION_LIMIT){
-            printf("IterationLimitREACHED");
+            DEBUG_PRINT(("IterationLimit REACHED\n"));
             cur_iter++;
         }else{
             count_nolimit++;
@@ -272,21 +243,28 @@ void tsp_loop_model_create(Tsp_prob *instance){
         }
         current_iteration++;
         free(comp.list_of_comps);
+        //check if timelimit has been reached this is something for testing performance
+        clock_gettime(CLOCK_MONOTONIC, &cur);
+        if((cur.tv_sec - start.tv_sec) > instance->time_limit){
+            time_limit_reached = 1;
+            printf("TIME LIMIT REACHED, no more computing, this is taking too long.\n");
+            break;
+        }
     }
 
-    printf("Number of iterations: %d", current_iteration);
+    printf("Number of iterations: %d\n", current_iteration);
 
     error = GRBwrite(loop_model, "solution.sol");
     quit_on_GRB_error(env, loop_model, error);
 
-    //parse_solution_file(instance, "solution.sol");
-
-    /*for(int j = 0; j< instance->solution_size; j++){
-        printf("SOL %d = (%d, %d)\n", j, instance->solution[j][0],instance->solution[j][1] );
-    }*/
-
     plot_solution(instance,loop_model, env, &xpos_loop);
 
+    if(time_limit_reached){
+        instance->status = GRB_TIME_LIMIT;
+    }else{
+        error = GRBgetintattr(loop_model,"Status", &instance->status);
+        quit_on_GRB_error(env, loop_model, error);
+    }
     //Freeing memory
     free(constr_name);
 
@@ -310,58 +288,6 @@ int xpos_loop(int i, int j, Tsp_prob *instance){
         return xpos_loop(j, i, instance);
     }
     return i*instance->nnode + j - ((i+1)*(i+2))/2;
-}
-
-
-
-void find_connected_comps(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_comp *comp){
-    int nnode = instance -> nnode;
-
-    for (int i = 0; i < nnode; i++) {
-        comp->comps[i] = i;
-        comp->number_of_items[i] = 1;
-    }
-
-    comp->number_of_comps = nnode;
-
-    int c1, c2;
-
-    for (int i = 0; i < nnode; i++) {
-        for (int j = i + 1; j < nnode; j++) {
-            if (get_solution(env, model, xpos_loop(i, j, instance)) > 1-TOLERANCE) {
-                if (comp->comps[i] != comp->comps[j]) {
-                    c1 = comp->comps[i];
-                    c2 = comp->comps[j];
-                    for (int v = 0; v < nnode; v++) { //update nodes
-                        if (comp->comps[v] == c2) {
-                            comp->comps[v] = c1;
-                            comp->number_of_items[c1]++;
-                            comp->number_of_items[c2]--;//TODO this operation can be removed, if everything works correctly, at the end of the cycle it will always be equal to 0.
-                        }
-                    }
-                    comp->number_of_comps--;
-                }
-            }
-        }
-    }
-
-    int num_comp = comp->number_of_comps;
-    comp->list_of_comps = calloc(num_comp, sizeof(int));
-
-    //int sort_num_items_list[num_comp];
-
-    for (int i = 0; i < num_comp; i++) {
-        comp->list_of_comps[i] = -1;
-    }
-    int t = 0;
-    for (int i = 0; i < nnode; i++) {
-        int cc = comp->comps[i];
-        if (has_component(comp, cc, num_comp) != 0) {
-            continue;
-        }
-        comp->list_of_comps[t] = cc;
-        t++;
-    }
 }
 
 void add_sec_constraints(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_comp *comp, int iteration) {
@@ -408,30 +334,4 @@ void add_sec_constraints(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Conne
     }
 
     free(constr_name);
-}
-
-int has_component(Connected_comp *comp, int curr_comp, int num_comp) {
-
-    for (int i = 0; i < num_comp; i++) {
-        if (curr_comp == comp->list_of_comps[i]) {
-            return 1;
-        }
-    }
-
-    return 0;
-}
-
-double get_solution(GRBenv *env, GRBmodel *model, int xpos) {
-
-    double x_value;
-    int error = GRBgetdblattrelement(model, "X", xpos, &x_value);
-    quit_on_GRB_error(env, model, error);
-    return x_value;
-}
-
-void free_comp_struc(Connected_comp * comp) {
-    free(comp->comps);
-//    free(comp->list_of_comps);
-    free(comp->number_of_items);
-    //free(comp->visit_flag);
 }

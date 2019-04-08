@@ -49,9 +49,23 @@ void inverse_map_model_type (int model_type, char *target_string);
  */
 int map_model_type (char *optarg);
 
-//https://siongui.github.io/2013/01/09/c-remove-string-trailing-newline-carriage-return/
-void remove_tr_newline(char *str);
-
 void close_trial(Trial *trial_inst);
+
+/**
+ * Find connected components returned by the MIP solver
+ * @param env The pointer to the gurobi environment
+ * @param model The pointer to the gurobi model
+ * @param instance The pointer to the problem instance
+ * @param comp The pointer to the connected component structure
+ */
+void find_connected_comps(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_comp *comp,
+                          int (*var_pos)(int, int, Tsp_prob *));
+
+/**
+ * Free memory allocated to connected component elements
+ * @param comp The pointer to the connected component structure
+ */
+void free_comp_struc(Connected_comp * comp);
+
 
 #endif //TSP_OPTIMIZATION_GUROBI_UTILS_H

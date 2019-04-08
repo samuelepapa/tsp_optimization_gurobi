@@ -570,7 +570,6 @@ int init_trial(Trial *trial_inst) {
                     break;
                 }
                 str_len = strlen(line);
-                remove_tr_newline(line);
                 trial_inst->name = calloc(str_len, 1);
                 //remove the first space
                 strncpy(trial_inst->name, line, str_len - 1);

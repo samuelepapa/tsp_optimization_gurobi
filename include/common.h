@@ -15,7 +15,9 @@
 # define DEBUG_PRINT(x) do {} while (0)
 #endif
 
-typedef struct{
+#define TOLERANCE 10E-4
+
+typedef struct {
     int verbosity;
     double time_limit;
     double time_taken;
@@ -53,7 +55,7 @@ typedef struct{
 
 } Tsp_prob;
 
-typedef struct{
+typedef struct {
     ///the trials file
     char *filename;
     char *name;
@@ -73,11 +75,19 @@ typedef struct{
     double time_limit;
 
     Tsp_prob **problems;
-}Trial;
+} Trial;
 
-typedef struct{
-  int **solution;
-  int size;
-}Solution_list;
+typedef struct {
+    int *comps; //list correlation node component
+    int number_of_comps; //number of component
+    int *number_of_items; //number of node in each component
+    int *list_of_comps; //list of component name
+    //int *visit_flag; //visited node
+} Connected_comp;
+
+typedef struct {
+    int **solution;
+    int size;
+} Solution_list;
 
 #endif //UNTITLED_COMMON_H

@@ -24,6 +24,7 @@
 #include "tsp_timed_stage2.h"
 #include "tsp_timed_stage3.h"
 #include "tsp_loop.h"
+#include "tsp_lazycall.h"
 
 int main(int argc, char **argv) {
 
@@ -32,12 +33,14 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    clock_t start, end;
-    double cpu_time_used;
+    struct timespec start, end;
+    double time_elapsed;
 
     Tsp_prob instance = {
+            .env = NULL,
             .nnode = -1,
-            .model_type = 0
+            .model_type = 0,
+            .time_limit = INFINITY //for tsp_loop purposes
     };
     Trial trial_inst = {
             .n_models = -1,
@@ -61,7 +64,7 @@ int main(int argc, char **argv) {
             plot_instance(&instance);
 
             //Start the timer
-            start = clock();
+            clock_gettime(CLOCK_MONOTONIC, &start);
 
             switch (instance.model_type) {
                 case 0:
@@ -94,13 +97,16 @@ int main(int argc, char **argv) {
                 case 9:
                     tsp_loop_model_create(&instance); //loop additional SEC
                     break;
+                case 10:
+                    tsp_lazycall_model_create(&instance); //lazy callback SEC
+                    break;
                 default:
                     tsp_model_create(&instance);
             }
 
-            end = clock();
-            cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-            DEBUG_PRINT(("Time taken in seconds: %g", cpu_time_used));
+            clock_gettime(CLOCK_MONOTONIC, &end);
+            time_elapsed = end.tv_sec - start.tv_sec;
+            DEBUG_PRINT(("Time taken in seconds: %g", time_elapsed));
 
         } else {
             printf("Error in parsing file");
@@ -109,6 +115,17 @@ int main(int argc, char **argv) {
     } else if (type == 1) {
         init_trial(&trial_inst);
         printf("Starting Trial name: %s\n", trial_inst.name);
+        GRBenv *env = NULL;
+        int error = GRBloadenv(&env, NULL);
+        if(error || env == NULL){
+            printf("Unable to initialize environment in trial_file. error: %d \n", error);
+            exit(1);
+        }
+        error = GRBsetdblparam(env, "TimeLimit", trial_inst.time_limit);
+        if(error){
+            printf("Error while setting the TimeLimit on trial_file: %d\n", error);
+            exit(1);
+            }
         int seed;
         char instance[120];
         int model;
@@ -117,13 +134,15 @@ int main(int argc, char **argv) {
         strcat(filename, "trials/");
         strcat(filename, trial_inst.name);
         strcat(filename, ".output");
-        FILE* trial = fopen(filename, "w");
-        fprintf(trial, "INSTANCE,MODEL FORMULATION,SEED,TIME ELAPSED (in seconds)\n");
+        FILE* trial_file = fopen(filename, "w");
+        fprintf(trial_file, "INSTANCE,MODEL FORMULATION,SEED,TIME ELAPSED (in seconds)\n");
 
         trial_inst.problems = calloc(trial_inst.n_instances, sizeof(Tsp_prob*));
         for (int i = 0; i < trial_inst.n_instances; i++) {
             trial_inst.problems[i] = calloc(1, sizeof(Tsp_prob));
             trial_inst.problems[i]->filename = trial_inst.instances[i];
+            trial_inst.problems[i]->env = env;
+            trial_inst.problems[i]->time_limit = trial_inst.time_limit;
             init_instance(trial_inst.problems[i]);
         }
         Tsp_prob * instance_pointer;
@@ -131,7 +150,8 @@ int main(int argc, char **argv) {
             instance_pointer = trial_inst.problems[cur_instance];
             for (int cur_run = 0; cur_run < trial_inst.n_runs; cur_run++) {
                 for (int cur_model = 0; cur_model < trial_inst.n_models; cur_model++) {
-                    start = clock();
+                    //start clock
+                    clock_gettime(CLOCK_MONOTONIC, &start);
                     printf("mode: %d\n", instance_pointer->model_type);
                     instance_pointer->model_type = trial_inst.models[cur_model];
 
@@ -171,16 +191,20 @@ int main(int argc, char **argv) {
                         default:
                             tsp_model_create(instance_pointer);
                     }
-                    end = clock();
-                    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+                    //calculate time elapsed
+                    clock_gettime(CLOCK_MONOTONIC, &end);
+                    time_elapsed = end.tv_sec - start.tv_sec;
+                    if(instance_pointer->status == GRB_TIME_LIMIT){
+                        time_elapsed = -1;
+                    }
                     inverse_map_model_type(trial_inst.models[cur_model], model_name);
-                    fprintf(trial, "%s,%s,%d,%g\n", trial_inst.instances[cur_instance], model_name, trial_inst.seeds[cur_run], cpu_time_used);
+                    fprintf(trial_file, "%s,%s,%d,%g\n", trial_inst.instances[cur_instance], model_name, trial_inst.seeds[cur_run], time_elapsed);
                 }
             }
         }
-        fclose(trial);
+        fclose(trial_file);
         //TODO CLOSE TRIAL INSTANCE
-
+        close_trial(&trial_inst);
     } else {
         printf("Type not recognized, exiting.\n");
         exit(1);

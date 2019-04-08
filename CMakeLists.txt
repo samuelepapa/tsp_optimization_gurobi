@@ -32,10 +32,11 @@ add_library(tspTS1 STATIC src/tsp_timed_stage1.c)
 add_library(tspTS2 STATIC src/tsp_timed_stage2.c)
 add_library(tspTS3 STATIC src/tsp_timed_stage3.c)
 add_library(tspLoop STATIC src/tsp_loop.c)
+add_library(tspLazycall STATIC src/tsp_lazycall.c)
 
 add_executable(tsp_optimize src/main.c include/common.h)
 
 # for future use: m is the math.h library, it is not automatically linked by cmake
-target_link_libraries(tsp_optimize tspLoop utils tspStd inputOutput gnuplot tspMTZ tspFischetti tspFlow1 tspFlow2 tspFlow3 tspTS1 tspTS2 tspTS3 argtable m)
+target_link_libraries(tsp_optimize tspLazycall tspLoop utils tspStd inputOutput gnuplot tspMTZ tspFischetti tspFlow1 tspFlow2 tspFlow3 tspTS1 tspTS2 tspTS3 argtable m)
 # for future reference, link gurobi separately from other libraries, no idea why
 target_link_libraries(tsp_optimize ${C_GUROBI_LIB})
