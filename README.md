@@ -33,6 +33,5 @@ so isolation is achieved.
 Third, plot solution found. Investigate whether solution can be plotted while it is being found.
 
 ### TODO
-* Make appendix on Gurobi usage.
-* Make code work with more types of files of input.
-* Define help text for command line.
+* Remove determinism for parallel calculations.
+* Fix all memory leaks with valgrind.
