@@ -148,6 +148,7 @@ void tsp_lazycall_model_create(Tsp_prob *instance) {
     quit_on_GRB_error(env, lazycall_model, error);
 
     error = GRBsetintparam(GRBgetenv(lazycall_model), GRB_INT_PAR_LAZYCONSTRAINTS, 1);
+    //error = GRBsetintparam(env, GRB_INT_PAR_LAZYCONSTRAINTS, 1);
     quit_on_GRB_error(env, lazycall_model, error);
 
     error = GRBsetintparam(GRBgetenv(lazycall_model), GRB_INT_PAR_PRECRUSH, 1);

@@ -493,6 +493,8 @@ int init_trial(Trial *trial_inst) {
         exit(1);
     }
 
+    DEBUG_PRINT(("Starting Trial name: %s\n", trial_inst->name));
+
     //buffer for line
     char line[180];
     //buffer for param values

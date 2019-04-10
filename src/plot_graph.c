@@ -203,7 +203,7 @@ void plot_edges(Solution_list *edges_list, Tsp_prob * instance) {
 
      remove("graph/path.dat");
 
-     printf("\n%s\n", "--plot completed");
+     DEBUG_PRINT(("\n%s\n", "--plot completed"));
 
 }
 
