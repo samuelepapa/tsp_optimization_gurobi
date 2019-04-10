@@ -20,6 +20,13 @@ int find(Connected_component conn_comps[], int i);
  */
 void union_by_rank(Connected_component conn_comps[], int x_set, int y_set);
 
+/**
+ * Control if all the nodes have the correct root
+ * @param conn_comps The array of nodes with connected component data
+ * @param n_node The number of nodes of the problem
+ */
+void control_root(Connected_component conn_comps[], int n_node);
+
 void create_graph_u_f(Tsp_prob *instance, Graph *graph) {
     int n_node = instance->nnode;
     graph-> V = n_node; //number of nodes
@@ -46,7 +53,8 @@ int union_find(Graph *graph, double *solution, int (*var_pos)(int, int, Tsp_prob
 
     for (int v = 0; v < n_node; v++) {
         conn_comps[v].parent = v;
-        conn_comps[v].rank = 0;
+        conn_comps[v].rank = 1;
+        conn_comps[v].index = v;
     }
 
     for (int e = 0; e < n_edge; e++) {
@@ -62,6 +70,13 @@ int union_find(Graph *graph, double *solution, int (*var_pos)(int, int, Tsp_prob
                 number_of_comps--;
             }
         }
+    }
+
+    control_root(conn_comps, n_node);
+
+
+    for (int i = 0; i < n_node; i++) {
+        printf("Node %d in component of root %d\n", i, conn_comps[i].parent);
     }
 
     return number_of_comps;
@@ -82,7 +97,6 @@ void union_by_rank(Connected_component conn_comps[], int x_set, int y_set) {
     //find the root of the set
     int x_root = find(conn_comps, x_set);
     int y_root = find(conn_comps, y_set);
-
     //attach smaller rank tree under the root of the bigger rank tree (this is the union by rank)
     if (conn_comps[y_root].rank <= conn_comps[x_root].rank) {
         conn_comps[y_root].parent = x_root;
@@ -90,5 +104,50 @@ void union_by_rank(Connected_component conn_comps[], int x_set, int y_set) {
     } else {
         conn_comps[x_root].parent = y_root;
         conn_comps[y_root].rank += conn_comps[x_root].rank;
+    }
+}
+
+void control_root(Connected_component conn_comps[], int n_node) {
+
+    for (int i = 0; i < n_node; i++) {
+        conn_comps[i].parent = find(conn_comps, conn_comps[i].parent);
+    }
+}
+
+
+/**
+ * Control if the root is founded before
+ * @param root_cc Array of connected component roots
+ * @param curr_root The current connected component root
+ * @param num_comp Number of connected components
+ * @return 1 if the current root is in the root array, 0 otherwise
+ */
+int has_root(int root_cc[], int curr_root, int num_comp) {
+
+    for (int i = 0; i < num_comp; i++) {
+        if (curr_root == root_cc[i]) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+void get_root(int root_cc[], int number_of_comps, Connected_component conn_comps[], int n_node) {
+
+    //initialize the array
+    for (int i = 0; i < number_of_comps; i++) {
+        root_cc[i] = -1;
+    }
+
+    int t = 0;
+
+    for (int i = 0; i < n_node; i++) {
+        int cc = conn_comps[i].parent;
+        if (has_root(root_cc, cc, number_of_comps) != 0) {
+            continue;
+        }
+        root_cc[t] = cc;
+        t++;
     }
 }

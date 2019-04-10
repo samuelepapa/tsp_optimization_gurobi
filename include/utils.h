@@ -5,6 +5,7 @@
 #ifndef TSP_OPTIMIZATION_GUROBI_UTILS_H
 #define TSP_OPTIMIZATION_GUROBI_UTILS_H
 
+#include "union_find.h"
 
 /**
  * Compute the distance between two points in two dimensions with the method described in the weight_type value of instance
