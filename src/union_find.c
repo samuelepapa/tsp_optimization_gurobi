@@ -53,8 +53,8 @@ int union_find(Graph *graph, double *solution, int (*var_pos)(int, int, Tsp_prob
 
     for (int v = 0; v < n_node; v++) {
         conn_comps[v].parent = v;
-        conn_comps[v].rank = 1;
-        conn_comps[v].index = v;
+        conn_comps[v].rank = 0;
+        conn_comps[v].size = 1;
     }
 
     for (int e = 0; e < n_edge; e++) {
@@ -75,11 +75,11 @@ int union_find(Graph *graph, double *solution, int (*var_pos)(int, int, Tsp_prob
     control_root(conn_comps, n_node);
 
 
-    for (int i = 0; i < n_node; i++) {
-        printf("Node %d in component of root %d\n", i, conn_comps[i].parent);
+    /*for (int i = 0; i < n_node; i++) {
+        printf("Node %d in component of root %d with size %d\n", i, conn_comps[i].parent, conn_comps[conn_comps[i].parent].size);
     }
 
-    return number_of_comps;
+    return number_of_comps;*/
 }
 
 int find(Connected_component conn_comps[], int i) {
@@ -98,12 +98,12 @@ void union_by_rank(Connected_component conn_comps[], int x_set, int y_set) {
     int x_root = find(conn_comps, x_set);
     int y_root = find(conn_comps, y_set);
     //attach smaller rank tree under the root of the bigger rank tree (this is the union by rank)
-    if (conn_comps[y_root].rank <= conn_comps[x_root].rank) {
+    if (conn_comps[y_root].size <= conn_comps[x_root].size) {
         conn_comps[y_root].parent = x_root;
-        conn_comps[x_root].rank += conn_comps[y_root].rank;
+        conn_comps[x_root].size += conn_comps[y_root].size;
     } else {
         conn_comps[x_root].parent = y_root;
-        conn_comps[y_root].rank += conn_comps[x_root].rank;
+        conn_comps[y_root].size += conn_comps[x_root].size;
     }
 }
 

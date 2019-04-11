@@ -30,10 +30,10 @@ typedef struct {
 typedef struct {
     //the root of the element in the subset tree
     int parent;
-    //number of element in the subset
+    //rank of element in the subset
     int rank;
-    //row index in the constraints matrix
-    int index;
+    //size of the connected component
+    int size;
 } Connected_component;
 
 /**

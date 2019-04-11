@@ -370,7 +370,7 @@ void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_com
 
     for (int c = 0; c < n_comps; c++) {
         int selected_comp = root_cc[c];
-        int n_item = conn_comp[selected_comp].rank;
+        int n_item = conn_comp[selected_comp].size;
 
         int tot_item = (n_item * (n_item - 1)) / 2;
 

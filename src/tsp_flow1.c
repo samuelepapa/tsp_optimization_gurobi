@@ -143,7 +143,7 @@ void flow1_model_create(Tsp_prob *instance){
                 third_constr_var_index[0] = ypos_flow1(i, j, instance);
                 third_constr_var_index[1] = xpos_flow1(i, j, instance);
                 third_constr_coeffs[0] = 1.0;
-                third_constr_coeffs[1] = 1-(n_node);
+                third_constr_coeffs[1] = 1 -(n_node);
                 sprintf(constr_name, "seventh(%d,%d)", i + 1, j + 1);
                 error = GRBaddconstr(flow1_model, 2, third_constr_var_index,third_constr_coeffs , GRB_LESS_EQUAL, 0.0, constr_name);
                 quit_on_GRB_error(env, flow1_model, error);
