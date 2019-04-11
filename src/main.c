@@ -26,6 +26,9 @@
 #include "tsp_loop.h"
 #include "tsp_lazycall.h"
 
+void start_selected_model(Tsp_prob *instance);
+
+
 int main(int argc, char **argv) {
 
     if (argc < 2) {
@@ -53,6 +56,7 @@ int main(int argc, char **argv) {
     int type = -1;
 
     type = parse_input(argc, argv, &instance, &trial_inst);
+
     if (type == 0) {
         valid_instance = init_instance(&instance);
 
@@ -66,43 +70,7 @@ int main(int argc, char **argv) {
             //Start the timer
             clock_gettime(CLOCK_MONOTONIC, &start);
 
-            switch (instance.model_type) {
-                case 0:
-                    tsp_model_create(&instance); //std
-                    break;
-                case 1:
-                    mtz_model_create(&instance); //mtz
-                    break;
-                case 2:
-                    fischetti_model_create(&instance); //badcompact
-                    break;
-                case 3:
-                    flow1_model_create(&instance); //flow1
-                    break;
-                case 4:
-                    flow2_model_create(&instance); //flow2
-                    break;
-                case 5:
-                    flow3_model_create(&instance); //flow3
-                    break;
-                case 6:
-                    timed_stage1_model_create(&instance); //ts1
-                    break;
-                case 7:
-                    timed_stage2_model_create(&instance); //ts2
-                    break;
-                case 8:
-                    timed_stage3_model_create(&instance); //ts3
-                    break;
-                case 9:
-                    tsp_loop_model_create(&instance); //loop additional SEC
-                    break;
-                case 10:
-                    tsp_lazycall_model_create(&instance); //lazy callback SEC
-                    break;
-                default:
-                    tsp_model_create(&instance);
-            }
+            start_selected_model(&instance);
 
             clock_gettime(CLOCK_MONOTONIC, &end);
             time_elapsed = end.tv_sec - start.tv_sec;
@@ -114,100 +82,130 @@ int main(int argc, char **argv) {
         close_instance(&instance);
     } else if (type == 1) {
         init_trial(&trial_inst);
-        printf("Starting Trial name: %s\n", trial_inst.name);
         GRBenv *env = NULL;
         int error = GRBloadenv(&env, NULL);
-        if(error || env == NULL){
+        if (error || env == NULL) {
             printf("Unable to initialize environment in trial_file. error: %d \n", error);
             exit(1);
         }
         error = GRBsetdblparam(env, "TimeLimit", trial_inst.time_limit);
-        if(error){
+        if (error) {
             printf("Error while setting the TimeLimit on trial_file: %d\n", error);
             exit(1);
-            }
+        }
         int seed;
         char instance[120];
         int model;
+        //Creates output file (or string)
         char filename[120];
         char model_name[120];
         strcat(filename, "trials/");
         strcat(filename, trial_inst.name);
         strcat(filename, ".output");
-        FILE* trial_file = fopen(filename, "w");
-        fprintf(trial_file, "INSTANCE,MODEL FORMULATION,SEED,TIME ELAPSED (in seconds)\n");
-
-        trial_inst.problems = calloc(trial_inst.n_instances, sizeof(Tsp_prob*));
+        //FILE* trial_file = fopen(filename, "w");
+        char *output_log = calloc(128000, sizeof(char));
+        char *pointer_to_output_log = output_log;
+        //fprintf(trial_file, "INSTANCE,MODEL FORMULATION,SEED,TIME ELAPSED (in seconds)\n");
+        sprintf(pointer_to_output_log, "INSTANCE,MODEL FORMULATION,SEED,TIME ELAPSED (in seconds)\n");
+        pointer_to_output_log = output_log + strlen(output_log);
+        //Initialize problem instances
+        trial_inst.problems = calloc(trial_inst.n_instances, sizeof(Tsp_prob * ));
         for (int i = 0; i < trial_inst.n_instances; i++) {
             trial_inst.problems[i] = calloc(1, sizeof(Tsp_prob));
             trial_inst.problems[i]->filename = trial_inst.instances[i];
             trial_inst.problems[i]->env = env;
             trial_inst.problems[i]->time_limit = trial_inst.time_limit;
+            printf("file: %s\n", trial_inst.problems[i]->filename);
             init_instance(trial_inst.problems[i]);
         }
-        Tsp_prob * instance_pointer;
-        for(int cur_instance = 0; cur_instance < trial_inst.n_instances; cur_instance++) {
+        //Starting trial of the blade
+        Tsp_prob *instance_pointer;
+        for (int cur_instance = 0; cur_instance < trial_inst.n_instances; cur_instance++) {
             instance_pointer = trial_inst.problems[cur_instance];
             for (int cur_run = 0; cur_run < trial_inst.n_runs; cur_run++) {
+                error = GRBsetintparam(instance_pointer->env, "Seed", trial_inst.seeds[cur_run]);
+                if (error) {
+                    printf("Something went wrong while setting the seed of the env in the trial run %d\n", error);
+                }
                 for (int cur_model = 0; cur_model < trial_inst.n_models; cur_model++) {
                     //start clock
                     clock_gettime(CLOCK_MONOTONIC, &start);
-                    printf("mode: %d\n", instance_pointer->model_type);
                     instance_pointer->model_type = trial_inst.models[cur_model];
+                    //output purposes
+                    printf("Instance: %s | Model: %d | Seed: %d\n", trial_inst.instances[cur_instance],
+                           trial_inst.models[cur_model], trial_inst.seeds[cur_run]);
 
-                    DEBUG_PRINT(("Instance: %s | Model: %d | Seed: %d\n", trial_inst.instances[cur_instance], trial_inst.models[cur_model], trial_inst.seeds[cur_run]));
+                    start_selected_model(instance_pointer);
 
-                    switch (instance_pointer->model_type) {
-                        case 0:
-                            tsp_model_create(instance_pointer); //std
-                            break;
-                        case 1:
-                            mtz_model_create(instance_pointer); //mtz
-                            break;
-                        case 2:
-                            fischetti_model_create(instance_pointer); //badcompact
-                            break;
-                        case 3:
-                            flow1_model_create(instance_pointer); //flow1
-                            break;
-                        case 4:
-                            flow2_model_create(instance_pointer); //flow2
-                            break;
-                        case 5:
-                            flow3_model_create(instance_pointer); //flow3
-                            break;
-                        case 6:
-                            timed_stage1_model_create(instance_pointer); //ts1
-                            break;
-                        case 7:
-                            timed_stage2_model_create(instance_pointer); //ts2
-                            break;
-                        case 8:
-                            timed_stage3_model_create(instance_pointer); //ts3
-                            break;
-                        case 9:
-                            tsp_loop_model_create(instance_pointer); //loop additional SEC
-                            break;
-                        default:
-                            tsp_model_create(instance_pointer);
-                    }
                     //calculate time elapsed
                     clock_gettime(CLOCK_MONOTONIC, &end);
                     time_elapsed = end.tv_sec - start.tv_sec;
-                    if(instance_pointer->status == GRB_TIME_LIMIT){
+                    if (instance_pointer->status == GRB_TIME_LIMIT) {
                         time_elapsed = -1;
                     }
+                    //Output purposes
                     inverse_map_model_type(trial_inst.models[cur_model], model_name);
-                    fprintf(trial_file, "%s,%s,%d,%g\n", trial_inst.instances[cur_instance], model_name, trial_inst.seeds[cur_run], time_elapsed);
+                    //fprintf(trial_file, "INSTANCE,MODEL FORMULATION,SEED,TIME ELAPSED (in seconds)\n");
+                    sprintf(pointer_to_output_log, "%s,%s,%d,%g\n", trial_inst.instances[cur_instance], model_name,
+                            trial_inst.seeds[cur_run], time_elapsed);
+                    pointer_to_output_log = output_log + strlen(output_log);
+                    fprintf(stdout, "%s,%s,%d,%g\n\n", trial_inst.instances[cur_instance], model_name,
+                            trial_inst.seeds[cur_run], time_elapsed);
                 }
             }
         }
-        fclose(trial_file);
+        //fclose(trial_file);
+        printf("OUTPUT LOG: \n%s", output_log);
         //TODO CLOSE TRIAL INSTANCE
         close_trial(&trial_inst);
+        GRBfreeenv(env);
+        free(output_log);
+    } else if (type == 1) {
+        init_trial(&trial_inst);
+
     } else {
         printf("Type not recognized, exiting.\n");
         exit(1);
     }
     return 0;
+}
+
+void start_selected_model(Tsp_prob *instance) {
+    switch (instance->model_type) {
+        case 0:
+            tsp_model_create(instance); //std
+            break;
+        case 1:
+            mtz_model_create(instance); //mtz
+            break;
+        case 2:
+            fischetti_model_create(instance); //badcompact
+            break;
+        case 3:
+            flow1_model_create(instance); //flow1
+            break;
+        case 4:
+            flow2_model_create(instance); //flow2
+            break;
+        case 5:
+            flow3_model_create(instance); //flow3
+            break;
+        case 6:
+            timed_stage1_model_create(instance); //ts1
+            break;
+        case 7:
+            timed_stage2_model_create(instance); //ts2
+            break;
+        case 8:
+            timed_stage3_model_create(instance); //ts3
+            break;
+        case 9:
+            tsp_loop_model_create(instance); //loop additional SEC
+            break;
+        case 10:
+            tsp_lazycall_model_create(instance); //lazy callback SEC
+            break;
+        default:
+            tsp_model_create(instance);
+    }
 }

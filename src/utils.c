@@ -273,6 +273,10 @@ void inverse_map_model_type (int model_type, char *target_string) {
 
 }
 
+void start_model(int model, Tsp_prob *instance) {
+
+}
+
 void find_connected_comps(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_comp *comp,
                           int (*var_pos)(int, int, Tsp_prob *)) {
     int nnode = instance -> nnode;
@@ -367,7 +371,6 @@ void close_instance(Tsp_prob *instance) {
     free(instance->filename);
     free(instance->coord_y);
     free(instance->coord_x);
-    //TODO FREE GUROBI ENV HERE
     //free(instance->solution);
 }
 void close_trial(Trial *trial_inst){
@@ -375,6 +378,10 @@ void close_trial(Trial *trial_inst){
     free(trial_inst->filename);
     free(trial_inst->name);
     free(trial_inst->models);
-    //TODO FREE GUROBI ENVIRONMENT
-    //TODO FREE REST
+    for (int i = 0; i < trial_inst->n_instances; i++) {
+        close_instance(trial_inst->problems[i]);
+    }
+    free(trial_inst->problems);
+    //The filename points to the instances, they are already freed.
+    free(trial_inst->instances);
 }

@@ -43,12 +43,12 @@ int xpos_loop(int i, int j, Tsp_prob *instance);
 void tsp_loop_model_create(Tsp_prob *instance){
     //setup clock, timelimit doesn't work because of repeated runs
     struct timespec start, cur;
-    double time_elapsed;
     clock_gettime(CLOCK_MONOTONIC, &start);
-
     int time_limit_reached = 0;
+
     GRBenv *env = instance->env;
     GRBmodel *loop_model = NULL;
+
     int error = 0;
     int n_node = instance->nnode;
     int n_variables = (int) (0.5 * (n_node * n_node - n_node)); //this number is always even
@@ -142,7 +142,7 @@ void tsp_loop_model_create(Tsp_prob *instance){
     int numnoz = 0;
     error = GRBgetintattr(loop_model, "NumNZs", &numnoz);
     quit_on_GRB_error(env, loop_model, error);
-    printf("NUM NZ: %g\n", sqrt((double)numnoz));
+    printf("IterationLimit: %g\n", ((double) numnoz) / 10);
     double node_limit = (double)numnoz/10;
     int max_increments = 2;
     int max_iterations = 10;
@@ -157,6 +157,16 @@ void tsp_loop_model_create(Tsp_prob *instance){
     int current_iteration = 0;
     error = GRBsetdblparam(GRBgetenv(loop_model), "IterationLimit", node_limit);
     quit_on_GRB_error(GRBgetenv(loop_model), loop_model, error);
+
+    error = GRBsetintparam(GRBgetenv(loop_model), "OutputFlag", 0);
+    quit_on_GRB_error(GRBgetenv(loop_model), loop_model, error);
+
+    int seed = -1;
+    error = GRBgetintparam(GRBgetenv(loop_model), "Seed", &seed);
+    quit_on_GRB_error(GRBgetenv(loop_model), loop_model, error);
+
+    printf("Current seed: %d\n", seed);
+
     //error = GRBsetintparam(env, GRB_INT_PAR_RINS, 10);
     //quit_on_GRB_error(env, loop_model, error);
 
@@ -176,7 +186,7 @@ void tsp_loop_model_create(Tsp_prob *instance){
         //get the current solution
         error = GRBgetdblattr(loop_model, GRB_DBL_ATTR_OBJVAL, &solution);
         quit_on_GRB_error(env, loop_model, error);
-        printf("Solution: %g\n", solution);
+        DEBUG_PRINT(("Solution: %g\n", solution));
 
         //write solution to file for inspection
         error = GRBwrite(loop_model, "solution.sol");
