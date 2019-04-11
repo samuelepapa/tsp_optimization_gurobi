@@ -4,13 +4,6 @@
 #include "common.h"
 #include "utils.h"
 
-/**
- * Function to find the set of an element i using path compression technique
- * @param conn_comps Array of subsets
- * @param i The element
- * @return The root of the subset tree
- */
-int find(Connected_component conn_comps[], int i);
 
 /**
  * Function that does the union of two sets of x and y using union by rank
@@ -19,6 +12,8 @@ int find(Connected_component conn_comps[], int i);
  * @param y_set Second subset
  */
 void union_by_rank(Connected_component conn_comps[], int x_set, int y_set);
+
+void union_by_size(Connected_component conn_comps[], int x, int y);
 
 /**
  * Control if all the nodes have the correct root
@@ -44,7 +39,7 @@ void create_graph_u_f(Tsp_prob *instance, Graph *graph) {
     }
 }
 
-int union_find(Graph *graph, double *solution, int (*var_pos)(int, int, Tsp_prob *), Tsp_prob *instance, Connected_component conn_comps[]) {
+/*int union_find(Graph *graph, double *solution, int (*var_pos)(int, int, Tsp_prob *), Tsp_prob *instance, Connected_component conn_comps[]) {
 
     int n_node = graph->V;
     int n_edge = graph->E;
@@ -66,7 +61,8 @@ int union_find(Graph *graph, double *solution, int (*var_pos)(int, int, Tsp_prob
             int x = find(conn_comps, src);
             int y = find(conn_comps, dest);
             if (x != y) {
-                union_by_rank(conn_comps, x, y);
+                //union_by_rank(conn_comps, x, y);
+                union_by_size(conn_comps, x, y);
                 number_of_comps--;
             }
         }
@@ -75,14 +71,14 @@ int union_find(Graph *graph, double *solution, int (*var_pos)(int, int, Tsp_prob
     control_root(conn_comps, n_node);
 
 
-    /*for (int i = 0; i < n_node; i++) {
-        printf("Node %d in component of root %d with size %d\n", i, conn_comps[i].parent, conn_comps[conn_comps[i].parent].size);
+    for (int i = 0; i < n_node; i++) {
+        printf("Node %d in component of root %d with rank %d and size %d\n", i, conn_comps[i].parent, conn_comps[i].rank, conn_comps[i].size);
     }
 
-    return number_of_comps;*/
-}
+    return number_of_comps;
+}*/
 
-int find(Connected_component conn_comps[], int i) {
+/*int find(Connected_component conn_comps[], int i) {
 
     // find root and make root as parent of i (path compression)
     if (conn_comps[i].parent != i) {
@@ -97,14 +93,47 @@ void union_by_rank(Connected_component conn_comps[], int x_set, int y_set) {
     //find the root of the set
     int x_root = find(conn_comps, x_set);
     int y_root = find(conn_comps, y_set);
+
+    int x_rank = conn_comps[x_root].rank;
+    int y_rank = conn_comps[y_root].rank;
+
+    if (x_root == y_root) {
+        return;
+    }
+
     //attach smaller rank tree under the root of the bigger rank tree (this is the union by rank)
-    if (conn_comps[y_root].size <= conn_comps[x_root].size) {
+    if (y_rank < x_rank) {
+        conn_comps[y_root].parent = x_root;
+        //conn_comps[x_root].size += conn_comps[y_root].size;
+    } else if (x_rank < y_rank) {
+        conn_comps[x_root].parent = y_root;
+        //conn_comps[y_root].size += conn_comps[x_root].size;
+    } else {
+        conn_comps[y_root].parent = x_root;
+        conn_comps[x_root].rank++;
+        conn_comps[x_root].size += conn_comps[y_root].size;
+    }
+}
+
+void union_by_size(Connected_component conn_comps[], int x, int y) {
+    int x_root = find(conn_comps, x);
+    int y_root = find(conn_comps, y);
+
+    if (x_root == y_root) {
+        return;
+    }
+
+    if (conn_comps[x_root].size > conn_comps[y_root].size) {
         conn_comps[y_root].parent = x_root;
         conn_comps[x_root].size += conn_comps[y_root].size;
-    } else {
+    } else if (conn_comps[x_root].size < conn_comps[y_root].size) {
         conn_comps[x_root].parent = y_root;
-        conn_comps[y_root].size += conn_comps[x_root].size;
+        conn_comps[x_root].size += conn_comps[y_root].size;
+    } else {
+        conn_comps[y_root].parent = x_root;
+        conn_comps[x_root].size += conn_comps[y_root].size;
     }
+
 }
 
 void control_root(Connected_component conn_comps[], int n_node) {
@@ -112,7 +141,7 @@ void control_root(Connected_component conn_comps[], int n_node) {
     for (int i = 0; i < n_node; i++) {
         conn_comps[i].parent = find(conn_comps, conn_comps[i].parent);
     }
-}
+}*/
 
 
 /**
@@ -133,7 +162,7 @@ int has_root(int root_cc[], int curr_root, int num_comp) {
     return 0;
 }
 
-void get_root(int root_cc[], int number_of_comps, Connected_component conn_comps[], int n_node) {
+/*void get_root(int root_cc[], int number_of_comps, Connected_component conn_comps[], int n_node) {
 
     //initialize the array
     for (int i = 0; i < number_of_comps; i++) {
@@ -150,4 +179,93 @@ void get_root(int root_cc[], int number_of_comps, Connected_component conn_comps
         root_cc[t] = cc;
         t++;
     }
+}*/
+
+
+int find(Connected_component *conn_comps, int i) {
+
+    if (conn_comps->parent[i] != i) {
+        conn_comps->parent[i] = find(conn_comps, conn_comps->parent[i]);
+    }
+
+    return conn_comps->parent[i];
+}
+
+void union_by_rank (Connected_component *conn_comps, int x, int y) {
+    int x_root = find(conn_comps, conn_comps->parent[x]);
+    int y_root = find(conn_comps, conn_comps->parent[y]);
+
+    if (x_root == y_root) {
+        return;
+    }
+
+    if (conn_comps->rank[x_root] < conn_comps->rank[y_root]) {
+        conn_comps->parent[x_root] = y_root;
+        conn_comps->size[y_root] = conn_comps->size[x_root] + conn_comps->size[y_root];
+    } else if (conn_comps->rank[y_root] < conn_comps->rank[x_root]) {
+        conn_comps->parent[y_root] = x_root;
+        conn_comps->size[x_root] = conn_comps->size[x_root] + conn_comps->size[y_root];
+    } else {
+        conn_comps->parent[y_root] = x_root;
+        conn_comps->rank[x_root]++;
+        conn_comps->size[x_root] = conn_comps->size[x_root] + conn_comps->size[y_root];
+    }
+}
+
+int union_find(Graph *graph, double *solution, int (*var_pos)(int, int, Tsp_prob *), Tsp_prob *instance, Connected_component *conn_comp) {
+    int nnode = instance->nnode;
+    int n_conn_comps = nnode;
+
+    for (int i = 0; i < nnode; i++) {
+        conn_comp->parent[i] = i;
+        conn_comp->rank[i] = 0;
+        conn_comp->size[i] = 1;
+    }
+
+
+    for (int e = 0; e < graph->E; e++) {
+        int src = graph->edge[e].src;
+        int dest = graph->edge[e].dest;
+        if (solution[var_pos(src, dest, instance)] > 1 - TOLERANCE) {
+            int i_root = find(conn_comp, conn_comp->parent[src]);
+            int j_root = find(conn_comp, conn_comp->parent[dest]);
+            if (i_root != j_root) {
+                union_by_rank(conn_comp, i_root, j_root);
+                n_conn_comps--;
+            }
+
+        }
+    }
+
+
+    /*for (int i = 0; i < nnode; i++) {
+        printf("Node %d in component of root %d with rank %d and size %d\n", i, conn_comp->parent[i], conn_comp->rank[i], conn_comp->size[i]);
+    }*/
+
+    return n_conn_comps;
+}
+
+void get_root(int root_cc[], int number_of_comps, Connected_component *conn_comps, int n_node) {
+
+    //initialize the array
+    for (int i = 0; i < number_of_comps; i++) {
+        root_cc[i] = -1;
+    }
+
+    int t = 0;
+
+    for (int i = 0; i < n_node; i++) {
+        int cc = find(conn_comps, conn_comps->parent[i]);
+        if (has_root(root_cc, cc, number_of_comps) != 0) {
+            continue;
+        }
+        root_cc[t] = cc;
+        t++;
+    }
+}
+
+void free_comp(Connected_component *conn_comp) {
+    free(conn_comp->parent);
+    free(conn_comp->rank);
+    free(conn_comp->size);
 }

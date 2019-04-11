@@ -32,7 +32,9 @@ int has_component_lazy(Connected_comp *comp, int curr_comp, int num_comp);
 
 void add_lazy_sec_constraints(void *cbdata, struct callback_data *user_cbdata, Connected_comp *comp, int node);
 
-void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_component conn_comp[], int n_comps, int node); //add lazy SEC constraint from connected component found with union-find algorithm
+//void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_component conn_comp[], int n_comps, int node); //add lazy SEC constraint from connected component found with union-find algorithm
+
+void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_component *conn_comp, int n_comps, int node);
 
 double get_solution_lazy(double *solution, int xpos);
 
@@ -67,7 +69,7 @@ double get_solution_lazy(double *solution, int xpos);
 }*/
 
 
-int __stdcall mycallback(GRBmodel *model, void *cbdata, int where, void *usrdata) {
+/*int __stdcall mycallback(GRBmodel *model, void *cbdata, int where, void *usrdata) {
     struct callback_data *mydata = (struct callback_data *) usrdata;
     int nvars;
     int nnode = mydata->instance->nnode;
@@ -85,6 +87,35 @@ int __stdcall mycallback(GRBmodel *model, void *cbdata, int where, void *usrdata
         }
 
         free(conn_comp);
+    }
+
+    return 0;
+}*/
+
+
+int __stdcall mycallback(GRBmodel *model, void *cbdata, int where, void *usrdata) {
+    struct callback_data *mydata = (struct callback_data *) usrdata;
+    int nvars;
+    int nnode = mydata->instance->nnode;
+
+    if(where == GRB_CB_MIPSOL){
+        Connected_component conn_comp = {
+                .parent = calloc(nnode, sizeof(int)),
+                .rank = calloc(nnode, sizeof(int)),
+                .size = calloc(nnode, sizeof(int))
+        };
+        double * solution = calloc(mydata->nvars, sizeof(double));
+        GRBcbget(cbdata, where, GRB_CB_MIPSOL_SOL, solution);
+
+        int number_of_comps = union_find(mydata->graph, solution, &xpos_lazycall, mydata->instance, &conn_comp);
+
+        printf("\nThe current solution has: %d connected components \n", number_of_comps);
+        if (number_of_comps >= 2) {
+            add_lazy_sec(cbdata, mydata, &conn_comp, number_of_comps, 0);
+        }
+
+        free_comp(&conn_comp);
+        free(solution);
     }
 
     return 0;
@@ -336,7 +367,60 @@ void add_lazy_sec_constraints(void *cbdata, struct callback_data *user_cbdata, C
     free(constr_name);
 }
 
-void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_component conn_comp[], int n_comps, int node) {
+void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_component *conn_comp, int n_comps, int node) {
+    int error;
+    //int nnz = 0; //number of non-zero value
+    double rhs;
+    int nnz;
+    int nnode = user_cbdata->instance->nnode;
+    int num_constr_name = 0;
+    int root_cc[n_comps];
+
+    get_root(root_cc, n_comps, conn_comp, nnode);
+
+    char *constr_name = (char *) calloc(100, sizeof(char));
+
+    for (int c = 0; c < n_comps; c++) {
+        int selected_comp = root_cc[c];
+        int n_item = conn_comp->size[selected_comp];
+
+        int tot_item = (n_item * (n_item - 1)) / 2;
+
+        rhs = n_item - 1;
+
+        int constr_index[tot_item];
+        double constr_value[tot_item];
+
+        nnz = 0;
+
+        for (int i = 0; i < nnode; i++) {
+            int i_parent = find(conn_comp, conn_comp->parent[i]);
+            if (i_parent != selected_comp) {
+                continue;
+            }
+
+            for (int j = i + 1; j < nnode; j++) {
+                int j_parent = find(conn_comp, conn_comp->parent[j]);
+                if (j_parent == i_parent) {
+                    constr_index[nnz] = xpos_lazycall(i, j, user_cbdata->instance);
+                    constr_value[nnz] = 1.0;
+                    nnz++;
+                }
+            }
+        }
+
+        sprintf(constr_name, "add_constr_subtour_%d_%d", node, selected_comp);
+        printf("Adding constraint: add_constr_subtour_%d_%d\n", node, selected_comp);
+        error = GRBcblazy(cbdata, nnz, constr_index, constr_value, GRB_LESS_EQUAL, rhs);
+        if (error) {
+            printf("Error on cblazy adding lazy constraints, code: %d \n", error);
+        }
+    }
+
+    free(constr_name);
+}
+
+/*void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_component conn_comp[], int n_comps, int node) {
     int error;
     //int nnz = 0; //number of non-zero value
     double rhs;
@@ -365,7 +449,7 @@ void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_com
     for (int i = 0; i < n_comps; i++) {
         constr_index[i] = (int *) calloc(1, sizeof(int));
         constr_value[i] = (double *) calloc(1, sizeof(double));
-    }*/
+    }
 
     char *constr_name = (char *) calloc(100, sizeof(char));
 
@@ -402,7 +486,7 @@ void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_com
         if(error){
             printf("Error on cblazy adding lazy constraints, code: %d \n", error);
         }
-    }
+    }*/
 
     /*for (int i = 0; i < nnode; i++) {
 
@@ -459,8 +543,8 @@ void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_com
     free(constr_index);
     free(constr_value);*/
 
-    free(constr_name);
-}
+  //  free(constr_name);
+//}
 
 /*double get_solution_lazy(double *solution, int xpos){
     double x_value;
