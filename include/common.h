@@ -2,8 +2,8 @@
 // Created by samuele on 04/03/19.
 //
 
-#ifndef UNTITLED_COMMON_H
-#define UNTITLED_COMMON_H
+#ifndef TSP_OPTIMIZATION_GUROBI_COMMON_H
+#define TSP_OPTIMIZATION_GUROBI_COMMON_H
 
 //#define DEBUG
 
@@ -90,4 +90,4 @@ typedef struct {
     int size;
 } Solution_list;
 
-#endif //UNTITLED_COMMON_H
+#endif //TSP_OPTIMIZATION_GUROBI_COMMON_H
