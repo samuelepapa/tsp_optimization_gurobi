@@ -25,17 +25,20 @@ int parse_input(int argc, char **argv, Tsp_prob *instance, Trial *trial_inst) {
     struct arg_file *filename;
     struct arg_str *model_name;
     struct arg_lit *is_this_trial, *help;
+    struct arg_int *seed_number, *time_limit;
     struct arg_end *end;
     void *argtable[] = {
             filename = arg_file0("f", "filename", "<filename>",
-                    "path to file where the tsp instance or a trial file is located "
-                    "(this is the interpretation if the -r argument is present)."),
+                                 "path to file where the tsp instance or a trial file is located "
+                                 "(this is the interpretation if the -r argument is present)."),
             model_name = arg_str0("m", "model", "<tsp_model>",
-                    "the tsp model used to solve this (this argument is only used if -r is not present)."),
-            is_this_trial = arg_lit0("t", "run",
-                    "if this should be interpreted as a test trial."),
+                                  "the tsp model used to solve this (this argument is only used if -r is not present)."),
+            is_this_trial = arg_lit0("r", "run",
+                                     "if this should be interpreted as a test trial."),
+            seed_number = arg_int0("s", "seed", "<int>", "seed of current run."),
+            time_limit = arg_int0("t", "timelimit", "<seconds>", "time limit for the run."),
             help = arg_lit0(NULL, "help",
-                    "print this help and exit"),
+                            "print this help and exit"),
             end = arg_end(20)
     };
     char progname[] = "tsp_optimize";
@@ -56,11 +59,12 @@ int parse_input(int argc, char **argv, Tsp_prob *instance, Trial *trial_inst) {
             type = 1;
             if (filename->count > 0) {
                 //+1 due to termination \0 of strcpy
-                if(strncmp(filename->extension[0], ".trl", 4) == 0) {
+                if (strncmp(filename->extension[0], ".trl", 4) == 0) {
                     trial_inst->filename = calloc(strlen(filename->filename[0]) + 1, sizeof(char));
                     strcpy(trial_inst->filename, filename->filename[0]);
-                }else{
-                    printf("Incorrect file extesion, it should be a .trl file, it instead was a \"%s\" file.\n", filename->extension[0]);
+                } else {
+                    printf("Incorrect file extesion, it should be a .trl file, it instead was a \"%s\" file.\n",
+                           filename->extension[0]);
                     exit(1);
                 }
             } else {
@@ -77,8 +81,14 @@ int parse_input(int argc, char **argv, Tsp_prob *instance, Trial *trial_inst) {
                 printf("Filename is required.\n");
                 exit(1);
             }
+            if (seed_number->count > 0) {
+                instance->seed = seed_number->ival[0];
+            }
             if (model_name->count > 0) {
                 instance->model_type = map_model_type((char *) model_name->sval[0]);
+            }
+            if (time_limit->count > 0) {
+                instance->time_limit = time_limit->ival[0];
             }
         }
     } else {

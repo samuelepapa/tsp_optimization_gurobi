@@ -28,7 +28,7 @@ int xpos(int i, int j, Tsp_prob *instance);
 
 
 void tsp_model_create(Tsp_prob *instance) {
-    GRBenv *env = NULL;
+    GRBenv *env = instance->env;
     GRBmodel *model = NULL;
     int error = 0;
     int n_node = instance->nnode;
@@ -59,16 +59,17 @@ void tsp_model_create(Tsp_prob *instance) {
 
 
     //Env creation and starting
-    error = GRBemptyenv(&env);
     if (env == NULL) {
-        printf("Error: couldn't create empty environment.\n");
-        exit(1);
+        error = GRBemptyenv(&env);
+        if (env == NULL) {
+            printf("Error: couldn't create empty environment.\n");
+            exit(1);
+        }
+        quit_on_GRB_error(env, model, error);
+
+        error = GRBstartenv(env);
+        quit_on_GRB_error(env, model, error);
     }
-    quit_on_GRB_error(env, model, error);
-
-    error = GRBstartenv(env);
-    quit_on_GRB_error(env, model, error);
-
     error = GRBnewmodel(env, &model, instance->name, 0, NULL, NULL, NULL, NULL, NULL);
     quit_on_GRB_error(env, model, error);
 
@@ -109,12 +110,21 @@ void tsp_model_create(Tsp_prob *instance) {
     quit_on_GRB_error(env, model, error);
 
     double solution;
+    int status;
 
-    error = GRBgetdblattr(model, GRB_DBL_ATTR_OBJVAL, &solution);
+    error = GRBgetintparam(env, GRB_INT_ATTR_STATUS, &status);
     quit_on_GRB_error(env, model, error);
+    instance->status = status;
 
-    printf("Solution: %g\n", solution);
+    if (status == GRB_OPTIMAL) {
+        error = GRBgetdblattr(model, GRB_DBL_ATTR_OBJVAL, &solution);
+        quit_on_GRB_error(env, model, error);
+        instance->best_solution = solution;
 
+        DEBUG_PRINT(("Solution: %g\n", solution));
+    } else if (status == GRB_TIME_LIMIT) {
+        DEBUG_PRINT(("Not enough time\n"));
+    }
     error = GRBwrite(model, "solution.sol");
     quit_on_GRB_error(env, model, error);
 

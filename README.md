@@ -35,3 +35,4 @@ Third, plot solution found. Investigate whether solution can be plotted while it
 ### TODO
 * Remove determinism for parallel calculations.
 * Fix all memory leaks with valgrind.
+* Put all GRBwrite behind a check for a certain level of logging, same with plotting.

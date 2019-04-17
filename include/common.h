@@ -50,8 +50,12 @@ typedef struct {
     int **solution; //TODO free memory after allocation
     int solution_size;
 
+    int seed;
+
     GRBenv *env;
     GRBmodel *model;
+    //best solution found for this instance using this model
+    double best_solution;
 
 } Tsp_prob;
 

@@ -11,6 +11,7 @@
 #include <limits.h>
 #include "union_find.h"
 #include "utils.h"
+
 /**
  * Verify if the identifier of the connected component is present in the list
  * @param comp The pointer to the connected component structure
@@ -37,15 +38,18 @@ double get_solution(GRBenv *env, GRBmodel *model, int xpos);
  */
 void quit_on_GRB_error(GRBenv *env, GRBmodel *model, int error) {
 
-    if(error) {
+    if (error) {
         /*error reporting*/
         printf("ERROR: %s\n", GRBgeterrormsg(env));
 
         /*free model*/
-        GRBfreemodel(model);
-
+        if (model != NULL) {
+            GRBfreemodel(model);
+        }
         /*free environment*/
-        GRBfreeenv(env);
+        if (env != NULL) {
+            GRBfreeenv(env);
+        }
         exit(1);
     }
 
@@ -72,7 +76,7 @@ void free_gurobi(GRBenv *env, GRBmodel *model) {
  */
 
 int nint(double x) {
-    return (int) (x+0.5);
+    return (int) (x + 0.5);
 }
 
 /**
@@ -82,7 +86,7 @@ int nint(double x) {
  * @return Maximum value between i and j
  */
 int max(int i, int j) {
-    if(i >= j) {
+    if (i >= j) {
         return i;
     }
 
@@ -135,8 +139,8 @@ int distance(int i, int j, Tsp_prob *instance) {
     double yd = instance->coord_y[i] - instance->coord_y[j]; //y coordinates difference
 
     switch (instance->weight_type) {
-        case 0:{ //Euclidean distances in 2-D
-            return nint(sqrt(xd*xd + yd*yd));
+        case 0: { //Euclidean distances in 2-D
+            return nint(sqrt(xd * xd + yd * yd));
         }
 
         case 1: { //Maximum distances in 2-D
@@ -152,7 +156,7 @@ int distance(int i, int j, Tsp_prob *instance) {
         }
 
         case 3: { //Euclidean distances in 2-D rounded up
-            return (int) ceil(sqrt(xd*xd + yd*yd));
+            return (int) ceil(sqrt(xd * xd + yd * yd));
         }
 
         case 4: { //Geographical distances
@@ -167,9 +171,9 @@ int distance(int i, int j, Tsp_prob *instance) {
         }
 
         case 5: { //Special distance function for problems att48 and att532 (pseudo-Euclidean)
-            double rij = sqrt((xd*xd + yd*yd) / 10.0);
+            double rij = sqrt((xd * xd + yd * yd) / 10.0);
             int tij = nint(rij);
-            if(tij < rij) {
+            if (tij < rij) {
                 return tij + 1;
             } else {
                 return tij;
@@ -183,57 +187,57 @@ int distance(int i, int j, Tsp_prob *instance) {
     }
 }
 
-int map_model_type (char *optarg) {
+int map_model_type(char *optarg) {
 
     DEBUG_PRINT(("options: %s", optarg));
-    if(strncmp(optarg, "std", 3) == 0) {
+    if (strncmp(optarg, "std", 3) == 0) {
         return 0;
     }
 
-    if(strncmp(optarg, "mtz", 3) == 0) {
+    if (strncmp(optarg, "mtz", 3) == 0) {
         return 1;
     }
 
-    if(strncmp(optarg, "badcompact", 9) == 0) {
+    if (strncmp(optarg, "badcompact", 9) == 0) {
         return 2;
     }
 
-    if(strncmp(optarg, "flow1", 5) == 0) {
+    if (strncmp(optarg, "flow1", 5) == 0) {
         return 3;
     }
 
-    if(strncmp(optarg, "flow2", 5) == 0) {
-        return  4;
+    if (strncmp(optarg, "flow2", 5) == 0) {
+        return 4;
     }
 
-    if(strncmp(optarg, "flow3", 5) == 0) {
+    if (strncmp(optarg, "flow3", 5) == 0) {
         return 5;
     }
 
-    if(strncmp(optarg, "ts1", 3) == 0) {
+    if (strncmp(optarg, "ts1", 3) == 0) {
         return 6;
     }
 
-    if(strncmp(optarg, "ts2", 3) == 0) {
+    if (strncmp(optarg, "ts2", 3) == 0) {
         return 7;
     }
 
-    if(strncmp(optarg, "ts3", 3) == 0) {
+    if (strncmp(optarg, "ts3", 3) == 0) {
         return 8;
     }
 
-    if(strncmp(optarg, "loop", 4) == 0) {
+    if (strncmp(optarg, "loop", 4) == 0) {
         return 9;
     }
 
-    if(strncmp(optarg, "lazycall", 8) == 0) {
+    if (strncmp(optarg, "lazycall", 8) == 0) {
         return 10;
     }
 }
 
-void inverse_map_model_type (int model_type, char *target_string) {
+void inverse_map_model_type(int model_type, char *target_string) {
 
-    switch(model_type){
+    switch (model_type) {
         case 0:
             strcpy(target_string, "std");
             break;
@@ -279,7 +283,7 @@ void start_model(int model, Tsp_prob *instance) {
 
 void find_connected_comps(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_comp *comp,
                           int (*var_pos)(int, int, Tsp_prob *)) {
-    int nnode = instance -> nnode;
+    int nnode = instance->nnode;
 
     for (int i = 0; i < nnode; i++) {
         comp->comps[i] = i;
@@ -292,7 +296,7 @@ void find_connected_comps(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Conn
 
     for (int i = 0; i < nnode; i++) {
         for (int j = i + 1; j < nnode; j++) {
-            if (get_solution(env, model, var_pos(i, j, instance)) > 1-TOLERANCE) {
+            if (get_solution(env, model, var_pos(i, j, instance)) > 1 - TOLERANCE) {
                 if (comp->comps[i] != comp->comps[j]) {
                     c1 = comp->comps[i];
                     c2 = comp->comps[j];
@@ -328,8 +332,6 @@ void find_connected_comps(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Conn
     }
 }
 
-
-
 int has_component(Connected_comp *comp, int curr_comp, int num_comp) {
 
     for (int i = 0; i < num_comp; i++) {
@@ -349,7 +351,7 @@ double get_solution(GRBenv *env, GRBmodel *model, int xpos) {
     return x_value;
 }
 
-void free_comp_struc(Connected_comp * comp) {
+void free_comp_struc(Connected_comp *comp) {
     free(comp->comps);
 //    free(comp->list_of_comps);
     free(comp->number_of_items);
@@ -373,7 +375,8 @@ void close_instance(Tsp_prob *instance) {
     free(instance->coord_x);
     //free(instance->solution);
 }
-void close_trial(Trial *trial_inst){
+
+void close_trial(Trial *trial_inst) {
     free(trial_inst->seeds);
     free(trial_inst->filename);
     free(trial_inst->name);

@@ -264,6 +264,7 @@ void tsp_loop_model_create(Tsp_prob *instance){
 
     printf("Number of iterations: %d\n", current_iteration);
 
+
     error = GRBwrite(loop_model, "solution.sol");
     quit_on_GRB_error(env, loop_model, error);
 
@@ -274,6 +275,9 @@ void tsp_loop_model_create(Tsp_prob *instance){
     }else{
         error = GRBgetintattr(loop_model,"Status", &instance->status);
         quit_on_GRB_error(env, loop_model, error);
+        if (instance->status == GRB_OPTIMAL) {
+            error = GRBgetdblattr(loop_model, GRB_DBL_ATTR_OBJVAL, &instance->best_solution);
+        }
     }
     //Freeing memory
     free(constr_name);
@@ -286,7 +290,8 @@ void tsp_loop_model_create(Tsp_prob *instance){
 
     free_comp_struc(&comp);
 
-    free_gurobi(env, loop_model);
+    GRBfreemodel(loop_model);
+    //free_gurobi(env, loop_model);
 
 }
 

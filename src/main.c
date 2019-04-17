@@ -26,8 +26,13 @@
 #include "tsp_loop.h"
 #include "tsp_lazycall.h"
 
+/**
+ * Selects the method chosen by the instance and starts it
+ * @param instance the tsp instance with the information about the problem to solve
+ */
 void start_selected_model(Tsp_prob *instance);
 
+void execute_trial(Trial *trial_inst);
 
 int main(int argc, char **argv) {
 
@@ -43,6 +48,8 @@ int main(int argc, char **argv) {
             .env = NULL,
             .nnode = -1,
             .model_type = 0,
+            .seed = 0,
+            .best_solution = -1,
             .time_limit = INFINITY //for tsp_loop purposes
     };
     Trial trial_inst = {
@@ -70,11 +77,28 @@ int main(int argc, char **argv) {
             //Start the timer
             clock_gettime(CLOCK_MONOTONIC, &start);
 
+            //create file name
+            char *model_name = calloc(64, sizeof(char));
+            inverse_map_model_type(instance.model_type, model_name);
+            strcat(model_name, ".log");
+            //create gurobi environment
+            GRBloadenv(&instance.env, model_name);
+
+            //set the seed
+            int error;
+            error = GRBsetintparam(instance.env, "Seed", instance.seed);
+            quit_on_GRB_error(instance.env, instance.model, error);
+            error = GRBsetdblparam(instance.env, "TimeLimit", instance.time_limit);
+            quit_on_GRB_error(instance.env, instance.model, error);
+
             start_selected_model(&instance);
 
             clock_gettime(CLOCK_MONOTONIC, &end);
-            time_elapsed = end.tv_sec - start.tv_sec;
-            DEBUG_PRINT(("Time taken in seconds: %g", time_elapsed));
+            printf("STAT, %s,%s,%d,%g,%g\n\n", instance.filename, model_name, instance.seed, instance.best_solution,
+                   end.tv_sec - start.tv_sec + (double) (end.tv_nsec - start.tv_sec) / 1000000000.0);
+
+            free(model_name);
+            GRBfreeenv(instance.env);
 
         } else {
             printf("Error in parsing file");
@@ -82,86 +106,13 @@ int main(int argc, char **argv) {
         close_instance(&instance);
     } else if (type == 1) {
         init_trial(&trial_inst);
-        GRBenv *env = NULL;
-        int error = GRBloadenv(&env, NULL);
-        if (error || env == NULL) {
-            printf("Unable to initialize environment in trial_file. error: %d \n", error);
-            exit(1);
-        }
-        error = GRBsetdblparam(env, "TimeLimit", trial_inst.time_limit);
-        if (error) {
-            printf("Error while setting the TimeLimit on trial_file: %d\n", error);
-            exit(1);
-        }
-        int seed;
-        char instance[120];
-        int model;
-        //Creates output file (or string)
-        char filename[120];
-        char model_name[120];
-        strcat(filename, "trials/");
-        strcat(filename, trial_inst.name);
-        strcat(filename, ".output");
-        //FILE* trial_file = fopen(filename, "w");
-        char *output_log = calloc(128000, sizeof(char));
-        char *pointer_to_output_log = output_log;
-        //fprintf(trial_file, "INSTANCE,MODEL FORMULATION,SEED,TIME ELAPSED (in seconds)\n");
-        sprintf(pointer_to_output_log, "INSTANCE,MODEL FORMULATION,SEED,TIME ELAPSED (in seconds)\n");
-        pointer_to_output_log = output_log + strlen(output_log);
-        //Initialize problem instances
-        trial_inst.problems = calloc(trial_inst.n_instances, sizeof(Tsp_prob * ));
-        for (int i = 0; i < trial_inst.n_instances; i++) {
-            trial_inst.problems[i] = calloc(1, sizeof(Tsp_prob));
-            trial_inst.problems[i]->filename = trial_inst.instances[i];
-            trial_inst.problems[i]->env = env;
-            trial_inst.problems[i]->time_limit = trial_inst.time_limit;
-            printf("file: %s\n", trial_inst.problems[i]->filename);
-            init_instance(trial_inst.problems[i]);
-        }
-        //Starting trial of the blade
-        Tsp_prob *instance_pointer;
-        for (int cur_instance = 0; cur_instance < trial_inst.n_instances; cur_instance++) {
-            instance_pointer = trial_inst.problems[cur_instance];
-            for (int cur_run = 0; cur_run < trial_inst.n_runs; cur_run++) {
-                error = GRBsetintparam(instance_pointer->env, "Seed", trial_inst.seeds[cur_run]);
-                if (error) {
-                    printf("Something went wrong while setting the seed of the env in the trial run %d\n", error);
-                }
-                for (int cur_model = 0; cur_model < trial_inst.n_models; cur_model++) {
-                    //start clock
-                    clock_gettime(CLOCK_MONOTONIC, &start);
-                    instance_pointer->model_type = trial_inst.models[cur_model];
-                    //output purposes
-                    printf("Instance: %s | Model: %d | Seed: %d\n", trial_inst.instances[cur_instance],
-                           trial_inst.models[cur_model], trial_inst.seeds[cur_run]);
 
-                    start_selected_model(instance_pointer);
+        execute_trial(&trial_inst);
 
-                    //calculate time elapsed
-                    clock_gettime(CLOCK_MONOTONIC, &end);
-                    time_elapsed = end.tv_sec - start.tv_sec;
-                    if (instance_pointer->status == GRB_TIME_LIMIT) {
-                        time_elapsed = -1;
-                    }
-                    //Output purposes
-                    inverse_map_model_type(trial_inst.models[cur_model], model_name);
-                    //fprintf(trial_file, "INSTANCE,MODEL FORMULATION,SEED,TIME ELAPSED (in seconds)\n");
-                    sprintf(pointer_to_output_log, "%s,%s,%d,%g\n", trial_inst.instances[cur_instance], model_name,
-                            trial_inst.seeds[cur_run], time_elapsed);
-                    pointer_to_output_log = output_log + strlen(output_log);
-                    fprintf(stdout, "%s,%s,%d,%g\n\n", trial_inst.instances[cur_instance], model_name,
-                            trial_inst.seeds[cur_run], time_elapsed);
-                }
-            }
-        }
-        //fclose(trial_file);
-        printf("OUTPUT LOG: \n%s", output_log);
-        //TODO CLOSE TRIAL INSTANCE
         close_trial(&trial_inst);
-        GRBfreeenv(env);
-        free(output_log);
-    } else if (type == 1) {
+    } else if (type == 2) {
         init_trial(&trial_inst);
+
 
     } else {
         printf("Type not recognized, exiting.\n");
@@ -208,4 +159,80 @@ void start_selected_model(Tsp_prob *instance) {
         default:
             tsp_model_create(instance);
     }
+}
+
+void execute_trial(Trial *trial_inst) {
+    struct timespec start, end;
+    double time_elapsed;
+    //create environment
+    GRBenv *env = NULL;
+    int error = GRBloadenv(&env, NULL);
+    if (error || env == NULL) {
+        printf("Unable to initialize environment in trial_file. error: %d \n", error);
+        exit(1);
+    }
+    //set timelimit
+    error = GRBsetdblparam(env, "TimeLimit", trial_inst->time_limit);
+    if (error) {
+        printf("Error while setting the TimeLimit on trial_file: %d\n", error);
+        exit(1);
+    }
+
+    char model_name[120];
+    char *output_log = calloc(128000, sizeof(char));
+    char *pointer_to_output_log = output_log;
+    sprintf(pointer_to_output_log, "INSTANCE,MODEL FORMULATION,SEED,TIME ELAPSED (in seconds)\n");
+    pointer_to_output_log = output_log + strlen(output_log);
+
+    //Initialize problem instances
+    trial_inst->problems = calloc(trial_inst->n_instances, sizeof(Tsp_prob *));
+    for (int i = 0; i < trial_inst->n_instances; i++) {
+        trial_inst->problems[i] = calloc(1, sizeof(Tsp_prob));
+        trial_inst->problems[i]->filename = trial_inst->instances[i];
+        trial_inst->problems[i]->env = env;
+        trial_inst->problems[i]->time_limit = trial_inst->time_limit;
+        printf("file: %s\n", trial_inst->problems[i]->filename);
+        init_instance(trial_inst->problems[i]);
+    }
+    //Starting trial of the blade
+    Tsp_prob *instance_pointer;
+    for (int cur_instance = 0; cur_instance < trial_inst->n_instances; cur_instance++) {
+        instance_pointer = trial_inst->problems[cur_instance];
+        for (int cur_run = 0; cur_run < trial_inst->n_runs; cur_run++) {
+            error = GRBsetintparam(instance_pointer->env, "Seed", trial_inst->seeds[cur_run]);
+            if (error) {
+                printf("Something went wrong while setting the seed of the env in the trial run %d\n", error);
+            }
+            for (int cur_model = 0; cur_model < trial_inst->n_models; cur_model++) {
+                //start clock
+                clock_gettime(CLOCK_MONOTONIC, &start);
+                instance_pointer->model_type = trial_inst->models[cur_model];
+                //output purposes
+                printf("Instance: %s | Model: %d | Seed: %d\n", trial_inst->instances[cur_instance],
+                       trial_inst->models[cur_model], trial_inst->seeds[cur_run]);
+
+                start_selected_model(instance_pointer);
+
+                //calculate time elapsed
+                clock_gettime(CLOCK_MONOTONIC, &end);
+                time_elapsed = end.tv_sec - start.tv_sec + (double) (end.tv_nsec - start.tv_sec) / 1000000000.0;
+                if (instance_pointer->status == GRB_TIME_LIMIT) {
+                    time_elapsed = -1;
+                }
+                //Output purposes
+                inverse_map_model_type(trial_inst->models[cur_model], model_name);
+                //fprintf(trial_file, "INSTANCE,MODEL FORMULATION,SEED,TIME ELAPSED (in seconds)\n");
+                sprintf(pointer_to_output_log, "%s,%s,%d,%g\n", trial_inst->instances[cur_instance], model_name,
+                        trial_inst->seeds[cur_run], time_elapsed);
+                pointer_to_output_log = output_log + strlen(output_log);
+                fprintf(stdout, "STAT, %s,%s,%d,%g\n\n", trial_inst->instances[cur_instance], model_name,
+                        trial_inst->seeds[cur_run], time_elapsed);
+            }
+        }
+    }
+
+    printf("OUTPUT LOG: \n%s", output_log);
+
+    GRBfreeenv(env);
+    free(output_log);
 }

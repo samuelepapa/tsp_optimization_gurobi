@@ -19,7 +19,7 @@ int upos_mtz(int i, Tsp_prob *instance);
 
 
 void mtz_model_create(Tsp_prob *instance) {
-    GRBenv *env = NULL;
+    GRBenv *env = instance->env;
     GRBmodel *MTZ_model = NULL;
     int error = 0;
     int n_nodes = instance->nnode;
@@ -77,10 +77,12 @@ void mtz_model_create(Tsp_prob *instance) {
 
 
     /*create environment*/
-    error = GRBloadenv(&env, "MTZ.log");
-    if(error || env == NULL) {
-        printf("Error: couldn't create empty environment.\n");
-        exit(1);
+    if (env == NULL) {
+        error = GRBloadenv(&env, "MTZ.log");
+        if (error || env == NULL) {
+            printf("Error: couldn't create empty environment.\n");
+            exit(1);
+        }
     }
 
     /*Create an empty model*/
@@ -189,27 +191,31 @@ void mtz_model_create(Tsp_prob *instance) {
     /* Capture solution information */
     error = GRBgetintattr(MTZ_model, GRB_INT_ATTR_STATUS, &optim_status);
     quit_on_GRB_error(env, MTZ_model, error);
-
-    error = GRBgetdblattr(MTZ_model, GRB_DBL_ATTR_OBJVAL, &obj_val);
-    quit_on_GRB_error(env, MTZ_model, error);
+    instance->status = optim_status;
 
     /*error = GRBgetdblattrarray(MTZ_model, GRB_DBL_ATTR_X, 0, n_nodes, &sol);
     quit_on_GRB_error(env, MTZ_model, error);*/
     /*print solution in a file*/
-    error = GRBwrite(MTZ_model, "MTZ_solution.sol");
-    quit_on_GRB_error(env, MTZ_model, error);
 
     /*print solution informations*/
     printf("\nOptimization complete\n");
     if (optim_status == GRB_OPTIMAL) {
+        error = GRBgetdblattr(MTZ_model, GRB_DBL_ATTR_OBJVAL, &obj_val);
+        quit_on_GRB_error(env, MTZ_model, error);
+        instance->best_solution = obj_val;
         printf("Optimal objective: %.4e\n", obj_val);
+
+        error = GRBwrite(MTZ_model, "MTZ_solution.sol");
+        quit_on_GRB_error(env, MTZ_model, error);
+
+        plot_solution(instance, MTZ_model, env, &ypos_mtz);
     } else if (optim_status == GRB_INF_OR_UNBD) {
         printf("Model is infeasible or unbounded\n");
-    } else {
+    } else if (optim_status == GRB_TIME_LIMIT) {
         printf("Optimization was stopped early\n");
     }
 
-    plot_solution(instance, MTZ_model, env, &ypos_mtz);
+
 
     /*free memory*/
     free(constr_name);

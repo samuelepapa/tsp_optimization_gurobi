@@ -17,7 +17,7 @@ int ypos_flow1(int i, int j, Tsp_prob *instance);
 
 
 void flow1_model_create(Tsp_prob *instance){
-    GRBenv *env = NULL;
+    GRBenv *env = instance->env;
     GRBmodel *flow1_model = NULL;
     int error = 0;
     int n_node = instance->nnode;
@@ -74,10 +74,12 @@ void flow1_model_create(Tsp_prob *instance){
         }
     }
 
-    error = GRBloadenv(&env, "flow1.log");
-    if(error || env == NULL) {
-        printf("Error: couldn't create empty environment.\n");
-        exit(1);
+    if (env == NULL) {
+        error = GRBloadenv(&env, "flow1.log");
+        if (error || env == NULL) {
+            printf("Error: couldn't create empty environment.\n");
+            exit(1);
+        }
     }
 
     /*Create an empty model*/
