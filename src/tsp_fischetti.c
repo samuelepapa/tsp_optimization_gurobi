@@ -12,7 +12,7 @@ int xpos_fischetti(int i, int j, Tsp_prob *instance);
 int zpos_fischetti(int i, int j, Tsp_prob *instance);
 
 void fischetti_model_create(Tsp_prob *instance) {
-    GRBenv *env = NULL;
+    GRBenv *env = instance->env;
     GRBmodel *fischetti_model = NULL;
     int error = 0;
     int n_node = instance->nnode;

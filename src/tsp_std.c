@@ -112,7 +112,7 @@ void tsp_model_create(Tsp_prob *instance) {
     double solution;
     int status;
 
-    error = GRBgetintparam(env, GRB_INT_ATTR_STATUS, &status);
+    error = GRBgetintattr(model, GRB_INT_ATTR_STATUS, &status);
     quit_on_GRB_error(env, model, error);
     instance->status = status;
 
@@ -122,6 +122,8 @@ void tsp_model_create(Tsp_prob *instance) {
         instance->best_solution = solution;
 
         DEBUG_PRINT(("Solution: %g\n", solution));
+
+        plot_solution(instance, model, env, &xpos);
     } else if (status == GRB_TIME_LIMIT) {
         DEBUG_PRINT(("Not enough time\n"));
     }
@@ -133,8 +135,6 @@ void tsp_model_create(Tsp_prob *instance) {
     /*for(int j = 0; j< instance->solution_size; j++){
         printf("SOL %d = (%d, %d)\n", j, instance->solution[j][0],instance->solution[j][1] );
     }*/
-
-    plot_solution(instance,model, env, &xpos);
 
     //Freeing memory
     free(constr_name);

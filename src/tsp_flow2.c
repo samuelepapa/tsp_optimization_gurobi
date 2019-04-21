@@ -15,7 +15,7 @@ int ypos_flow2(int i, int j, Tsp_prob *instance);
 int zpos_flow2(int i, int j, Tsp_prob *instance);
 
 void flow2_model_create(Tsp_prob *instance) {
-    GRBenv *env = NULL;
+    GRBenv *env = instance->env;
     GRBmodel *flow2_model = NULL;
     int error = 0;
     int n_node = instance->nnode;
@@ -330,25 +330,25 @@ void flow2_model_create(Tsp_prob *instance) {
     /* Capture solution information */
     error = GRBgetintattr(flow2_model, GRB_INT_ATTR_STATUS, &optim_status);
     quit_on_GRB_error(env, flow2_model, error);
-
-    error = GRBgetdblattr(flow2_model, GRB_DBL_ATTR_OBJVAL, &obj_val);
-    quit_on_GRB_error(env, flow2_model, error);
-
-    /*print solution in a file*/
-    error = GRBwrite(flow2_model, "flow2_solution.sol");
-    quit_on_GRB_error(env, flow2_model, error);
+    instance->status = optim_status;
 
     /*print solution informations*/
     printf("\nOptimization complete\n");
     if (optim_status == GRB_OPTIMAL) {
+        error = GRBgetdblattr(flow2_model, GRB_DBL_ATTR_OBJVAL, &obj_val);
+        quit_on_GRB_error(env, flow2_model, error);
+        instance->best_solution = obj_val;
         printf("Optimal objective: %.4e\n", obj_val);
+
+        /*print solution in a file*/
+        error = GRBwrite(flow2_model, "flow2_solution.sol");
+        quit_on_GRB_error(env, flow2_model, error);
+        plot_solution(instance, flow2_model, env, &xpos_flow2);
     } else if (optim_status == GRB_INF_OR_UNBD) {
         printf("Model is infeasible or unbounded\n");
     } else {
         printf("Optimization was stopped early\n");
     }
-
-    plot_solution(instance, flow2_model, env, &xpos_flow2);
 
     /*free memory*/
     free(constr_name);
