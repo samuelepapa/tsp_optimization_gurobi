@@ -257,9 +257,9 @@ int union_find(Graph *graph, double *solution, int (*var_pos)(int, int, Tsp_prob
     }
 
 
-    for (int i = 0; i < nnode; i++) {
+    /*for (int i = 0; i < nnode; i++) {
         printf("Node %d in component of root %d with size %d\n", i, conn_comps->parent[i],  conn_comps->size[i]);
-    }
+    }*/
 
     return n_conn_comps;
 }

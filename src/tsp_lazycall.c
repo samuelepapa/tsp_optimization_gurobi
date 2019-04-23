@@ -433,7 +433,7 @@ void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_com
 
     get_root(root_cc, n_comps, conn_comp, nnode);
 
-    /*int pos[n_comps]; //position in the array of the connected component to add new value
+    int pos[n_comps]; //position in the array of the connected component to add new value
 
     int nnz[n_comps]; //non-zero element in each connected component
     double rhs[n_comps];
