@@ -22,6 +22,7 @@ struct callback_data {
     Tsp_prob *instance;
     int (*var_pos)(int, int, Tsp_prob *);
     Graph *graph;
+    Connected_component *conn_comps;
 };
 
 int xpos_lazycall(int i, int j, Tsp_prob *instance);
@@ -95,26 +96,17 @@ double get_solution_lazy(double *solution, int xpos);
 
 int __stdcall mycallback(GRBmodel *model, void *cbdata, int where, void *usrdata) {
     struct callback_data *mydata = (struct callback_data *) usrdata;
-    int nvars;
-    int nnode = mydata->instance->nnode;
 
     if(where == GRB_CB_MIPSOL){
-        Connected_component conn_comp = {
-                .parent = calloc(nnode, sizeof(int)),
-                .rank = calloc(nnode, sizeof(int)),
-                .size = calloc(nnode, sizeof(int))
-        };
         double * solution = calloc(mydata->nvars, sizeof(double));
         GRBcbget(cbdata, where, GRB_CB_MIPSOL_SOL, solution);
 
-        int number_of_comps = union_find(mydata->graph, solution, &xpos_lazycall, mydata->instance, &conn_comp);
+        int number_of_comps = union_find(mydata->graph, solution, &xpos_lazycall, mydata->instance, mydata->conn_comps);
 
         printf("\nThe current solution has: %d connected components \n", number_of_comps);
         if (number_of_comps >= 2) {
-            add_lazy_sec(cbdata, mydata, &conn_comp, number_of_comps, 0);
+            add_lazy_sec(cbdata, mydata, mydata->conn_comps, number_of_comps, 0);
         }
-
-        free_comp(&conn_comp);
         free(solution);
     }
 
@@ -148,6 +140,14 @@ void tsp_lazycall_model_create(Tsp_prob *instance) {
 
     user_cbdata.graph = malloc(sizeof(Graph));
     create_graph_u_f(instance, user_cbdata.graph);
+
+    Connected_component conn_comp = {
+            .parent = calloc(n_node, sizeof(int)),
+            .rank = calloc(n_node, sizeof(int)),
+            .size = calloc(n_node, sizeof(int))
+    };
+
+    user_cbdata.conn_comps = &conn_comp;
 
     int coord = 0;
     //Create variables
@@ -239,6 +239,8 @@ void tsp_lazycall_model_create(Tsp_prob *instance) {
     for (int i = 0 ; i < size_variable_names;i++) {
         free(variables_names[i]);
     }
+
+    free_comp(&conn_comp);
 
     free(variables_names);
 
