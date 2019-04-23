@@ -34,7 +34,7 @@ void add_lazy_sec_constraints(void *cbdata, struct callback_data *user_cbdata, C
 
 //void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_component conn_comp[], int n_comps, int node); //add lazy SEC constraint from connected component found with union-find algorithm
 
-void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_component *conn_comp, int n_comps, int node);
+void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_component *conn_comps, int n_comps, int node);
 
 double get_solution_lazy(double *solution, int xpos);
 
@@ -367,7 +367,7 @@ void add_lazy_sec_constraints(void *cbdata, struct callback_data *user_cbdata, C
     free(constr_name);
 }
 
-void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_component *conn_comp, int n_comps, int node) {
+void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_component *conn_comps, int n_comps, int node) {
     int error;
     //int nnz = 0; //number of non-zero value
     double rhs;
@@ -376,13 +376,13 @@ void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_com
     int num_constr_name = 0;
     int root_cc[n_comps];
 
-    get_root(root_cc, n_comps, conn_comp, nnode);
+    get_root(root_cc, n_comps, conn_comps, nnode);
 
     char *constr_name = (char *) calloc(100, sizeof(char));
 
     for (int c = 0; c < n_comps; c++) {
         int selected_comp = root_cc[c];
-        int n_item = conn_comp->size[selected_comp];
+        int n_item = conn_comps->size[selected_comp];
 
         int tot_item = (n_item * (n_item - 1)) / 2;
 
@@ -394,13 +394,13 @@ void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_com
         nnz = 0;
 
         for (int i = 0; i < nnode; i++) {
-            int i_parent = find(conn_comp, conn_comp->parent[i]);
+            int i_parent = find_root(conn_comps, i);
             if (i_parent != selected_comp) {
                 continue;
             }
 
             for (int j = i + 1; j < nnode; j++) {
-                int j_parent = find(conn_comp, conn_comp->parent[j]);
+                int j_parent = find_root(conn_comps, j);
                 if (j_parent == i_parent) {
                     constr_index[nnz] = xpos_lazycall(i, j, user_cbdata->instance);
                     constr_value[nnz] = 1.0;

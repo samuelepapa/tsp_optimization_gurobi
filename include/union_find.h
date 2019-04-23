@@ -46,16 +46,16 @@ typedef struct {
 } Connected_component;
 
 /**
- * Find connected components in the graph using union-find algorithm with path compression technique
+ * Find connected components in the graph using union-find algorithm with path halving technique
  * @param graph The pointer to the graph representation structure
  * @param solution The pointer to the solver solution
  * @param var_pos The pointer to the mapping method between user variables and Gurobi variables
  * @param instance The pointer to the problem instance
- * @param conn_comp The pointer to the connected components structure
+ * @param conn_comps The pointer to the connected components structure
  * @return The number of connected components
  */
 
-int union_find(Graph *graph, double *solution, int (*var_pos)(int, int, Tsp_prob *), Tsp_prob *instance, Connected_component *conn_comp);
+int union_find(Graph *graph, double *solution, int (*var_pos)(int, int, Tsp_prob *), Tsp_prob *instance, Connected_component *conn_comps);
 
 /**
  * Initialize the graph for the union find algorithm
@@ -75,10 +75,18 @@ void get_root(int root_cc[], int number_of_comps, Connected_component *conn_comp
 /**
  * Function to find the set of an element i using path compression technique
  * @param conn_comps The pointer to the connected components structure
- * @param i The element
+ * @param i The node
  * @return The root of the subset tree
  */
 int find(Connected_component *conn_comps, int i);
+
+/**
+ * Function to find the root of a node in a connected component
+ * @param conn_comps The pointer to the connected components structure
+ * @param i The node
+ * @return The root of the node
+ */
+int find_root(Connected_component *conn_comps, int i);
 
 void free_comp(Connected_component * conn_comp);
 

@@ -158,8 +158,8 @@ void tsp_loop_model_create(Tsp_prob *instance){
     error = GRBsetdblparam(GRBgetenv(loop_model), "IterationLimit", node_limit);
     quit_on_GRB_error(GRBgetenv(loop_model), loop_model, error);
 
-    error = GRBsetintparam(GRBgetenv(loop_model), "OutputFlag", 0);
-    quit_on_GRB_error(GRBgetenv(loop_model), loop_model, error);
+    //error = GRBsetintparam(GRBgetenv(loop_model), "OutputFlag", 0);
+    //quit_on_GRB_error(GRBgetenv(loop_model), loop_model, error);
 
     int seed = -1;
     error = GRBgetintparam(GRBgetenv(loop_model), "Seed", &seed);
