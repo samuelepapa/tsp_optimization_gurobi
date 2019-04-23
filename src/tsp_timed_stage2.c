@@ -14,7 +14,7 @@ int xpos_ts2(int i, int j, Tsp_prob *instance);
 int ypos_ts2(int i, int j, int t, Tsp_prob *instance);
 
 void timed_stage2_model_create(Tsp_prob *instance) {
-    GRBenv *env = NULL;
+    GRBenv *env = instance->env;
     GRBmodel *ts2_model = NULL;
     int error = 0;
     int n_node = instance->nnode;
@@ -265,18 +265,20 @@ void timed_stage2_model_create(Tsp_prob *instance) {
     /* Capture solution information */
     error = GRBgetintattr(ts2_model, GRB_INT_ATTR_STATUS, &optim_status);
     quit_on_GRB_error(env, ts2_model, error);
-
-    error = GRBgetdblattr(ts2_model, GRB_DBL_ATTR_OBJVAL, &obj_val);
-    quit_on_GRB_error(env, ts2_model, error);
-
-    /*print solution in a file*/
-    error = GRBwrite(ts2_model, "timed_stage_2_solution.sol");
-    quit_on_GRB_error(env, ts2_model, error);
+    instance->status = optim_status;
 
     /*print solution informations*/
     printf("\nOptimization complete\n");
     if (optim_status == GRB_OPTIMAL) {
+        error = GRBgetdblattr(ts2_model, GRB_DBL_ATTR_OBJVAL, &obj_val);
+        quit_on_GRB_error(env, ts2_model, error);
+        instance->best_solution = obj_val;
         printf("Optimal objective: %.4e\n", obj_val);
+
+        /*print solution in a file*/
+        error = GRBwrite(ts2_model, "timed_stage_2_solution.sol");
+        quit_on_GRB_error(env, ts2_model, error);
+        plot_solution(instance, ts2_model, env, &xpos_ts2);
     } else if (optim_status == GRB_INF_OR_UNBD) {
         printf("Model is infeasible or unbounded\n");
     } else {

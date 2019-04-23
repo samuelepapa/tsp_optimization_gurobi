@@ -24,7 +24,7 @@ int parse_input(int argc, char **argv, Tsp_prob *instance, Trial *trial_inst) {
     int type = -1;
     struct arg_file *filename;
     struct arg_str *model_name;
-    struct arg_lit *is_this_trial, *help;
+    struct arg_lit *is_this_trial, *is_this_job, *help;
     struct arg_int *seed_number, *time_limit;
     struct arg_end *end;
     void *argtable[] = {
@@ -35,6 +35,7 @@ int parse_input(int argc, char **argv, Tsp_prob *instance, Trial *trial_inst) {
                                   "the tsp model used to solve this (this argument is only used if -r is not present)."),
             is_this_trial = arg_lit0("r", "run",
                                      "if this should be interpreted as a test trial."),
+            is_this_job = arg_lit0("j", "job", "if this should be a job to be run on a distributed system"),
             seed_number = arg_int0("s", "seed", "<int>", "seed of current run."),
             time_limit = arg_int0("t", "timelimit", "<seconds>", "time limit for the run."),
             help = arg_lit0(NULL, "help",
@@ -63,12 +64,27 @@ int parse_input(int argc, char **argv, Tsp_prob *instance, Trial *trial_inst) {
                     trial_inst->filename = calloc(strlen(filename->filename[0]) + 1, sizeof(char));
                     strcpy(trial_inst->filename, filename->filename[0]);
                 } else {
-                    printf("Incorrect file extesion, it should be a .trl file, it instead was a \"%s\" file.\n",
+                    printf("Incorrect file extension, it should be a .trl file, it instead was a \"%s\" file.\n",
                            filename->extension[0]);
                     exit(1);
                 }
             } else {
                 printf("Filename in trials is required.\n");
+                exit(1);
+            }
+        } else if (is_this_job->count > 0) {
+            if (filename->count > 0) {
+                //+1 due to termination \0 of strcpy
+                if (strncmp(filename->extension[0], ".tspjob", 4) == 0) {
+                    trial_inst->filename = calloc(strlen(filename->filename[0]) + 1, sizeof(char));
+                    strcpy(trial_inst->filename, filename->filename[0]);
+                } else {
+                    printf("Incorrect file extension, it should be a .trl file, it instead was a \"%s\" file.\n",
+                           filename->extension[0]);
+                    exit(1);
+                }
+            } else {
+                printf("Filename in jobs is required.\n");
                 exit(1);
             }
         } else {
