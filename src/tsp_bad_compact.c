@@ -5,15 +5,15 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "utils.h"
-#include "tsp_fischetti.h"
+#include "tsp_bad_compact.h"
 #include "input_output.h"
 
-int xpos_fischetti(int i, int j, Tsp_prob *instance);
-int zpos_fischetti(int i, int j, Tsp_prob *instance);
+int xpos_bad_compact(int i, int j, Tsp_prob *instance);
+int zpos_bad_compact(int i, int j, Tsp_prob *instance);
 
-void fischetti_model_create(Tsp_prob *instance) {
+void bad_compact_model_create(Tsp_prob *instance) {
     GRBenv *env = instance->env;
-    GRBmodel *fischetti_model = NULL;
+    GRBmodel *bad_compact_model = NULL;
     int error = 0;
     int n_node = instance->nnode;
     int n_x_variables = (int) (0.5 * (n_node * n_node - n_node)); //number of x(i,j) variables (with that formula is always even)
@@ -27,7 +27,6 @@ void fischetti_model_create(Tsp_prob *instance) {
     double obj_coeff[n_variables];
     int optim_status;
     double obj_val;
-    double sol;
 
     char **variables_names = (char **) calloc(n_variables, sizeof(char *));
 
@@ -36,7 +35,7 @@ void fischetti_model_create(Tsp_prob *instance) {
     //create x variables
     for (int i = 0; i < n_node; i++) {
         for (int j = i+1; j < n_node ; j++) {
-            coord = xpos_fischetti(i, j, instance);
+            coord = xpos_bad_compact(i, j, instance);
             var_type[coord] = GRB_BINARY;
             low_bound[coord] = 0;
             up_bound[coord] = 1;
@@ -49,7 +48,7 @@ void fischetti_model_create(Tsp_prob *instance) {
 
     //add z(v,h) variables
     //case z(1,1)
-    /*coord = zpos_fischetti(1, 1, instance);
+    /*coord = zpos_bad_compact(1, 1, instance);
     var_type[coord] = GRB_BINARY;
 
     obj_coeff[coord] = 0;
@@ -60,7 +59,7 @@ void fischetti_model_create(Tsp_prob *instance) {
     //other cases
     for (int v = 0; v < n_node; v++) {
         for (int h = 0; h < n_node; h++) {
-            coord = zpos_fischetti(v, h, instance);
+            coord = zpos_bad_compact(v, h, instance);
             var_type[coord] = GRB_BINARY;
             if(v == 0) {
                 if (h == 0) {
@@ -82,19 +81,22 @@ void fischetti_model_create(Tsp_prob *instance) {
     }
 
     /*create environment*/
-    error = GRBloadenv(&env, "fischetti.log");
+    error = GRBloadenv(&env, "bad_compact.log");
     if(error || env == NULL) {
         printf("Error: couldn't create empty environment.\n");
         exit(1);
     }
 
     /*Create an empty model*/
-    error = GRBnewmodel(env, &fischetti_model, "fischetti", 0, NULL, NULL, NULL, NULL, NULL);
-    quit_on_GRB_error(env, fischetti_model, error);
+    error = GRBnewmodel(env, &bad_compact_model, "bad_compact", 0, NULL, NULL, NULL, NULL, NULL);
+    quit_on_GRB_error(env, bad_compact_model, error);
 
     /*Add objective function elements*/
-    error = GRBaddvars(fischetti_model, n_variables, 0, NULL, NULL, NULL, obj_coeff, low_bound, up_bound, var_type, variables_names);
-    quit_on_GRB_error(env, fischetti_model, error);
+    error = GRBaddvars(bad_compact_model, n_variables, 0, NULL, NULL, NULL, obj_coeff, low_bound, up_bound, var_type, variables_names);
+    quit_on_GRB_error(env, bad_compact_model, error);
+
+    /*Add time limit*/
+    add_time_limit(bad_compact_model, instance);
 
     /*Define and add constraints to the model*/
     int x_constr_index[n_node - 1];
@@ -108,14 +110,14 @@ void fischetti_model_create(Tsp_prob *instance) {
         k = 0;
         for (int j = 0; j < n_node; j++) {
             if (i != j) {
-                x_constr_index[k] = xpos_fischetti(i, j, instance);
+                x_constr_index[k] = xpos_bad_compact(i, j, instance);
                 x_constr_value[k] = 1.0;
                 k++;
             }
         }
         sprintf(constr_name, "deg(%d)", i+1);
-        error = GRBaddconstr(fischetti_model, n_node - 1, x_constr_index, x_constr_value, GRB_EQUAL, rhs, constr_name);
-        quit_on_GRB_error(env, fischetti_model, error);
+        error = GRBaddconstr(bad_compact_model, n_node - 1, x_constr_index, x_constr_value, GRB_EQUAL, rhs, constr_name);
+        quit_on_GRB_error(env, bad_compact_model, error);
         index_cur_constr++;
     }
 
@@ -129,13 +131,13 @@ void fischetti_model_create(Tsp_prob *instance) {
     for (int v = 1; v < n_node; v++) {
         k = 0;
         for (int h = 0; h < n_node; h++) {
-            z_constr_index[k] = zpos_fischetti(v, h, instance);
+            z_constr_index[k] = zpos_bad_compact(v, h, instance);
             z_constr_value[k] = 1.0;
             k++;
         }
         sprintf(constr_name, "zac1(%d)", v + 1);
-        error = GRBaddconstr(fischetti_model, n_node, z_constr_index, z_constr_value, GRB_EQUAL, rhs, constr_name);
-        quit_on_GRB_error(env, fischetti_model, error);
+        error = GRBaddconstr(bad_compact_model, n_node, z_constr_index, z_constr_value, GRB_EQUAL, rhs, constr_name);
+        quit_on_GRB_error(env, bad_compact_model, error);
         index_cur_constr++;
 
     }
@@ -143,14 +145,14 @@ void fischetti_model_create(Tsp_prob *instance) {
     for (int h = 0; h < n_node; h++) {
         k = 0;
         for (int v = 0; v < n_node; v++) {
-            z_constr_index[k] = zpos_fischetti(v, h, instance);
+            z_constr_index[k] = zpos_bad_compact(v, h, instance);
             z_constr_value[k] = 1.0;
             k++;
 
         }
         sprintf(constr_name, "zac2(%d)", h + 1);
-        error = GRBaddconstr(fischetti_model, n_node, z_constr_index, z_constr_value, GRB_EQUAL, rhs, constr_name);
-        quit_on_GRB_error(env, fischetti_model, error);
+        error = GRBaddconstr(bad_compact_model, n_node, z_constr_index, z_constr_value, GRB_EQUAL, rhs, constr_name);
+        quit_on_GRB_error(env, bad_compact_model, error);
         index_cur_constr++;
 
     }
@@ -162,30 +164,29 @@ void fischetti_model_create(Tsp_prob *instance) {
 
     for (int i = 1; i < n_node; i++) {
         for (int j = 1; j < n_node; j++) {
-            k = 0;
             if(i != j) {
                 for (int h = 2; h < n_node - 1; h++) {
                     k = 0;
                     for (int t = 1; t < n_node; t++) {
                         if(t < h) {
-                            constr_index[k] = zpos_fischetti(i, t, instance);
+                            constr_index[k] = zpos_bad_compact(i, t, instance);
                             constr_value[k] = 1.0;
                             k++;
                         }
 
                         if(t >= h + 1) {
-                            constr_index[k] = zpos_fischetti(j, t, instance);
+                            constr_index[k] = zpos_bad_compact(j, t, instance);
                             constr_value[k] = 1.0;
                             k++;
                         }
                     }
                     //add x(i,j)
-                    constr_index[k] = xpos_fischetti(i, j, instance);
+                    constr_index[k] = xpos_bad_compact(i, j, instance);
                     constr_value[k] = 1.0;
 
                     sprintf(constr_name, "zic(%d,%d,%d)", i + 1, j + 1, h);
-                    error = GRBaddconstr(fischetti_model, n_node - 1, constr_index, constr_value, GRB_LESS_EQUAL, rhs, constr_name);
-                    quit_on_GRB_error(env, fischetti_model, error);
+                    error = GRBaddconstr(bad_compact_model, n_node - 1, constr_index, constr_value, GRB_LESS_EQUAL, rhs, constr_name);
+                    quit_on_GRB_error(env, bad_compact_model, error);
                     index_cur_constr++;
                 }
             }
@@ -202,35 +203,57 @@ void fischetti_model_create(Tsp_prob *instance) {
     for (int i = 1; i < n_node ; i++) {
         k = 0;
         for (int t = 2; t < n_node - 1; t++) {
-            add_constr_index[k] = zpos_fischetti(i, t, instance);
+            add_constr_index[k] = zpos_bad_compact(i, t, instance);
             add_constr_value[k] = 1.0;
             k++;
         }
         //add x(i,1)
-        add_constr_index[k] = xpos_fischetti(i, 0, instance);
+        add_constr_index[k] = xpos_bad_compact(i, 0, instance);
         add_constr_value[k] = 1.0;
 
         sprintf(constr_name, "addc(%d)", i + 1);
-        error = GRBaddconstr(fischetti_model, n_node - 2, add_constr_index, add_constr_value, GRB_LESS_EQUAL, rhs, constr_name);
-        quit_on_GRB_error(env, fischetti_model, error);
+        error = GRBaddconstr(bad_compact_model, n_node - 2, add_constr_index, add_constr_value, GRB_LESS_EQUAL, rhs, constr_name);
+        quit_on_GRB_error(env, bad_compact_model, error);
         index_cur_constr++;
     }
 
-    error = GRBupdatemodel(fischetti_model);
-    quit_on_GRB_error(env,fischetti_model, error);
+    error = GRBupdatemodel(bad_compact_model);
+    quit_on_GRB_error(env,bad_compact_model, error);
 
     /*write model in an  output file*/
-    error = GRBwrite(fischetti_model, "output_fischetti_model.lp");
-    quit_on_GRB_error(env, fischetti_model, error);
+    error = GRBwrite(bad_compact_model, "output_bad_compact_model.lp");
+    quit_on_GRB_error(env, bad_compact_model, error);
 
     /*launch gurobi solver with the selected model*/
-    error = GRBoptimize(fischetti_model);
-    quit_on_GRB_error(env, fischetti_model, error);
+    error = GRBoptimize(bad_compact_model);
+    quit_on_GRB_error(env, bad_compact_model, error);
 
-    error = GRBwrite(fischetti_model, "solution_fischetti_model.sol");
-    quit_on_GRB_error(env, fischetti_model, error);
+    /* Capture solution information */
+    error = GRBgetintattr(bad_compact_model, GRB_INT_ATTR_STATUS, &optim_status);
+    quit_on_GRB_error(env, bad_compact_model, error);
+    instance->status = optim_status;
 
-    plot_solution(instance, fischetti_model, env, &xpos_fischetti);
+    /*error = GRBgetdblattrarray(MTZ_model, GRB_DBL_ATTR_X, 0, n_nodes, &sol);
+    quit_on_GRB_error(env, MTZ_model, error);*/
+    /*print solution in a file*/
+
+    /*print solution informations*/
+    printf("\nOptimization complete\n");
+    if (optim_status == GRB_OPTIMAL) {
+        error = GRBgetdblattr(bad_compact_model, GRB_DBL_ATTR_OBJVAL, &obj_val);
+        quit_on_GRB_error(env, bad_compact_model, error);
+        instance->best_solution = obj_val;
+        printf("Optimal objective: %.4e\n", obj_val);
+
+        error = GRBwrite(bad_compact_model, "solution_bad_compact_model.sol");
+        quit_on_GRB_error(env, bad_compact_model, error);
+
+        plot_solution(instance, bad_compact_model, env, &xpos_bad_compact);
+    } else if (optim_status == GRB_INF_OR_UNBD) {
+        printf("Model is infeasible or unbounded\n");
+    } else if (optim_status == GRB_TIME_LIMIT) {
+        printf("Optimization was stopped early\n");
+    }
 
     /*free memory*/
     free(constr_name);
@@ -241,23 +264,23 @@ void fischetti_model_create(Tsp_prob *instance) {
 
     free(variables_names);
 
-    free_gurobi(env, fischetti_model);
+    free_gurobi(env, bad_compact_model);
 
 }
 
-int xpos_fischetti(int i, int j, Tsp_prob *instance){
+int xpos_bad_compact(int i, int j, Tsp_prob *instance){
     if(i==j) {
         //printf("Index i=j\n");
         //exit(1);
         return -1;
     }
     if(i>j){
-        return xpos_fischetti(j, i, instance);
+        return xpos_bad_compact(j, i, instance);
     }
     return i*instance->nnode + j - ((i+1)*(i+2))/2;
 }
 
-int zpos_fischetti(int i, int j, Tsp_prob *instance) {
-    int latest_x_pos = xpos_fischetti(instance->nnode - 2, instance->nnode - 1, instance);
+int zpos_bad_compact(int i, int j, Tsp_prob *instance) {
+    int latest_x_pos = xpos_bad_compact(instance->nnode - 2, instance->nnode - 1, instance);
     return latest_x_pos + 1 + i * instance->nnode + j;
 }

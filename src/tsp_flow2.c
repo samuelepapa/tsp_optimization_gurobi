@@ -99,6 +99,9 @@ void flow2_model_create(Tsp_prob *instance) {
     error = GRBaddvars(flow2_model, n_variables, 0, NULL, NULL, NULL, obj_coeff, low_bound, up_bound, var_type, variables_names);
     quit_on_GRB_error(env, flow2_model, error);
 
+    /*Add time limit*/
+    add_time_limit(flow2_model, instance);
+
     /***********
      * CONSTRAINTS
      ***********/

@@ -14,13 +14,13 @@
  * @param instance The pointer to the problem instance
  * @return The distance value from i to j
  */
-int distance(int i, int j, Tsp_prob *instance);
+int distance(int i, int j, Tsp_prob* instance);
 
 /**
  * Free memory to avoid leaks, assumes instance is initialized as variable, not dinamically allocated
  * @param instance The pointer to the problem instance
  */
-void close_instance(Tsp_prob *instance);
+void close_instance(Tsp_prob* instance);
 
 /**
  * Print the error message associated by error integer value and free the gurobi model and the gurobi environment
@@ -28,14 +28,14 @@ void close_instance(Tsp_prob *instance);
  * @param model The pointer to the gurobi model
  * @param error Integer error value returned by the gurobi methods
  */
-void quit_on_GRB_error(GRBenv *env, GRBmodel *model, int error);
+void quit_on_GRB_error(GRBenv* env, GRBmodel* model, int error);
 
 /**
  * Free the gurobi model and the gurobi environment
  * @param env The pointer to the gurobi environment
  * @param model The pointer to the gurobi model
  */
-void free_gurobi(GRBenv *env, GRBmodel *model);
+void free_gurobi(GRBenv* env, GRBmodel* model);
 
 void inverse_map_model_type (int model_type, char *target_string);
 /**
@@ -54,25 +54,32 @@ void close_trial(Trial *trial_inst);
 
 /**
  * Find connected components returned by the MIP solver
- * @param env The pointer to the gurobi environment
- * @param model The pointer to the gurobi model
+ * @param env The pointer to the Gurobi environment
+ * @param model The pointer to the Gurobi model
  * @param instance The pointer to the problem instance
  * @param comp The pointer to the connected component structure
  */
-void find_connected_comps(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_comp *comp,
+void find_connected_comps(GRBenv* env, GRBmodel* model, Tsp_prob* instance, Connected_comp* comp,
                           int (*var_pos)(int, int, Tsp_prob *));
+
+/**
+ * Set time limit to the environment of the model
+ * @param model The pointer to the Gurobi model
+ * @param instance The pointer to the problem instance
+ */
+void add_time_limit(GRBmodel* model, Tsp_prob* instance);
 
 /**
  * Free memory allocated to connected component elements
  * @param comp The pointer to the connected component structure
  */
-void free_comp_struc(Connected_comp * comp);
+void free_comp_struc(Connected_comp* comp);
 
 /**
  * Free memory allocated to the graph
  * @param graph The pointer to the graph structure
  */
-void free_graph(Graph *graph);
+void free_graph(Graph* graph);
 
 
 #endif //TSP_OPTIMIZATION_GUROBI_UTILS_H

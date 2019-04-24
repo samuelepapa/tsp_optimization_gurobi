@@ -93,6 +93,9 @@ void mtz_model_create(Tsp_prob *instance) {
     error = GRBaddvars(MTZ_model, n_variables, 0, NULL, NULL, NULL, obj_coeff, low_bound, up_bound, var_type, variables_names);
     quit_on_GRB_error(env, MTZ_model, error);
 
+    /*Add time limit*/
+    add_time_limit(MTZ_model, instance);
+
     /***********
      * CONSTRAINTS
      ***********/

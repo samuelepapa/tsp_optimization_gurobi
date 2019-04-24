@@ -91,6 +91,9 @@ void flow1_model_create(Tsp_prob *instance){
                         obj_coeff, low_bound, up_bound, var_type, variables_names);
     quit_on_GRB_error(env, flow1_model, error);
 
+    /*Add time limit*/
+    add_time_limit(flow1_model, instance);
+
     /***********
      * CONSTRAINTS
      ***********/
