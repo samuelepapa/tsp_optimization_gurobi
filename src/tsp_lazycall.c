@@ -101,11 +101,23 @@ int __stdcall mycallback(GRBmodel *model, void *cbdata, int where, void *usrdata
         double * solution = calloc(mydata->nvars, sizeof(double));
         GRBcbget(cbdata, where, GRB_CB_MIPSOL_SOL, solution);
 
+        double node_cnt = -1;
+        GRBcbget(cbdata, where, GRB_CB_MIPSOL_NODCNT, &node_cnt);
+        struct timespec start, end;
+        double time_elapsed;
+
+        clock_gettime(CLOCK_MONOTONIC, &start);
+
         int number_of_comps = union_find(mydata->graph, solution, &xpos_lazycall, mydata->instance, mydata->conn_comps);
 
-        printf("\nThe current solution has: %d connected components \n", number_of_comps);
+        clock_gettime(CLOCK_MONOTONIC, &end);
+
+        time_elapsed = (end.tv_sec - start.tv_sec) + (double) (end.tv_nsec - start.tv_sec) / 1000000000.0;
+
+        printf("\nThe current solution has: %d connected components, found in %g seconds \n", number_of_comps,
+               time_elapsed);
         if (number_of_comps >= 2) {
-            add_lazy_sec(cbdata, mydata, mydata->conn_comps, number_of_comps, 0);
+            add_lazy_sec(cbdata, mydata, mydata->conn_comps, number_of_comps, (int) node_cnt);
         }
         free(solution);
     }
@@ -396,13 +408,13 @@ void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_com
         nnz = 0;
 
         for (int i = 0; i < nnode; i++) {
-            int i_parent = find_root(conn_comps, i);
+            int i_parent = find(conn_comps, i);
             if (i_parent != selected_comp) {
                 continue;
             }
 
             for (int j = i + 1; j < nnode; j++) {
-                int j_parent = find_root(conn_comps, j);
+                int j_parent = find(conn_comps, j);
                 if (j_parent == i_parent) {
                     constr_index[nnz] = xpos_lazycall(i, j, user_cbdata->instance);
                     constr_value[nnz] = 1.0;

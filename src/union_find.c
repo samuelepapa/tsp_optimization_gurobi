@@ -24,9 +24,9 @@ void control_root(Connected_component conn_comps[], int n_node);
 
 void create_graph_u_f(Tsp_prob *instance, Graph *graph) {
     int n_node = instance->nnode;
-    graph-> V = n_node; //number of nodes
+    graph->V = n_node; //number of nodes
     graph->E = (n_node * (n_node - 1)) / 2; //number of edges
-    graph->edge = (Edge*) calloc(graph->E, sizeof(Edge));
+    graph->edge = (Edge *) calloc(graph->E, sizeof(Edge));
 
     int l = 0;
 
@@ -116,8 +116,11 @@ void union_by_rank(Connected_component conn_comps[], int x_set, int y_set) {
 }*/
 
 void union_by_size(Connected_component *conn_comps, int x, int y) {
-    int x_root = find(conn_comps, x);
-    int y_root = find(conn_comps, y);
+    //int x_root = find(conn_comps, x);
+    //int y_root = find(conn_comps, y);
+    int x_root = x;
+    int y_root = y;
+
 
     if (x_root == y_root) {
         return;
@@ -143,7 +146,7 @@ void control_root(Connected_component *conn_comps, int n_node) {
 
 
 /**
- * Control if the root is founded before
+ * Control if the root was found before
  * @param root_cc Array of connected component roots
  * @param curr_root The current connected component root
  * @param num_comp Number of connected components
@@ -181,7 +184,7 @@ int has_root(int root_cc[], int curr_root, int num_comp) {
 
 
 int find(Connected_component *conn_comps, int i) {
-
+    //path splitting better efficiency
     while (conn_comps->parent[i] != i) {
         int next = conn_comps->parent[i];
         conn_comps->parent[i] = conn_comps->parent[next];
@@ -230,7 +233,8 @@ int find_root(Connected_component *conn_comps, int i) {
     }
 }*/
 
-int union_find(Graph *graph, double *solution, int (*var_pos)(int, int, Tsp_prob *), Tsp_prob *instance, Connected_component *conn_comps) {
+int union_find(Graph *graph, double *solution, int (*var_pos)(int, int, Tsp_prob *), Tsp_prob *instance,
+               Connected_component *conn_comps) {
     int nnode = instance->nnode;
     int n_conn_comps = nnode;
 
@@ -239,7 +243,6 @@ int union_find(Graph *graph, double *solution, int (*var_pos)(int, int, Tsp_prob
         conn_comps->rank[i] = 0;
         conn_comps->size[i] = 1;
     }
-
 
     for (int e = 0; e < graph->E; e++) {
         int src = graph->edge[e].src;
@@ -265,7 +268,10 @@ int union_find(Graph *graph, double *solution, int (*var_pos)(int, int, Tsp_prob
 }
 
 void get_root(int root_cc[], int number_of_comps, Connected_component *conn_comps, int n_node) {
-
+    char bitmap[n_node];
+    for (int i = 0; i < n_node; i++) {
+        bitmap[i] = 0;
+    }
     //initialize the array
     for (int i = 0; i < number_of_comps; i++) {
         root_cc[i] = -1;
@@ -275,9 +281,13 @@ void get_root(int root_cc[], int number_of_comps, Connected_component *conn_comp
 
     for (int i = 0; i < n_node; i++) {
         int cc = find(conn_comps, conn_comps->parent[i]);
-        if (has_root(root_cc, cc, number_of_comps) != 0) {
+        if (bitmap[cc] == 1) {
             continue;
         }
+        bitmap[cc] = 1;
+//        if (has_root(root_cc, cc, number_of_comps) != 0) {
+//            continue;
+//        }
         root_cc[t] = cc;
         t++;
     }
