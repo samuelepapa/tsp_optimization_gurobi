@@ -353,7 +353,7 @@ double get_solution(GRBenv* env, GRBmodel* model, int xpos) {
 
 void set_seed(GRBmodel* model, Tsp_prob* instance) {
     if (instance->type == 0 && instance->seed > 0 && instance->seed < GRB_MAXINT) {
-        int error = GRBsetdblparam(GRBgetenv(model), "Seed", instance->seed);
+        int error = GRBsetintparam(GRBgetenv(model), "Seed", instance->seed);
         quit_on_GRB_error(GRBgetenv(model), model, error);
     }
 }
