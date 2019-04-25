@@ -97,8 +97,6 @@ void tsp_loop_model_create(Tsp_prob *instance){
     printf("erros: %d\n", error);
     printf("Time limit is: %g\n", curtimelimit);
 
-
-
     error = GRBnewmodel(env, &loop_model, instance->name, 0, NULL, NULL, NULL, NULL, NULL);
     quit_on_GRB_error(env, loop_model, error);
 

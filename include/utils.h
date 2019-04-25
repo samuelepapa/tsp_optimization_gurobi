@@ -63,11 +63,18 @@ void find_connected_comps(GRBenv* env, GRBmodel* model, Tsp_prob* instance, Conn
                           int (*var_pos)(int, int, Tsp_prob *));
 
 /**
- * Set time limit to the environment of the model
+ * Set seed to the environment of the Gurbi model
  * @param model The pointer to the Gurobi model
  * @param instance The pointer to the problem instance
  */
-void add_time_limit(GRBmodel* model, Tsp_prob* instance);
+void set_seed(GRBmodel* model, Tsp_prob* instance);
+
+/**
+ * Set time limit to the environment of the Gurobi model
+ * @param model The pointer to the Gurobi model
+ * @param instance The pointer to the problem instance
+ */
+void set_time_limit(GRBmodel* model, Tsp_prob* instance);
 
 /**
  * Free memory allocated to connected component elements

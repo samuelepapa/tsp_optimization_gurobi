@@ -351,8 +351,15 @@ double get_solution(GRBenv* env, GRBmodel* model, int xpos) {
     return x_value;
 }
 
-void add_time_limit(GRBmodel* model, Tsp_prob* instance) {
-    if (instance->type == 0 && (instance->time_limit > 0 || instance->time_limit < GRB_INFINITY)) {
+void set_seed(GRBmodel* model, Tsp_prob* instance) {
+    if (instance->type == 0 && instance->seed > 0 && instance->seed < GRB_MAXINT) {
+        int error = GRBsetdblparam(GRBgetenv(model), "Seed", instance->seed);
+        quit_on_GRB_error(GRBgetenv(model), model, error);
+    }
+}
+
+void set_time_limit(GRBmodel *model, Tsp_prob *instance) {
+    if (instance->type == 0 && instance->time_limit > 0 && instance->time_limit < GRB_INFINITY) {
         int error = GRBsetdblparam(GRBgetenv(model), GRB_DBL_PAR_TIMELIMIT, instance->time_limit);
         quit_on_GRB_error(GRBgetenv(model), model, error);
     }

@@ -91,12 +91,17 @@ void bad_compact_model_create(Tsp_prob *instance) {
     error = GRBnewmodel(env, &bad_compact_model, "bad_compact", 0, NULL, NULL, NULL, NULL, NULL);
     quit_on_GRB_error(env, bad_compact_model, error);
 
+    /*Set time limit*/
+    set_time_limit(bad_compact_model, instance);
+
+    /*Set seed*/
+    set_seed(bad_compact_model, instance);
+
     /*Add objective function elements*/
     error = GRBaddvars(bad_compact_model, n_variables, 0, NULL, NULL, NULL, obj_coeff, low_bound, up_bound, var_type, variables_names);
     quit_on_GRB_error(env, bad_compact_model, error);
 
-    /*Add time limit*/
-    add_time_limit(bad_compact_model, instance);
+
 
     /*Define and add constraints to the model*/
     int x_constr_index[n_node - 1];
