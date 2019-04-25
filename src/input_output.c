@@ -582,9 +582,10 @@ int init_trial(Trial *trial_inst) {
                 }
             }
             if (current_mode == 3) {
-                if (cur_element < trial_inst->n_runs) {
+                if (cur_element < trial_inst->n_models) {
                     str_len = strlen(line);
                     strncpy(buffer, line, str_len);
+                    int cur = map_model_type(buffer);
                     trial_inst->models[cur_element] = map_model_type(buffer);
                     cur_element++;
                 } else {
