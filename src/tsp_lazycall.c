@@ -197,6 +197,12 @@ void tsp_lazycall_model_create(Tsp_prob *instance) {
     error = GRBsetintparam(GRBgetenv(lazycall_model), GRB_INT_PAR_PRECRUSH, 1);
     quit_on_GRB_error(env, lazycall_model, error);
 
+    /*Set time limit*/
+    set_time_limit(lazycall_model, instance);
+
+    /*Set seed*/
+    set_seed(lazycall_model, instance);
+
     //Add variables to lazycall_model
     error = GRBaddvars(lazycall_model, n_variables, 0, NULL, NULL, NULL,
                        objective_coeffs, lower_bounds, upper_bounds, variable_type, variables_names);

@@ -86,9 +86,16 @@ void flow3_model_create(Tsp_prob *instance) {
     error = GRBnewmodel(env, &flow3_model, "flow3", 0, NULL, NULL, NULL, NULL, NULL);
     quit_on_GRB_error(env, flow3_model, error);
 
+    /*Set time limit*/
+    set_time_limit(flow3_model, instance);
+
+    /*Set seed*/
+    set_seed(flow3_model, instance);
+
     /*Add objective function elements*/
     error = GRBaddvars(flow3_model, n_variables, 0, NULL, NULL, NULL, obj_coeff, low_bound, up_bound, var_type, variables_names);
     quit_on_GRB_error(env, flow3_model, error);
+
 
     /***********
      * CONSTRAINTS

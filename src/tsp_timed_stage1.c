@@ -80,9 +80,16 @@ void timed_stage1_model_create(Tsp_prob *instance) {
     error = GRBnewmodel(env, &ts1_model, "timed_stage_1", 0, NULL, NULL, NULL, NULL, NULL);
     quit_on_GRB_error(env, ts1_model, error);
 
+    /*Set time limit*/
+    set_time_limit(ts1_model, instance);
+
+    /*Set seed*/
+    set_seed(ts1_model, instance);
+
     /*Add variables to the model*/
     error = GRBaddvars(ts1_model, n_variables, 0, NULL, NULL, NULL, obj_coeff, low_bound, up_bound, var_type, variables_names);
     quit_on_GRB_error(env, ts1_model, error);
+
 
     /*Constraints*/
     int constr_var_index[n_node - 1];
@@ -269,6 +276,7 @@ void timed_stage1_model_create(Tsp_prob *instance) {
     error = GRBgetintattr(ts1_model, GRB_INT_ATTR_STATUS, &optim_status);
     quit_on_GRB_error(env, ts1_model, error);
     instance->status = optim_status;
+
     /*print solution informations*/
     printf("\nOptimization complete\n");
     if (optim_status == GRB_OPTIMAL) {

@@ -16,7 +16,7 @@
 #include "input_output.h"
 #include "tsp_std.h"
 #include "tsp_mtz.h"
-#include "tsp_fischetti.h"
+#include "tsp_bad_compact.h"
 #include "tsp_flow1.h"
 #include "tsp_flow2.h"
 #include "tsp_flow3.h"
@@ -130,7 +130,7 @@ void start_selected_model(Tsp_prob *instance) {
             mtz_model_create(instance); //mtz
             break;
         case 2:
-            fischetti_model_create(instance); //badcompact
+            bad_compact_model_create(instance); //badcompact
             break;
         case 3:
             flow1_model_create(instance); //flow1
