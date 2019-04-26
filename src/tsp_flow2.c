@@ -85,10 +85,12 @@ void flow2_model_create(Tsp_prob *instance) {
         }
     }
 
-    error = GRBloadenv(&env, "flow2.log");
-    if(error || env == NULL) {
-        printf("Error: couldn't create empty environment.\n");
-        exit(1);
+    if (env == NULL) {
+        error = GRBloadenv(&env, "flow2.log");
+        if (error || env == NULL) {
+            printf("Error: couldn't create empty environment.\n");
+            exit(1);
+        }
     }
 
     /*Create an empty model*/
@@ -96,10 +98,10 @@ void flow2_model_create(Tsp_prob *instance) {
     quit_on_GRB_error(env, flow2_model, error);
 
     /*Set time limit*/
-    set_time_limit(flow2_model, instance);
+    //set_time_limit(flow2_model, instance);
 
     /*Set seed*/
-    set_seed(flow2_model, instance);
+    //set_seed(flow2_model, instance);
 
     /*Add objective function elements*/
     error = GRBaddvars(flow2_model, n_variables, 0, NULL, NULL, NULL, obj_coeff, low_bound, up_bound, var_type, variables_names);

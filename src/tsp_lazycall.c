@@ -198,10 +198,10 @@ void tsp_lazycall_model_create(Tsp_prob *instance) {
     quit_on_GRB_error(env, lazycall_model, error);
 
     /*Set time limit*/
-    set_time_limit(lazycall_model, instance);
+    //set_time_limit(lazycall_model, instance);
 
     /*Set seed*/
-    set_seed(lazycall_model, instance);
+    //set_seed(lazycall_model, instance);
 
     //Add variables to lazycall_model
     error = GRBaddvars(lazycall_model, n_variables, 0, NULL, NULL, NULL,

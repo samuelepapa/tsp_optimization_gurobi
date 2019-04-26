@@ -76,20 +76,22 @@ void timed_stage3_model_create(Tsp_prob *instance) {
 
     }
 
-    error = GRBloadenv(&env, "timed_stage_3.log");
-    if (error || env == NULL) {
-        printf("Error: couldn't create empty environment.\n");
-        exit(1);
+    if (env == NULL) {
+        error = GRBloadenv(&env, "timed_stage_3.log");
+        if (error || env == NULL) {
+            printf("Error: couldn't create empty environment.\n");
+            exit(1);
+        }
     }
 
     error = GRBnewmodel(env, &ts3_model, "timed_stage_3", 0, NULL, NULL, NULL, NULL, NULL);
     quit_on_GRB_error(env, ts3_model, error);
 
     /*Set time limit*/
-    set_time_limit(ts3_model, instance);
+    //set_time_limit(ts3_model, instance);
 
     /*Set seed*/
-    set_seed(ts3_model, instance);
+    //set_seed(ts3_model, instance);
 
     /*Add variables to the model*/
     error = GRBaddvars(ts3_model, n_variables, 0, NULL, NULL, NULL, obj_coeff, low_bound, up_bound, var_type, variables_names);

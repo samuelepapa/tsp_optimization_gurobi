@@ -81,10 +81,12 @@ void bad_compact_model_create(Tsp_prob *instance) {
     }
 
     /*create environment*/
-    error = GRBloadenv(&env, "bad_compact.log");
-    if(error || env == NULL) {
-        printf("Error: couldn't create empty environment.\n");
-        exit(1);
+    if (env == NULL) {
+        error = GRBloadenv(&env, "bad_compact.log");
+        if (error || env == NULL) {
+            printf("Error: couldn't create empty environment.\n");
+            exit(1);
+        }
     }
 
     /*Create an empty model*/
@@ -92,10 +94,10 @@ void bad_compact_model_create(Tsp_prob *instance) {
     quit_on_GRB_error(env, bad_compact_model, error);
 
     /*Set time limit*/
-    set_time_limit(bad_compact_model, instance);
+    //set_time_limit(bad_compact_model, instance);
 
     /*Set seed*/
-    set_seed(bad_compact_model, instance);
+    //set_seed(bad_compact_model, instance);
 
     /*Add objective function elements*/
     error = GRBaddvars(bad_compact_model, n_variables, 0, NULL, NULL, NULL, obj_coeff, low_bound, up_bound, var_type, variables_names);
