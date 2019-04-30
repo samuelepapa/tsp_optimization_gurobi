@@ -185,14 +185,20 @@ int has_root(int root_cc[], int curr_root, int num_comp) {
 
 int find(Connected_component *conn_comps, int i) {
     //path splitting better efficiency
-    while (conn_comps->parent[i] != i) {
+    /*while (conn_comps->parent[i] != i) {
         int next = conn_comps->parent[i];
         conn_comps->parent[i] = conn_comps->parent[next];
         i = next;
     }
-
+    return i;*/
+    //path halving better efficiency
+    while (conn_comps->parent[i] != i) {
+        int next = conn_comps->parent[i];
+        conn_comps->parent[i] = conn_comps->parent[next];
+        i = conn_comps->parent[i];
+    }
     return i;
-
+    //path compression
     /*if (conn_comps->parent[i] != i) {
         conn_comps->parent[i] = find(conn_comps, conn_comps->parent[i]);
     }

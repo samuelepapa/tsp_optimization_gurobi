@@ -251,6 +251,11 @@ void tsp_lazycall_model_create(Tsp_prob *instance) {
     error = GRBoptimize(lazycall_model);
     quit_on_GRB_error(env, lazycall_model, error);
 
+    int optim_status = 0;
+    error = GRBgetintattr(lazycall_model, GRB_INT_ATTR_STATUS, &optim_status);
+    quit_on_GRB_error(env, lazycall_model, error);
+    instance->status = optim_status;
+
     //Freeing memory
     free(constr_name);
 
@@ -408,8 +413,8 @@ void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_com
 
         rhs = n_item - 1;
 
-        int constr_index[tot_item];
-        double constr_value[tot_item];
+        int *constr_index = malloc(sizeof(int) * tot_item);
+        double *constr_value = malloc(sizeof(double) * tot_item);
 
         nnz = 0;
 
@@ -435,6 +440,8 @@ void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_com
         if (error) {
             printf("Error on cblazy adding lazy constraints, code: %d \n", error);
         }
+        free(constr_index);
+        free(constr_value);
     }
 
     free(constr_name);

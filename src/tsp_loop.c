@@ -174,8 +174,8 @@ void tsp_loop_model_create(Tsp_prob *instance){
         quit_on_GRB_error(env, loop_model, error);
 
         //write to output file
-        error = GRBwrite(loop_model, "output_loop_model.lp");
-        quit_on_GRB_error(env, loop_model, error);
+        //error = GRBwrite(loop_model, "output_loop_model.lp");
+        //quit_on_GRB_error(env, loop_model, error);
 
         //Run optimization
         error = GRBoptimize(loop_model);
@@ -187,8 +187,8 @@ void tsp_loop_model_create(Tsp_prob *instance){
         DEBUG_PRINT(("Solution: %g\n", solution));
 
         //write solution to file for inspection
-        error = GRBwrite(loop_model, "solution.sol");
-        quit_on_GRB_error(env, loop_model, error);
+        //error = GRBwrite(loop_model, "solution.sol");
+        //quit_on_GRB_error(env, loop_model, error);
 
         //Get termination condition
         error = GRBgetintattr(loop_model,"Status", &status_code);
@@ -263,8 +263,8 @@ void tsp_loop_model_create(Tsp_prob *instance){
     printf("Number of iterations: %d\n", current_iteration);
 
 
-    error = GRBwrite(loop_model, "solution.sol");
-    quit_on_GRB_error(env, loop_model, error);
+    //error = GRBwrite(loop_model, "solution.sol");
+    //quit_on_GRB_error(env, loop_model, error);
 
     plot_solution(instance,loop_model, env, &xpos_loop);
 
