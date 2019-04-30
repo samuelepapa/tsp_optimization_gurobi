@@ -1,17 +1,6 @@
 //
 // Created by samuele on 26/03/19.
 //
-
-#include <stdio.h>
-#include <math.h>
-#include <malloc.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <time.h>
-#include "common.h"
-#include "utils.h"
-#include "input_output.h"
 #include "tsp_loop.h"
 
 #define MAX_VARNAME_SIZE 100

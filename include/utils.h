@@ -5,6 +5,8 @@
 #ifndef TSP_OPTIMIZATION_GUROBI_UTILS_H
 #define TSP_OPTIMIZATION_GUROBI_UTILS_H
 
+#include <limits.h>
+#include "common.h"
 #include "union_find.h"
 
 /**

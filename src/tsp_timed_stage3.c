@@ -1,12 +1,5 @@
-#include "common.h"
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include "utils.h"
-#include "input_output.h"
 #include "tsp_timed_stage3.h"
+
 #define LAZY_LEVEL 2
 /*LAZY_LEVEL
  * With a value of 1, the constraint can be used to cut off a feasible solution, but it won’t necessarily be pulled in if another lazy constraint also cuts off the solution.

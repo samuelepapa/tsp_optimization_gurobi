@@ -1,18 +1,8 @@
 //
 // Created by samuele on 08/04/19.
 //
-#include <stdio.h>
-#include <math.h>
-#include <malloc.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <time.h>
-#include "common.h"
-#include "utils.h"
-#include "input_output.h"
 #include "tsp_lazycall.h"
-#include "union_find.h"
+
 
 #define TOLERANCE 10E-4
 #define MAX_VARNAME_SIZE 128

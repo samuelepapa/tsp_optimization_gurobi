@@ -1,11 +1,3 @@
-#include "common.h"
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include "utils.h"
-#include "input_output.h"
 #include "tsp_flow3.h"
 
 #define LAZY_LEVEL 2

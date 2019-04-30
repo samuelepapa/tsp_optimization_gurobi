@@ -1,8 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "union_find.h"
-#include "common.h"
-#include "utils.h"
 
 
 /**
@@ -13,6 +9,13 @@
  */
 void union_by_rank(Connected_component conn_comps[], int x_set, int y_set);
 
+
+/**
+ * Function that does the union of two sets of x and y using union by size
+ * @param conn_comps Array of connected components (subsets)
+ * @param x_set First subset
+ * @param y_set Second subset
+ */
 void union_by_size(Connected_component conn_comps[], int x, int y);
 
 /**

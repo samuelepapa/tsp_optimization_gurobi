@@ -1,12 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include "common.h"
 #include "plot_graph.h"
-#include "utils.h"
+
 
 void set_canvas(FILE *gnuplot_pipe);
 

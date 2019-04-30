@@ -1,14 +1,6 @@
 //
 // Created by samuele on 20/03/19.
 //
-#include "common.h"
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include "utils.h"
-#include "input_output.h"
 #include "tsp_flow1.h"
 
 int xpos_flow1(int i, int j, Tsp_prob *instance);

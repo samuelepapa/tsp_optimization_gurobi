@@ -1,12 +1,5 @@
-#include "common.h"
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include "utils.h"
 #include "tsp_mtz.h"
-#include "input_output.h"
+
 
 #define LAZY_LEVEL 1
 /*LAZY_LEVEL

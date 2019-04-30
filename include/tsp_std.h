@@ -5,6 +5,11 @@
 #ifndef TSP_OPTIMIZATION_GUROBI_TSP_H
 #define TSP_OPTIMIZATION_GUROBI_TSP_H
 
+
+#include "common.h"
+#include "utils.h"
+#include "input_output.h"
+
 void tsp_model_create(Tsp_prob *instance);
 
 /**

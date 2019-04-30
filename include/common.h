@@ -6,7 +6,13 @@
 #define TSP_OPTIMIZATION_GUROBI_COMMON_H
 
 //#define DEBUG
-
+#include <stdio.h>
+#include <math.h>
+#include <malloc.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <time.h>
 #include "gurobi_c.h"
 
 #ifdef DEBUG

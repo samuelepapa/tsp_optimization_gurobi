@@ -1,12 +1,5 @@
-#include "common.h"
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include "utils.h"
 #include "tsp_bad_compact.h"
-#include "input_output.h"
+
 
 int xpos_bad_compact(int i, int j, Tsp_prob *instance);
 int zpos_bad_compact(int i, int j, Tsp_prob *instance);

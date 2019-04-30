@@ -1,11 +1,3 @@
-#include "common.h"
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include "utils.h"
-#include "input_output.h"
 #include "tsp_flow2.h"
 
 int xpos_flow2(int i, int j, Tsp_prob *instance);

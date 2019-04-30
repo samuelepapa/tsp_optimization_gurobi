@@ -1,15 +1,7 @@
 //
 // Created by samuele on 07/03/19.
 //
-#include "common.h"
-#include <stdio.h>
-#include "math.h"
-#include <malloc.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include "union_find.h"
+
 #include "utils.h"
 
 /**
@@ -233,6 +225,10 @@ int map_model_type(char* optarg) {
     if (strncmp(optarg, "lazycall", 8) == 0) {
         return 10;
     }
+
+    if (strncmp(optarg, "matheuristic", 12) == 0) {
+        return 11;
+    }
 }
 
 void inverse_map_model_type(int model_type, char* target_string) {
@@ -270,6 +266,9 @@ void inverse_map_model_type(int model_type, char* target_string) {
             break;
         case 10:
             strcpy(target_string, "lazycall");
+            break;
+        case 11:
+            strcpy(target_string, "matheuristic");
             break;
         default:
             strcpy(target_string, "not a model");

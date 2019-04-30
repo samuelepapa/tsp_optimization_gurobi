@@ -4,6 +4,15 @@
 
 #ifndef TSP_OPTIMIZATION_GUROBI_INPUTOUTPUT_H
 #define TSP_OPTIMIZATION_GUROBI_INPUTOUTPUT_H
+
+
+#include <ctype.h>
+#include "common.h"
+#include "argtable3.h"
+#include "utils.h"
+#include "plot_graph.h"
+
+
 /**
  * Parse the input from command line
  * @param argc The number of arguments

@@ -1,15 +1,5 @@
 #include "common.h"
-#include <stdio.h>
-#include <math.h>
-#include <malloc.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <ctype.h>
-#include "argtable3.h"
 #include "input_output.h"
-#include "utils.h"
-#include "plot_graph.h"
 
 #define MODEL_TOLERANCE 10E-4
 
