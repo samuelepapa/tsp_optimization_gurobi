@@ -9,6 +9,7 @@
 #include "utils.h"
 #include "input_output.h"
 #include "union_find.h"
+#include <tsp_matheuristic.h>
 
 void tsp_lazycall_model_create(Tsp_prob *instance);
 

@@ -21,7 +21,7 @@ typedef struct {
     int E;
 
     //Graph represented as an array of edges
-    Edge* edge;
+    Edge *edge;
 } Graph;
 
 /**

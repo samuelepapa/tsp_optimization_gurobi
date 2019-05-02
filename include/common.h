@@ -32,7 +32,7 @@ typedef struct {
     char *name; //TODO free memory after allocation
     char *comment; //TODO free memory after allocation
 
-    int type; //0: TSP | in future add multiple types
+    int type; // The type of problem 0: TSP | in future add multiple types
     int nnode; //number of nodes
     int weight_type; //type of weight between edges (maybe pointer to some function?)
     /**for symmetric travelling salesman problems:
@@ -44,7 +44,7 @@ typedef struct {
      *  5 = ATT          : special distance function for problems att48 and att532 (pseudo-Euclidean)
      */
 
-    int model_type;
+    int model_type; //The user selected model
 
     double *coord_x; //list of x coordinates //TODO free memory after allocation
     double *coord_y; //list of y coordinates //TODO free memory after allocation
@@ -62,6 +62,12 @@ typedef struct {
     GRBmodel *model;
     //best solution found for this instance using this model
     double best_solution;
+
+    //latest best heuristic solution value
+    double best_heur_sol_value;
+
+    //probability of choose an edge
+    double *prob;
 
 } Tsp_prob;
 

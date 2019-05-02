@@ -1,6 +1,7 @@
 //
 // Created by samuele on 08/04/19.
 //
+#include <tsp_matheuristic.h>
 #include "tsp_lazycall.h"
 
 
@@ -87,12 +88,16 @@ double get_solution_lazy(double *solution, int xpos);
 int __stdcall mycallback(GRBmodel *model, void *cbdata, int where, void *usrdata) {
     struct callback_data *mydata = (struct callback_data *) usrdata;
 
-    if(where == GRB_CB_MIPSOL){
-        double * solution = calloc(mydata->nvars, sizeof(double));
+    if(where == GRB_CB_MIPSOL) {
+        double *solution = calloc(mydata->nvars, sizeof(double));
         GRBcbget(cbdata, where, GRB_CB_MIPSOL_SOL, solution);
 
         double node_cnt = -1;
         GRBcbget(cbdata, where, GRB_CB_MIPSOL_NODCNT, &node_cnt);
+
+        double sol_value;
+        GRBcbget(cbdata, where, GRB_CB_MIPSOL_OBJ, &sol_value);
+
         struct timespec start, end;
         double time_elapsed;
 
@@ -106,9 +111,15 @@ int __stdcall mycallback(GRBmodel *model, void *cbdata, int where, void *usrdata
 
         printf("\nThe current solution has: %d connected components, found in %g seconds \n", number_of_comps,
                time_elapsed);
+
+        if (mydata->instance->model_type == 11 && number_of_comps == 1) {
+            change_constraints(mydata->instance, mydata->var_pos, sol_value, solution, node_cnt);
+        }
+
         if (number_of_comps >= 2) {
             add_lazy_sec(cbdata, mydata, mydata->conn_comps, number_of_comps, (int) node_cnt);
         }
+
         free(solution);
     }
 
@@ -179,6 +190,10 @@ void tsp_lazycall_model_create(Tsp_prob *instance) {
 
     error = GRBnewmodel(env, &lazycall_model, instance->name, 0, NULL, NULL, NULL, NULL, NULL);
     quit_on_GRB_error(env, lazycall_model, error);
+
+    if (instance->model_type == 11) {
+        instance->model = lazycall_model;
+    }
 
     error = GRBsetintparam(GRBgetenv(lazycall_model), GRB_INT_PAR_LAZYCONSTRAINTS, 1);
     //error = GRBsetintparam(env, GRB_INT_PAR_LAZYCONSTRAINTS, 1);

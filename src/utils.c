@@ -11,7 +11,7 @@
  * @param num_comp The number of node in the connected component
  * @return
  */
-int has_component(Connected_comp* comp, int curr_comp, int num_comp);
+int has_component(Connected_comp *comp, int curr_comp, int num_comp);
 
 /**
  * Return the solution value of the x variables
@@ -20,7 +20,7 @@ int has_component(Connected_comp* comp, int curr_comp, int num_comp);
  * @param xpos The memory location of the x variable
  * @return The value of x after the resolution of the model
  */
-double get_solution(GRBenv* env, GRBmodel* model, int xpos);
+double get_solution(GRBenv *env, GRBmodel *model, int xpos);
 
 /**
  * Print the error message associated by error integer value and free the gurobi model and the gurobi environment
@@ -28,7 +28,7 @@ double get_solution(GRBenv* env, GRBmodel* model, int xpos);
  * @param model The pointer to the gurobi model
  * @param error Integer error value returned by the gurobi methods
  */
-void quit_on_GRB_error(GRBenv* env, GRBmodel* model, int error) {
+void quit_on_GRB_error(GRBenv *env, GRBmodel *model, int error) {
 
     if (error) {
         /*error reporting*/
@@ -52,7 +52,7 @@ void quit_on_GRB_error(GRBenv* env, GRBmodel* model, int error) {
  * @param env The pointer to the gurobi environment
  * @param model The pointer to the gurobi model
  */
-void free_gurobi(GRBenv* env, GRBmodel* model) {
+void free_gurobi(GRBenv *env, GRBmodel *model) {
 
     /*free model*/
     GRBfreemodel(model);
@@ -125,7 +125,7 @@ int dist_from_geo(double i_latitude, double j_latitude, double i_longitude, doub
  * @param instance The pointer to the problem instance
  * @return The distance value from i to j
  */
-int distance(int i, int j, Tsp_prob* instance) {
+int distance(int i, int j, Tsp_prob *instance) {
 
     double xd = instance->coord_x[i] - instance->coord_x[j]; //x coordinates difference
     double yd = instance->coord_y[i] - instance->coord_y[j]; //y coordinates difference
@@ -179,7 +179,7 @@ int distance(int i, int j, Tsp_prob* instance) {
     }
 }
 
-int map_model_type(char* optarg) {
+int map_model_type(char *optarg) {
 
     DEBUG_PRINT(("options: %s", optarg));
     if (strncmp(optarg, "std", 3) == 0) {
@@ -231,7 +231,7 @@ int map_model_type(char* optarg) {
     }
 }
 
-void inverse_map_model_type(int model_type, char* target_string) {
+void inverse_map_model_type(int model_type, char *target_string) {
 
     switch (model_type) {
         case 0:
@@ -276,11 +276,11 @@ void inverse_map_model_type(int model_type, char* target_string) {
 
 }
 
-void start_model(int model, Tsp_prob* instance) {
+void start_model(int model, Tsp_prob *instance) {
 
 }
 
-void find_connected_comps(GRBenv* env, GRBmodel*model, Tsp_prob* instance, Connected_comp* comp,
+void find_connected_comps(GRBenv *env, GRBmodel*model, Tsp_prob *instance, Connected_comp *comp,
                           int (*var_pos)(int, int, Tsp_prob *)) {
     int nnode = instance->nnode;
 
@@ -331,7 +331,7 @@ void find_connected_comps(GRBenv* env, GRBmodel*model, Tsp_prob* instance, Conne
     }
 }
 
-int has_component(Connected_comp* comp, int curr_comp, int num_comp) {
+int has_component(Connected_comp *comp, int curr_comp, int num_comp) {
 
     for (int i = 0; i < num_comp; i++) {
         if (curr_comp == comp->list_of_comps[i]) {
@@ -342,7 +342,7 @@ int has_component(Connected_comp* comp, int curr_comp, int num_comp) {
     return 0;
 }
 
-double get_solution(GRBenv* env, GRBmodel* model, int xpos) {
+double get_solution(GRBenv *env, GRBmodel *model, int xpos) {
 
     double x_value;
     int error = GRBgetdblattrelement(model, "X", xpos, &x_value);
@@ -350,7 +350,7 @@ double get_solution(GRBenv* env, GRBmodel* model, int xpos) {
     return x_value;
 }
 
-void set_seed(GRBmodel* model, Tsp_prob* instance) {
+void set_seed(GRBmodel *model, Tsp_prob *instance) {
     if (instance->type == 0 && instance->seed > 0 && instance->seed < GRB_MAXINT) {
         int error = GRBsetintparam(GRBgetenv(model), "Seed", instance->seed);
         quit_on_GRB_error(GRBgetenv(model), model, error);
@@ -364,14 +364,14 @@ void set_time_limit(GRBmodel *model, Tsp_prob *instance) {
     }
 }
 
-void free_comp_struc(Connected_comp* comp) {
+void free_comp_struc(Connected_comp *comp) {
     free(comp->comps);
 //    free(comp->list_of_comps);
     free(comp->number_of_items);
     //free(comp->visit_flag);
 }
 
-void free_graph(Graph* graph) {
+void free_graph(Graph *graph) {
     free(graph->edge);
     free(graph);
 }
@@ -380,7 +380,7 @@ void free_graph(Graph* graph) {
  * Free memory to avoid leaks, assumes instance is initialized as variable, not dynamically allocated
  * @param instance The pointer to the problem instance
  */
-void close_instance(Tsp_prob* instance) {
+void close_instance(Tsp_prob *instance) {
     free(instance->name);
     free(instance->comment);
     free(instance->filename);
@@ -389,7 +389,7 @@ void close_instance(Tsp_prob* instance) {
     //free(instance->solution);
 }
 
-void close_trial(Trial* trial_inst) {
+void close_trial(Trial *trial_inst) {
     free(trial_inst->seeds);
     free(trial_inst->filename);
     free(trial_inst->name);

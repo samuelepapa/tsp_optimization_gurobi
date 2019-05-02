@@ -136,7 +136,7 @@ void plot_edges(Tsp_prob *instance) {
 }
 */
 
-void plot_edges(Solution_list *edges_list, Tsp_prob * instance) {
+void plot_edges(Solution_list *edges_list, Tsp_prob *instance) {
 
     DEBUG_PRINT(("\n%s\n", "--start plot_edges function"));
 

@@ -17,6 +17,7 @@
 #include "tsp_timed_stage3.h"
 #include "tsp_loop.h"
 #include "tsp_lazycall.h"
+#include "tsp_matheuristic.h"
 
 /**
  * Selects the method chosen by the instance and starts it
@@ -147,6 +148,9 @@ void start_selected_model(Tsp_prob *instance) {
             break;
         case 10:
             tsp_lazycall_model_create(instance); //lazy callback SEC
+            break;
+        case 11:
+            tsp_matheuristic_model_create(instance); //matheuristic
             break;
         default:
             tsp_model_create(instance);

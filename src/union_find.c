@@ -7,7 +7,7 @@
  * @param x_set First subset
  * @param y_set Second subset
  */
-void union_by_rank(Connected_component conn_comps[], int x_set, int y_set);
+void union_by_rank(Connected_component *conn_comps, int x_set, int y_set);
 
 
 /**
@@ -16,14 +16,14 @@ void union_by_rank(Connected_component conn_comps[], int x_set, int y_set);
  * @param x_set First subset
  * @param y_set Second subset
  */
-void union_by_size(Connected_component conn_comps[], int x, int y);
+void union_by_size(Connected_component *conn_comps, int x, int y);
 
 /**
  * Control if all the nodes have the correct root
  * @param conn_comps The array of nodes with connected component data
  * @param n_node The number of nodes of the problem
  */
-void control_root(Connected_component conn_comps[], int n_node);
+void control_root(Connected_component *conn_comps, int n_node);
 
 void create_graph_u_f(Tsp_prob *instance, Graph *graph) {
     int n_node = instance->nnode;
@@ -81,7 +81,7 @@ void create_graph_u_f(Tsp_prob *instance, Graph *graph) {
     return number_of_comps;
 }*/
 
-/*int find(Connected_component conn_comps[], int i) {
+/*int find(Connected_component *conn_comps, int i) {
 
     // find root and make root as parent of i (path compression)
     if (conn_comps[i].parent != i) {
@@ -91,7 +91,7 @@ void create_graph_u_f(Tsp_prob *instance, Graph *graph) {
     return conn_comps[i].parent;
 }
 
-void union_by_rank(Connected_component conn_comps[], int x_set, int y_set) {
+void union_by_rank(Connected_component *conn_comps, int x_set, int y_set) {
 
     //find the root of the set
     int x_root = find(conn_comps, x_set);
