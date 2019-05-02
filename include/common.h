@@ -5,7 +5,7 @@
 #ifndef TSP_OPTIMIZATION_GUROBI_COMMON_H
 #define TSP_OPTIMIZATION_GUROBI_COMMON_H
 
-//#define DEBUG
+
 #include <stdio.h>
 #include <math.h>
 #include <malloc.h>
@@ -15,6 +15,7 @@
 #include <time.h>
 #include "gurobi_c.h"
 
+//#define DEBUG
 #ifdef DEBUG
 # define DEBUG_PRINT(x) printf x
 #else
