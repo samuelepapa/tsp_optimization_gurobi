@@ -103,7 +103,7 @@ void remove_subtour(Tsp_prob *instance, double *solution, int num_conn_comp, Con
         }
     }
 
-    for (int i = 0; i < size - 1; i + 2) {
+    for (int i = 0; i < size - 1; i += 2) {
         solution[var_pos(i, i + 1, instance)] = 1;
     }
 
