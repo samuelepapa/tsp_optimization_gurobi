@@ -276,7 +276,7 @@ int union_find(Graph *graph, double *solution, int (*var_pos)(int, int, Tsp_prob
     return n_conn_comps;
 }
 
-void get_root(int root_cc[], int number_of_comps, Connected_component *conn_comps, int n_node) {
+void get_root(int *root_cc, int number_of_comps, Connected_component *conn_comps, int n_node) {
     char bitmap[n_node];
     for (int i = 0; i < n_node; i++) {
         bitmap[i] = 0;

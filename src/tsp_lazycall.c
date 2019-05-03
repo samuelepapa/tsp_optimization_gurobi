@@ -112,13 +112,47 @@ int __stdcall mycallback(GRBmodel *model, void *cbdata, int where, void *usrdata
         printf("\nThe current solution has: %d connected components, found in %g seconds \n", number_of_comps,
                time_elapsed);
 
-        if (mydata->instance->model_type == 11 && number_of_comps == 1) {
-            change_constraints(mydata->instance, mydata->var_pos, sol_value, solution, node_cnt);
-        }
-
         if (number_of_comps >= 2) {
             add_lazy_sec(cbdata, mydata, mydata->conn_comps, number_of_comps, (int) node_cnt);
         }
+
+        free(solution);
+    }
+
+    return 0;
+}
+
+int __stdcall mhcallback(GRBmodel *model, void *cbdata, int where, void *usrdata) {
+
+    struct callback_data *mydata = (struct callback_data *) usrdata;
+
+    if(where == GRB_CB_MIPSOL) {
+        double *solution = calloc(mydata->nvars, sizeof(double));
+        GRBcbget(cbdata, where, GRB_CB_MIPSOL_SOL, solution);
+
+        double node_cnt = -1;
+        GRBcbget(cbdata, where, GRB_CB_MIPSOL_NODCNT, &node_cnt);
+
+        double sol_value;
+        GRBcbget(cbdata, where, GRB_CB_MIPSOL_OBJ, &sol_value);
+
+        struct timespec start, end;
+        double time_elapsed;
+
+        clock_gettime(CLOCK_MONOTONIC, &start);
+
+        int number_of_comps = union_find(mydata->graph, solution, &xpos_lazycall, mydata->instance, mydata->conn_comps);
+
+        clock_gettime(CLOCK_MONOTONIC, &end);
+
+        time_elapsed = (end.tv_sec - start.tv_sec) + (double) (end.tv_nsec - start.tv_sec) / 1000000000.0;
+
+        printf("solution: \n");
+
+        printf("\nThe current solution has: %d connected components, found in %g seconds \n", number_of_comps,
+               time_elapsed);
+
+        change_constraints(mydata->instance, mydata->var_pos, sol_value, solution, node_cnt, number_of_comps, mydata->conn_comps);
 
         free(solution);
     }
@@ -250,8 +284,13 @@ void tsp_lazycall_model_create(Tsp_prob *instance) {
     error = GRBgetintattr(lazycall_model, GRB_INT_ATTR_NUMVARS, &user_cbdata.nvars);
     quit_on_GRB_error(env, lazycall_model, error);
 
-    error = GRBsetcallbackfunc(lazycall_model, mycallback, (void *) &user_cbdata);
-    quit_on_GRB_error(env, lazycall_model, error);
+    if (instance->model_type == 11) {
+        error = GRBsetcallbackfunc(lazycall_model, mhcallback, (void *) &user_cbdata);
+        quit_on_GRB_error(env, lazycall_model, error);
+    } else {
+        error = GRBsetcallbackfunc(lazycall_model, mycallback, (void *) &user_cbdata);
+        quit_on_GRB_error(env, lazycall_model, error);
+    }
 
     error = GRBoptimize(lazycall_model);
     quit_on_GRB_error(env, lazycall_model, error);
@@ -404,7 +443,7 @@ void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_com
     int nnz;
     int nnode = user_cbdata->instance->nnode;
     int num_constr_name = 0;
-    int root_cc[n_comps];
+    int *root_cc = calloc(n_comps, sizeof(int));
 
     get_root(root_cc, n_comps, conn_comps, nnode);
 
@@ -450,6 +489,7 @@ void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_com
     }
 
     free(constr_name);
+    free(root_cc);
 }
 
 /*void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_component conn_comp[], int n_comps, int node) {

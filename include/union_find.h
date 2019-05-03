@@ -65,12 +65,12 @@ void create_graph_u_f(Tsp_prob *instance, Graph *graph);
 
 /**
  * Return the connected component roots
- * @param root_cc The array of connected component roots
+ * @param root_cc The pointer to the array of connected component roots
  * @param number_of_comps The number of connected components
  * @param conn_comps The pointer to the connected component structure
  * @param n_node The number of nodes of the problem
  */
-void get_root(int root_cc[], int number_of_comps, Connected_component *conn_comps, int n_node);
+void get_root(int *root_cc, int number_of_comps, Connected_component *conn_comps, int n_node);
 
 /**
  * Function to find the set of an element i using path compression technique

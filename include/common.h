@@ -61,6 +61,7 @@ typedef struct {
 
     GRBenv *env;
     GRBmodel *model;
+
     //best solution found for this instance using this model
     double best_solution;
 
@@ -68,7 +69,10 @@ typedef struct {
     double best_heur_sol_value;
 
     //probability of choose an edge
-    double *prob;
+    double prob;
+
+    //selected method to use in matheuristic model
+    int black_box;
 
 } Tsp_prob;
 

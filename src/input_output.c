@@ -13,9 +13,10 @@ void add_edge_to_solution(Solution_list *edges_list, int *edge);
 int parse_input(int argc, char **argv, Tsp_prob *instance, Trial *trial_inst) {
     int type = -1;
     struct arg_file *filename;
-    struct arg_str *model_name;
+    struct arg_str *model_name, *black_box;
     struct arg_lit *is_this_trial, *is_this_job, *help;
     struct arg_int *seed_number, *time_limit;
+    struct arg_dbl *probability;
     struct arg_end *end;
     void *argtable[] = {
             filename = arg_file0("f", "filename", "<filename>",
@@ -28,6 +29,8 @@ int parse_input(int argc, char **argv, Tsp_prob *instance, Trial *trial_inst) {
             is_this_job = arg_lit0("j", "job", "if this should be a job to be run on a distributed system"),
             seed_number = arg_int0("s", "seed", "<int>", "seed of current run."),
             time_limit = arg_int0("t", "timelimit", "<seconds>", "time limit for the run."),
+            black_box = arg_str0("b", "blackbox", "<tsp_model>", "tsp model used as a black box for the matheuristic model."),
+            probability = arg_dbl0("p", "prob", "<probability>", "initial probability for an edge to be selected in the matheuristic model."),
             help = arg_lit0(NULL, "help",
                             "print this help and exit"),
             end = arg_end(20)
@@ -95,6 +98,12 @@ int parse_input(int argc, char **argv, Tsp_prob *instance, Trial *trial_inst) {
             }
             if (time_limit->count > 0) {
                 instance->time_limit = time_limit->ival[0];
+            }
+            if (black_box->count > 0) {
+                instance->black_box = map_model_type((char *) black_box->sval[0]);
+            }
+            if (probability->count > 0) {
+                instance->prob = probability->dval[0];
             }
         }
     } else {
