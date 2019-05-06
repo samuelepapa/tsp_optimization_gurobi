@@ -229,6 +229,10 @@ int map_model_type(char *optarg) {
     if (strncmp(optarg, "matheuristic", 12) == 0) {
         return 11;
     }
+
+    if (strncmp(optarg, "usercall", 8) == 0) {
+        return 12;
+    }
 }
 
 void inverse_map_model_type(int model_type, char *target_string) {
@@ -269,6 +273,9 @@ void inverse_map_model_type(int model_type, char *target_string) {
             break;
         case 11:
             strcpy(target_string, "matheuristic");
+            break;
+        case 12:
+            strcpy(target_string, "usercall");
             break;
         default:
             strcpy(target_string, "not a model");

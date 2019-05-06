@@ -17,6 +17,7 @@
 #include "tsp_timed_stage3.h"
 #include "tsp_loop.h"
 #include "tsp_lazycall.h"
+#include "tsp_usercall.h"
 #include "tsp_matheuristic.h"
 
 /**
@@ -35,7 +36,6 @@ int main(int argc, char **argv) {
     }
 
     struct timespec start, end;
-    double time_elapsed;
 
     Tsp_prob instance = {
             .env = NULL,
@@ -151,6 +151,9 @@ void start_selected_model(Tsp_prob *instance) {
             break;
         case 11:
             tsp_matheuristic_model_create(instance); //matheuristic
+            break;
+        case 12:
+            tsp_usercall_model_create(instance); //matheuristic
             break;
         default:
             tsp_model_create(instance);

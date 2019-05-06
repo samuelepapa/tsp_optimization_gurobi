@@ -9,8 +9,24 @@
 #include "utils.h"
 #include "input_output.h"
 #include "union_find.h"
-#include <tsp_matheuristic.h>
+#include "tsp_matheuristic.h"
+
+struct callback_data {
+    int nvars;
+    Tsp_prob *instance;
+
+    Graph *graph;
+    Connected_component *conn_comps;
+    //Edge list in node-node format (for Concorde)
+    int *edge_list;
+
+    int lazyconst_id;
+    int userconst_id;
+};
 
 void tsp_lazycall_model_create(Tsp_prob *instance);
+
+void
+add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_component *conn_comps, int n_comps, int node);
 
 #endif //TSP_OPTIMIZATION_GUROBI_TSP_LAZYCALL_H

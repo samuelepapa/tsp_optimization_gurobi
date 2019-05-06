@@ -43,5 +43,7 @@ int init_instance(Tsp_prob *instance);
  */
 int plot_solution(Tsp_prob *instance, GRBmodel *model, GRBenv *env, int (*var_pos)(int, int, Tsp_prob*));
 
+int plot_solution_fract(Tsp_prob *instance, double *solution, int (*var_pos)(int, int, Tsp_prob *));
+
 int init_trial(Trial *trial_inst);
 #endif //TSP_OPTIMIZATION_GUROBI_INPUTOUTPUT_H

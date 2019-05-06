@@ -256,7 +256,9 @@ int union_find(Graph *graph, double *solution, int (*var_pos)(int, int, Tsp_prob
     for (int e = 0; e < graph->E; e++) {
         int src = graph->edge[e].src;
         int dest = graph->edge[e].dest;
-        if (solution[var_pos(src, dest, instance)] > 1 - TOLERANCE) {
+//        if (solution[var_pos(src, dest, instance)] > 1 - TOLERANCE) {
+//      This change is due to the fact that we want to find connected components also in non-integer solutions
+        if (solution[var_pos(src, dest, instance)] > TOLERANCE) {
             int i_root = find(conn_comps, conn_comps->parent[src]);
             int j_root = find(conn_comps, conn_comps->parent[dest]);
             if (i_root != j_root) {

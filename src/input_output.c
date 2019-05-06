@@ -761,3 +761,35 @@ int plot_solution(Tsp_prob *instance, GRBmodel *model, GRBenv *env, int (*var_po
     return valid_plot;
 }
 
+
+int plot_solution_fract(Tsp_prob *instance, double *solution, int (*var_pos)(int, int, Tsp_prob *)) {
+    int valid_plot = 1;
+    //this function assumes that var_pos converts coordinates into the correct identifier in the GRB model
+    Solution_list edges_list = {
+            .size = 0
+    };
+
+    int index = -1;
+    int error = 0;
+
+    double sol;
+    for (int i = 0; i < instance->nnode; i++) {
+        for (int j = i + 1; j < instance->nnode; j++) {
+            index = var_pos(i, j, instance);
+            sol = solution[index];
+
+            if (sol > TOLERANCE) {
+                int *edge = calloc(2, sizeof(int));
+                edge[0] = i;
+                edge[1] = j;
+                add_edge_to_solution(&edges_list, edge);
+            }
+        }
+    }
+
+    plot_edges(&edges_list, instance);
+
+    free_solution_list(&edges_list);
+
+    return valid_plot;
+}
