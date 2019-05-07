@@ -77,6 +77,8 @@ typedef struct {
     //selected method to use in matheuristic model
     int black_box;
 
+    int warm_start;
+
 } Tsp_prob;
 
 typedef struct {

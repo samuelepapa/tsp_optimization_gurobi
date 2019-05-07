@@ -48,13 +48,22 @@ int initialize_heuristic(Tsp_prob *instance) {
             break;
         case 10: {
             tsp_lazycall_model_generate(instance);
-            error = GRBsetintparam(GRBgetenv(instance->model), GRB_INT_PAR_SOLUTIONLIMIT, 1);
+            error = GRBsetintparam(GRBgetenv(instance->model), GRB_INT_PAR_SOLUTIONLIMIT, 2);
+            quit_on_GRB_error(instance->env, instance->model, error);
+
+            int nvariables = (int) (0.5 * (instance->nnode * instance->nnode - instance->nnode));
+            double *solution = calloc(nvariables, sizeof(double));
+            get_initial_sol(instance, solution);
+
+            error = GRBsetdblattrarray(instance->model, GRB_DBL_ATTR_START, 0, nvariables, solution);
+            quit_on_GRB_error(instance->env, instance->model, error);
+
+            error = GRBupdatemodel(instance->model);
             quit_on_GRB_error(instance->env, instance->model, error);
 
             tsp_lazycall_model_run(instance);
 
-            error = GRBsetintparam(GRBgetenv(instance->model), GRB_INT_PAR_SOLUTIONLIMIT, GRB_MAXINT);
-            quit_on_GRB_error(instance->env, instance->model, error);
+
         }
             break;
         case 12:
@@ -62,6 +71,9 @@ int initialize_heuristic(Tsp_prob *instance) {
             break;
 
     }
+    error = GRBsetintparam(GRBgetenv(instance->model), GRB_INT_PAR_SOLUTIONLIMIT, GRB_MAXINT);
+    quit_on_GRB_error(instance->env, instance->model, error);
+
     instance->heuristic_iteration = 0;
     error = GRBgetdblattr(instance->model, GRB_DBL_ATTR_OBJVAL, &instance->best_heur_sol_value);
     quit_on_GRB_error(instance->env, instance->model, error);

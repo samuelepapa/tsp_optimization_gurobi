@@ -249,7 +249,6 @@ void tsp_lazycall_model_run(Tsp_prob *instance) {
     error = GRBsetcallbackfunc(lazycall_model, mycallback, (void *) &user_cbdata);
     quit_on_GRB_error(env, lazycall_model, error);
 
-
     error = GRBoptimize(lazycall_model);
     quit_on_GRB_error(env, lazycall_model, error);
 
