@@ -15,6 +15,7 @@ include_directories(src)
 #Bring the gurobi header into the project
 include_directories(/opt/gurobi810/linux64/include)
 #link_directories(/opt/gurobi810/linux64/lib)
+include_directories(concorde/concorde_build)
 
 find_library(C_GUROBI_LIB NAMES libgurobi81.so PATHS /opt/gurobi810/linux64/lib)
 
