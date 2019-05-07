@@ -20,24 +20,9 @@
  */
 void add_sec_constraints(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_comp *comp, int iteration);
 
-/**
- * Mapping between points of an edge and position in GRB model
- * @param i First point
- * @param j Second point
- * @param instance The pointer to the problem instance
- * @return The memory position
- */
-int xpos_loop(int i, int j, Tsp_prob *instance);
-
-void tsp_loop_model_create(Tsp_prob *instance){
-    //setup clock, timelimit doesn't work because of repeated runs
-    struct timespec start, cur;
-    clock_gettime(CLOCK_MONOTONIC, &start);
-    int time_limit_reached = 0;
-
+void tsp_loop_model_generate(Tsp_prob *instance) {
     GRBenv *env = instance->env;
     GRBmodel *loop_model = NULL;
-
     int error = 0;
     int n_node = instance->nnode;
     int n_variables = (int) (0.5 * (n_node * n_node - n_node)); //this number is always even
@@ -48,12 +33,6 @@ void tsp_loop_model_create(Tsp_prob *instance){
     double objective_coeffs[n_variables];
     char **variables_names = (char **) calloc((size_t) n_variables, sizeof(char *));
     int size_variable_names = 0;
-    Connected_comp comp = {.comps = calloc(n_node, sizeof(int)),
-                           .number_of_comps = 0,
-                           .number_of_items = calloc(n_node, sizeof(int)),
-                           .list_of_comps = NULL/*,
-                           .visit_flag = calloc(n_node, sizeof(int))*/
-    };
 
     int coord = 0;
     //Create variables
@@ -71,7 +50,7 @@ void tsp_loop_model_create(Tsp_prob *instance){
         }
     }
 
-    if(env == NULL){
+    if (env == NULL) {
         printf("Env was NULL\n");
         //Env creation and starting
         error = GRBloadenv(&env, "tsp_loop.log");
@@ -79,6 +58,7 @@ void tsp_loop_model_create(Tsp_prob *instance){
             printf("Error: couldn't create empty environment.\n");
             exit(1);
         }
+        instance->env = env;
     }
 
     double curtimelimit = -1;
@@ -88,6 +68,7 @@ void tsp_loop_model_create(Tsp_prob *instance){
 
     error = GRBnewmodel(env, &loop_model, instance->name, 0, NULL, NULL, NULL, NULL, NULL);
     quit_on_GRB_error(env, loop_model, error);
+    instance->model = loop_model;
 
     //Add variables to loop_model
     error = GRBaddvars(loop_model, n_variables, 0, NULL, NULL, NULL,
@@ -118,6 +99,34 @@ void tsp_loop_model_create(Tsp_prob *instance){
         index_cur_constr++;
     }
 
+    //Freeing memory
+    free(constr_name);
+
+    for (int i = 0; i < size_variable_names; i++) {
+        free(variables_names[i]);
+    }
+
+    free(variables_names);
+
+}
+
+void tsp_loop_model_run(Tsp_prob *instance) {
+    int error;
+    //setup clock, timelimit doesn't work because of repeated runs
+    struct timespec start, cur;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    int time_limit_reached = 0;
+    int n_node = instance->nnode;
+    GRBmodel *loop_model = instance->model;
+    GRBenv *env = instance->env;
+
+    Connected_comp comp = {.comps = calloc(n_node, sizeof(int)),
+            .number_of_comps = 0,
+            .number_of_items = calloc(n_node, sizeof(int)),
+            .list_of_comps = NULL/*,
+                           .visit_flag = calloc(n_node, sizeof(int))*/
+    };
+
     int done = 0;
     double solution;
     /*
@@ -130,7 +139,7 @@ void tsp_loop_model_create(Tsp_prob *instance){
     error = GRBgetintattr(loop_model, "NumNZs", &numnoz);
     quit_on_GRB_error(env, loop_model, error);
     printf("IterationLimit: %g\n", ((double) numnoz) / 10);
-    double node_limit = (double)numnoz/10;
+    double node_limit = (double) numnoz / 10;
     int max_increments = 2;
     int max_iterations = 10;
     int cur_iter = 0;
@@ -180,7 +189,7 @@ void tsp_loop_model_create(Tsp_prob *instance){
         //quit_on_GRB_error(env, loop_model, error);
 
         //Get termination condition
-        error = GRBgetintattr(loop_model,"Status", &status_code);
+        error = GRBgetintattr(loop_model, "Status", &status_code);
         quit_on_GRB_error(env, loop_model, error);
 
         DEBUG_PRINT(("status: %d\n", status_code));
@@ -193,14 +202,14 @@ void tsp_loop_model_create(Tsp_prob *instance){
         DEBUG_PRINT(("Found %d connected components\n", comp.number_of_comps));
 
         //I have stopped because of the limit imposed, so increment the counter
-        if(status_code == GRB_ITERATION_LIMIT){
+        if (status_code == GRB_ITERATION_LIMIT) {
             DEBUG_PRINT(("IterationLimit REACHED\n"));
             cur_iter++;
-        }else{
+        } else {
             count_nolimit++;
         }
         //the number of iterations with this node limit is enough, try and give more time
-        if((cur_incr < max_increments) && (cur_iter >= max_iterations)){
+        if ((cur_incr < max_increments) && (cur_iter >= max_iterations)) {
             node_limit = node_limit * 3;
             //I have incremented once
             cur_incr++;
@@ -211,14 +220,14 @@ void tsp_loop_model_create(Tsp_prob *instance){
             quit_on_GRB_error(GRBgetenv(loop_model), loop_model, error);
         }
         //I have reached maximum iterations
-        if(cur_incr>max_increments){
+        if (cur_incr > max_increments) {
             node_limit = INFINITY;
             //Reactivate RINS
             //error = GRBsetintparam(env, GRB_INT_PAR_RINS, -1);
             //quit_on_GRB_error(env, loop_model, error);
         }
         //I have gone 10 iterations without reaching the time limit, start applying it again
-        if(count_nolimit > 10){
+        if (count_nolimit > 10) {
             cur_incr = 0;
             cur_iter = 0;
             node_limit = 10;
@@ -228,13 +237,13 @@ void tsp_loop_model_create(Tsp_prob *instance){
         //I have found connected components, add sec
         if (comp.number_of_comps >= 2) {
             add_sec_constraints(env, loop_model, instance, &comp, current_iteration);
-        } else if(status_code == GRB_ITERATION_LIMIT) {
+        } else if (status_code == GRB_ITERATION_LIMIT) {
             //I have reached the node limit in this iteration but only 1 connected component.
             //Let it run again with no limit
             node_limit = INFINITY;
             error = GRBsetdblparam(GRBgetenv(loop_model), "IterationLimit", node_limit);
             quit_on_GRB_error(GRBgetenv(loop_model), loop_model, error);
-        } else if(status_code == GRB_OPTIMAL){
+        } else if (status_code == GRB_OPTIMAL) {
             //I have found no connected components and the solution was found without limits
             done = 1;
         }
@@ -242,42 +251,34 @@ void tsp_loop_model_create(Tsp_prob *instance){
         free(comp.list_of_comps);
         //check if timelimit has been reached this is something for testing performance
         clock_gettime(CLOCK_MONOTONIC, &cur);
-        if((cur.tv_sec - start.tv_sec) > instance->time_limit){
+        if ((cur.tv_sec - start.tv_sec) > instance->time_limit) {
             time_limit_reached = 1;
             printf("TIME LIMIT REACHED, no more computing, this is taking too long.\n");
             break;
         }
     }
 
-    printf("Number of iterations: %d\n", current_iteration);
+    plot_solution(instance, loop_model, env, &xpos_loop);
 
-
-    //error = GRBwrite(loop_model, "solution.sol");
-    //quit_on_GRB_error(env, loop_model, error);
-
-    plot_solution(instance,loop_model, env, &xpos_loop);
-
-    if(time_limit_reached){
+    if (time_limit_reached) {
         instance->status = GRB_TIME_LIMIT;
-    }else{
-        error = GRBgetintattr(loop_model,"Status", &instance->status);
+    } else {
+        error = GRBgetintattr(loop_model, "Status", &instance->status);
         quit_on_GRB_error(env, loop_model, error);
         if (instance->status == GRB_OPTIMAL) {
             error = GRBgetdblattr(loop_model, GRB_DBL_ATTR_OBJVAL, &instance->best_solution);
         }
     }
-    //Freeing memory
-    free(constr_name);
-
-    for(int i = 0 ; i < size_variable_names;i++){
-        free(variables_names[i]);
-    }
-
-    free(variables_names);
 
     free_comp_struc(&comp);
+}
 
-    GRBfreemodel(loop_model);
+void tsp_loop_model_create(Tsp_prob *instance){
+
+    tsp_loop_model_generate(instance);
+    tsp_loop_model_run(instance);
+
+    GRBfreemodel(instance->model);
     //free_gurobi(env, loop_model);
 
 }

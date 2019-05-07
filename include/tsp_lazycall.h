@@ -9,7 +9,7 @@
 #include "utils.h"
 #include "input_output.h"
 #include "union_find.h"
-#include "tsp_matheuristic.h"
+#include "tsp_hardfixing.h"
 
 struct callback_data {
     int nvars;

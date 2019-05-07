@@ -226,7 +226,7 @@ int map_model_type(char *optarg) {
         return 10;
     }
 
-    if (strncmp(optarg, "matheuristic", 12) == 0) {
+    if (strncmp(optarg, "hardfixing", 12) == 0) {
         return 11;
     }
 
@@ -272,7 +272,7 @@ void inverse_map_model_type(int model_type, char *target_string) {
             strcpy(target_string, "lazycall");
             break;
         case 11:
-            strcpy(target_string, "matheuristic");
+            strcpy(target_string, "hardfixing");
             break;
         case 12:
             strcpy(target_string, "usercall");
@@ -280,10 +280,6 @@ void inverse_map_model_type(int model_type, char *target_string) {
         default:
             strcpy(target_string, "not a model");
     }
-
-}
-
-void start_model(int model, Tsp_prob *instance) {
 
 }
 

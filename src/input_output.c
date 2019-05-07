@@ -13,7 +13,7 @@ void add_edge_to_solution(Solution_list *edges_list, int *edge);
 int parse_input(int argc, char **argv, Tsp_prob *instance, Trial *trial_inst) {
     int type = -1;
     struct arg_file *filename;
-    struct arg_str *model_name, *black_box;
+    struct arg_str *model_name, *black_box, *warm_start;
     struct arg_lit *is_this_trial, *is_this_job, *help;
     struct arg_int *seed_number, *time_limit;
     struct arg_dbl *probability;
@@ -29,8 +29,12 @@ int parse_input(int argc, char **argv, Tsp_prob *instance, Trial *trial_inst) {
             is_this_job = arg_lit0("j", "job", "if this should be a job to be run on a distributed system"),
             seed_number = arg_int0("s", "seed", "<int>", "seed of current run."),
             time_limit = arg_int0("t", "timelimit", "<seconds>", "time limit for the run."),
-            black_box = arg_str0("b", "blackbox", "<tsp_model>", "tsp model used as a black box for the matheuristic model."),
-            probability = arg_dbl0("p", "prob", "<probability>", "initial probability for an edge to be selected in the matheuristic model."),
+            black_box = arg_str0("b", "blackbox", "<tsp_model>",
+                                 "tsp model used as a black box for the matheuristic model."),
+            probability = arg_dbl0("p", "prob", "<probability>",
+                                   "initial probability for an edge to be selected in the matheuristic model."),
+            warm_start = arg_str0("", "warmstart", "<warm_start_method>",
+                                  "warm start method used to find initial solution."),
             help = arg_lit0(NULL, "help",
                             "print this help and exit"),
             end = arg_end(20)
@@ -104,6 +108,9 @@ int parse_input(int argc, char **argv, Tsp_prob *instance, Trial *trial_inst) {
             }
             if (probability->count > 0) {
                 instance->prob = probability->dval[0];
+            }
+            if (warm_start->count > 0) {
+                instance->warm_start = map_warm_start_type((char *) warm_start->sval[0]);
             }
         }
     } else {

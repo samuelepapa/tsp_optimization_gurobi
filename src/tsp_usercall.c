@@ -4,7 +4,7 @@
 
 #include "tsp_lazycall.h"
 #include "tsp_usercall.h"
-#include "tsp_matheuristic.h"
+#include "tsp_hardfixing.h"
 #include "concorde.h"
 
 
@@ -105,45 +105,6 @@ int __stdcall usercallback(GRBmodel *model, void *cbdata, int where, void *usrda
             }
         }
     }
-    return 0;
-}
-
-int __stdcall mh_usercallback(GRBmodel *model, void *cbdata, int where, void *usrdata) {
-
-    struct callback_data *mydata = (struct callback_data *) usrdata;
-
-    if (where == GRB_CB_MIPSOL) {
-        double *solution = calloc(mydata->nvars, sizeof(double));
-        GRBcbget(cbdata, where, GRB_CB_MIPSOL_SOL, solution);
-
-        double node_cnt = -1;
-        GRBcbget(cbdata, where, GRB_CB_MIPSOL_NODCNT, &node_cnt);
-
-        double sol_value;
-        GRBcbget(cbdata, where, GRB_CB_MIPSOL_OBJ, &sol_value);
-
-        struct timespec start, end;
-        double time_elapsed;
-
-        clock_gettime(CLOCK_MONOTONIC, &start);
-
-        int number_of_comps = union_find(mydata->graph, solution, &xpos_usercall, mydata->instance, mydata->conn_comps);
-
-        clock_gettime(CLOCK_MONOTONIC, &end);
-
-        time_elapsed = (end.tv_sec - start.tv_sec) + (double) (end.tv_nsec - start.tv_sec) / 1000000000.0;
-
-        printf("solution: \n");
-
-        printf("\nThe current solution has: %d connected components, found in %g seconds \n", number_of_comps,
-               time_elapsed);
-
-        change_constraints(mydata->instance, xpos_usercall, sol_value, solution, node_cnt, number_of_comps,
-                           mydata->conn_comps);
-
-        free(solution);
-    }
-
     return 0;
 }
 
@@ -273,13 +234,10 @@ void tsp_usercall_model_create(Tsp_prob *instance) {
     error = GRBgetintattr(lazycall_model, GRB_INT_ATTR_NUMVARS, &user_cbdata.nvars);
     quit_on_GRB_error(env, lazycall_model, error);
 
-    if (instance->model_type == 11) {
-        error = GRBsetcallbackfunc(lazycall_model, mh_usercallback, (void *) &user_cbdata);
+
+    error = GRBsetcallbackfunc(lazycall_model, usercallback, (void *) &user_cbdata);
         quit_on_GRB_error(env, lazycall_model, error);
-    } else {
-        error = GRBsetcallbackfunc(lazycall_model, usercallback, (void *) &user_cbdata);
-        quit_on_GRB_error(env, lazycall_model, error);
-    }
+
 
     error = GRBoptimize(lazycall_model);
     quit_on_GRB_error(env, lazycall_model, error);

@@ -18,7 +18,7 @@
 #include "tsp_loop.h"
 #include "tsp_lazycall.h"
 #include "tsp_usercall.h"
-#include "tsp_matheuristic.h"
+#include "tsp_hardfixing.h"
 
 /**
  * Selects the method chosen by the instance and starts it
@@ -150,10 +150,10 @@ void start_selected_model(Tsp_prob *instance) {
             tsp_lazycall_model_create(instance); //lazy callback SEC
             break;
         case 11:
-            tsp_matheuristic_model_create(instance); //matheuristic
+            tsp_hardfixing_model_create(instance); //hardfixing
             break;
         case 12:
-            tsp_usercall_model_create(instance); //matheuristic
+            tsp_usercall_model_create(instance); //usercall
             break;
         default:
             tsp_model_create(instance);

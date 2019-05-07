@@ -8,8 +8,6 @@
 #include "tsp_usercall.h"
 
 
-void tsp_matheuristic_model_create(Tsp_prob *instance);
-
-int change_constraints(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *), double cur_sol, double *solution, double node_cnt, int num_conn_comp, Connected_component *conn_comps);
+void tsp_hardfixing_model_create(Tsp_prob *instance);
 
 #endif //TSP_OPTIMIZATION_GUROBI_TSP_MATHEURISTIC_H

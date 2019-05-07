@@ -10,6 +10,7 @@
 #include "common.h"
 #include "argtable3.h"
 #include "utils.h"
+#include "matheuristic_utils.h"
 #include "plot_graph.h"
 
 
