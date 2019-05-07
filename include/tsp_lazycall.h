@@ -24,6 +24,12 @@ struct callback_data {
     int userconst_id;
 };
 
+int xpos_lazycall(int i, int j, Tsp_prob *instance);
+
+void tsp_lazycall_model_generate(Tsp_prob *instance);
+
+void tsp_lazycall_model_run(Tsp_prob *instance);
+
 void tsp_lazycall_model_create(Tsp_prob *instance);
 
 void

@@ -9,7 +9,7 @@
 #define TOLERANCE 10E-4
 #define MAX_VARNAME_SIZE 128
 
-int xpos_lazycall(int i, int j, Tsp_prob *instance);
+
 
 void add_flow_cut(void *cbdata, struct callback_data *user_cbdata, int *left_nodes, int left_nodecount, int node);
 
@@ -115,46 +115,14 @@ int __stdcall mycallback(GRBmodel *model, void *cbdata, int where, void *usrdata
     return 0;
 }
 
-int __stdcall mhcallback(GRBmodel *model, void *cbdata, int where, void *usrdata) {
+void tsp_lazycall_model_create(Tsp_prob *instance) {
+    tsp_lazycall_model_generate(instance);
+    tsp_lazycall_model_run(instance);
 
-    struct callback_data *mydata = (struct callback_data *) usrdata;
-
-    if (where == GRB_CB_MIPSOL) {
-        double *solution = calloc(mydata->nvars, sizeof(double));
-        GRBcbget(cbdata, where, GRB_CB_MIPSOL_SOL, solution);
-
-        double node_cnt = -1;
-        GRBcbget(cbdata, where, GRB_CB_MIPSOL_NODCNT, &node_cnt);
-
-        double sol_value;
-        GRBcbget(cbdata, where, GRB_CB_MIPSOL_OBJ, &sol_value);
-
-        struct timespec start, end;
-        double time_elapsed;
-
-        clock_gettime(CLOCK_MONOTONIC, &start);
-
-        int number_of_comps = union_find(mydata->graph, solution, &xpos_lazycall, mydata->instance, mydata->conn_comps);
-
-        clock_gettime(CLOCK_MONOTONIC, &end);
-
-        time_elapsed = (end.tv_sec - start.tv_sec) + (double) (end.tv_nsec - start.tv_sec) / 1000000000.0;
-
-        printf("solution: \n");
-
-        printf("\nThe current solution has: %d connected components, found in %g seconds \n", number_of_comps,
-               time_elapsed);
-
-        change_constraints(mydata->instance, xpos_lazycall, sol_value, solution, node_cnt, number_of_comps,
-                           mydata->conn_comps);
-
-        free(solution);
-    }
-
-    return 0;
+    free_gurobi(instance->env, instance->model);
 }
 
-void tsp_lazycall_model_create(Tsp_prob *instance) {
+void tsp_lazycall_model_generate(Tsp_prob *instance) {
     GRBenv *env = instance->env;
     GRBmodel *lazycall_model = NULL;
     int error = 0;
@@ -167,25 +135,6 @@ void tsp_lazycall_model_create(Tsp_prob *instance) {
     double objective_coeffs[n_variables];
     char **variables_names = (char **) calloc((size_t) n_variables, sizeof(char *));
     int size_variable_names = 0;
-
-    int *edge_list = calloc(2 * n_variables, sizeof(int));
-
-    struct callback_data user_cbdata;
-
-    user_cbdata.instance = instance;
-
-    //create graph
-    user_cbdata.graph = malloc(sizeof(Graph));
-    create_graph_u_f(instance, user_cbdata.graph);
-
-    Connected_component conn_comp = {
-            .parent = calloc(n_node, sizeof(int)),
-            .rank = calloc(n_node, sizeof(int)),
-            .size = calloc(n_node, sizeof(int))
-    };
-
-    //Set connected components structure
-    user_cbdata.conn_comps = &conn_comp;
 
     int coord = 0;
     //Create variables
@@ -200,15 +149,8 @@ void tsp_lazycall_model_create(Tsp_prob *instance) {
             sprintf(variables_names[coord], "x(%d,%d)", i + 1, j + 1);
             DEBUG_PRINT(("i: %d, ; j: %d\n", i + 1, j + 1));
             size_variable_names++;
-
-            edge_list[2 * coord] = i;
-            edge_list[2 * coord + 1] = j;
-            printf("Arc %d from %d to %d\n", coord, i, j);
         }
     }
-
-    //Set edge list for Concorde
-    user_cbdata.edge_list = edge_list;
 
     if (env == NULL) {
         DEBUG_PRINT(("Env was NULL, creating it.\n"));
@@ -222,23 +164,7 @@ void tsp_lazycall_model_create(Tsp_prob *instance) {
 
     error = GRBnewmodel(env, &lazycall_model, instance->name, 0, NULL, NULL, NULL, NULL, NULL);
     quit_on_GRB_error(env, lazycall_model, error);
-
-    if (instance->model_type == 11) {
-        instance->model = lazycall_model;
-    }
-
-    error = GRBsetintparam(GRBgetenv(lazycall_model), GRB_INT_PAR_LAZYCONSTRAINTS, 1);
-    //error = GRBsetintparam(env, GRB_INT_PAR_LAZYCONSTRAINTS, 1);
-    quit_on_GRB_error(env, lazycall_model, error);
-
-    error = GRBsetintparam(GRBgetenv(lazycall_model), GRB_INT_PAR_PRECRUSH, 1);
-    quit_on_GRB_error(env, lazycall_model, error);
-
-    /*Set time limit*/
-    //set_time_limit(lazycall_model, instance);
-
-    /*Set seed*/
-    //set_seed(lazycall_model, instance);
+    instance->model = lazycall_model;
 
     //Add variables to lazycall_model
     error = GRBaddvars(lazycall_model, n_variables, 0, NULL, NULL, NULL,
@@ -275,17 +201,54 @@ void tsp_lazycall_model_create(Tsp_prob *instance) {
     error = GRBupdatemodel(lazycall_model);
     quit_on_GRB_error(env, lazycall_model, error);
 
+    //Freeing memory
+    free(constr_name);
+
+    for (int i = 0; i < size_variable_names; i++) {
+        free(variables_names[i]);
+    }
+
+    free(variables_names);
+
+}
+
+void tsp_lazycall_model_run(Tsp_prob *instance) {
+    GRBenv *env = instance->env;
+    GRBmodel *lazycall_model = instance->model;
+    int nnode = instance->nnode;
+    int error;
+
+    struct callback_data user_cbdata;
+
+    user_cbdata.instance = instance;
+
+    //create graph
+    user_cbdata.graph = malloc(sizeof(Graph));
+    create_graph_u_f(instance, user_cbdata.graph);
+
+    Connected_component conn_comp = {
+            .parent = calloc(nnode, sizeof(int)),
+            .rank = calloc(nnode, sizeof(int)),
+            .size = calloc(nnode, sizeof(int))
+    };
+
+    //Set connected components structure
+    user_cbdata.conn_comps = &conn_comp;
+
+    error = GRBsetintparam(GRBgetenv(lazycall_model), GRB_INT_PAR_LAZYCONSTRAINTS, 1);
+    quit_on_GRB_error(env, lazycall_model, error);
+
+    error = GRBsetintparam(GRBgetenv(lazycall_model), GRB_INT_PAR_PRECRUSH, 1);
+    quit_on_GRB_error(env, lazycall_model, error);
+
     //get number of vars
     error = GRBgetintattr(lazycall_model, GRB_INT_ATTR_NUMVARS, &user_cbdata.nvars);
     quit_on_GRB_error(env, lazycall_model, error);
 
-    if (instance->model_type == 11) {
-        error = GRBsetcallbackfunc(lazycall_model, mhcallback, (void *) &user_cbdata);
-        quit_on_GRB_error(env, lazycall_model, error);
-    } else {
-        error = GRBsetcallbackfunc(lazycall_model, mycallback, (void *) &user_cbdata);
-        quit_on_GRB_error(env, lazycall_model, error);
-    }
+    //install callback
+    error = GRBsetcallbackfunc(lazycall_model, mycallback, (void *) &user_cbdata);
+    quit_on_GRB_error(env, lazycall_model, error);
+
 
     error = GRBoptimize(lazycall_model);
     quit_on_GRB_error(env, lazycall_model, error);
@@ -295,25 +258,8 @@ void tsp_lazycall_model_create(Tsp_prob *instance) {
     quit_on_GRB_error(env, lazycall_model, error);
     instance->status = optim_status;
 
-
-    plot_solution(instance, lazycall_model, env, &xpos_lazycall);
-
-
-    //Freeing memory
-    free(constr_name);
-
-    for (int i = 0; i < size_variable_names; i++) {
-        free(variables_names[i]);
-    }
-
     free_comp(&conn_comp);
-
-    free(variables_names);
-
     free_graph(user_cbdata.graph);
-
-    free_gurobi(env, lazycall_model);
-
 }
 
 int xpos_lazycall(int i, int j, Tsp_prob *instance) {

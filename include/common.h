@@ -65,6 +65,9 @@ typedef struct {
     //best solution found for this instance using this model
     double best_solution;
 
+    double *heuristic_solution;
+    int heuristic_iteration;
+
     //latest best heuristic solution value
     double best_heur_sol_value;
 
