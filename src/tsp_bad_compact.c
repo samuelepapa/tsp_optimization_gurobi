@@ -97,7 +97,6 @@ void bad_compact_model_create(Tsp_prob *instance) {
     quit_on_GRB_error(env, bad_compact_model, error);
 
 
-
     /*Define and add constraints to the model*/
     int x_constr_index[n_node - 1];
     double x_constr_value[n_node - 1];
