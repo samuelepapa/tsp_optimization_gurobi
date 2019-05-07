@@ -380,8 +380,7 @@ void add_lazy_sec_constraints(void *cbdata, struct callback_data *user_cbdata, C
     free(constr_name);
 }
 
-void
-add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_component *conn_comps, int n_comps, int node) {
+void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_component *conn_comps, int n_comps, int node) {
     int error;
     //int nnz = 0; //number of non-zero value
     double rhs;

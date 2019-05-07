@@ -12,7 +12,7 @@ int num_it = 0;
 
 void remove_subtour(Tsp_prob *instance, double *solution, int num_conn_comp, Connected_component *conn_comps, int (*var_pos)(int, int, Tsp_prob *));
 
-void set_warm_start(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *));
+//void set_warm_start(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *));
 
 int set_hard_constraints(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *));
 
@@ -112,7 +112,7 @@ int initialize_hardfixing(Tsp_prob *instance, double time_limit) {
     return error;
 }
 
-void set_warm_start(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *)) {
+/*void set_warm_start(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *)) {
     int error;
     error = GRBsetintparam(GRBgetenv(instance->model), GRB_INT_PAR_SOLUTIONLIMIT, 2);
     quit_on_GRB_error(instance->env, instance->model, error);
@@ -127,7 +127,7 @@ void set_warm_start(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *)) {
 
     error = GRBupdatemodel(instance->model);
     quit_on_GRB_error(instance->env, instance->model, error);
-}
+}*/
 
 int set_hard_constraints(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *)) {
     int error;

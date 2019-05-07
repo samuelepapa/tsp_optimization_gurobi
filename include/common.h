@@ -65,6 +65,7 @@ typedef struct {
     //best solution found for this instance using this model
     double best_solution;
 
+    //solution informations for the heuristic model
     double *heuristic_solution;
     int heuristic_iteration;
 
@@ -77,7 +78,17 @@ typedef struct {
     //selected method to use in matheuristic model
     int black_box;
 
+    //method used for the first heuristic computation of the problem
     int warm_start;
+
+    //the constraint position in the heuristic model
+    int heuristic_constr_index;
+
+    //keep track if it is the first iteration
+    int first_heur_iteration;
+
+    //the k value for local branch constraint
+    int k_value;
 
 } Tsp_prob;
 
