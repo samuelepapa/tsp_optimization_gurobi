@@ -7,7 +7,7 @@
 //simply set a dumb cycle
 void simple_warm_start(Tsp_prob *instance, double *solution, int (*var_pos)(int, int, Tsp_prob *));
 
-void greedy_warm_start(Tsp_prob *instance, double *solution, int (*var_pos)(int, int, Tsp_prob *));
+void naive_warm_start(Tsp_prob *instance, double *solution, int (*var_pos)(int, int, Tsp_prob *));
 
 
 void inverse_map_warm_start_type(int model_type, char *target_string) {
@@ -16,7 +16,7 @@ void inverse_map_warm_start_type(int model_type, char *target_string) {
             strcpy(target_string, "simple");
             break;
         case 1:
-            strcpy(target_string, "greedy");
+            strcpy(target_string, "naive");
             break;
         default:
             strcpy(target_string, "simple");
@@ -30,7 +30,7 @@ int map_warm_start_type(char *optarg) {
         return 0;
     }
 
-    if (strncmp(optarg, "greedy", 6) == 0) {
+    if (strncmp(optarg, "naive", 5) == 0) {
         return 1;
     }
 }
@@ -40,7 +40,7 @@ void get_initial_heuristic_sol(Tsp_prob *instance, double *solution, int (*var_p
         case 0:
             simple_warm_start(instance, solution, var_pos);
         case 1:
-            greedy_warm_start(instance, solution, var_pos);
+            naive_warm_start(instance, solution, var_pos);
     }
 }
 
@@ -69,7 +69,7 @@ void set_warm_start(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *)) {
     quit_on_GRB_error(instance->env, instance->model, error);
 }
 
-void greedy_warm_start(Tsp_prob *instance, double *solution, int (*var_pos)(int, int, Tsp_prob *)) {
+void naive_warm_start(Tsp_prob *instance, double *solution, int (*var_pos)(int, int, Tsp_prob *)) {
     int n_node = instance->nnode;
     int n_edges = (n_node * (n_node - 1)) / 2;
     double cost[n_edges];
