@@ -105,7 +105,7 @@ int initialize_hardfixing(Tsp_prob *instance, double time_limit) {
         }
             break;
         case 12:
-            tsp_usercall_model_create(instance);
+            //tsp_usercall_model_create(instance);
             break;
 
     }

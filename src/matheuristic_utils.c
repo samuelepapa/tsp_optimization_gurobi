@@ -44,12 +44,14 @@ void get_initial_heuristic_sol(Tsp_prob *instance, double *solution, int (*var_p
     switch (instance->warm_start) {
         case 0:
             simple_initial_heuristic_solution(instance, solution, var_pos);
+            break;
         case 1:
             naive_warm_start(instance, solution, var_pos);
+            break;
     }
 }
 
-void simple_warm_start(Tsp_prob *instance, double *solution, int (*var_pos)(int, int, Tsp_prob *)) {
+void simple_initial_heuristic_solution(Tsp_prob *instance, double *solution, int (*var_pos)(int, int, Tsp_prob *)) {
     int nnode = instance->nnode;
     for (int i = 0; i < nnode - 1; i++) {
         solution[var_pos(i, i + 1, instance)] = 1.0;
@@ -72,14 +74,6 @@ void set_warm_start(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *)) {
 
     error = GRBupdatemodel(instance->model);
     quit_on_GRB_error(instance->env, instance->model, error);
-}
-
-void simple_initial_heuristic_solution(Tsp_prob *instance, double *solution, int (*var_pos)(int, int, Tsp_prob *)) {
-    int nnode = instance->nnode;
-    for (int i = 0; i < nnode - 1; i++) {
-        solution[var_pos(i, i + 1, instance)] = 1.0;
-    }
-    solution[var_pos(0, nnode - 1, instance)] = 1.0;
 }
 
 void naive_warm_start(Tsp_prob *instance, double *solution, int (*var_pos)(int, int, Tsp_prob *)) {
