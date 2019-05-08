@@ -92,13 +92,11 @@ void naive_warm_start(Tsp_prob *instance, double *solution, int (*var_pos)(int, 
         visited[i] = 0;
     }
 
-
     pred[next_node] = 0;
     visited[next_node] = 1;
     cur_node = next_node;
     next_node = 0;
     count = 1;
-
 
     while (count < n_node) {
 
@@ -121,7 +119,7 @@ void naive_warm_start(Tsp_prob *instance, double *solution, int (*var_pos)(int, 
     }
 
     for (int i = 0; i < n_node; i++) {
-        solution[var_pos(pred[i], pred[i + 1], instance)] = 1.0;
+        solution[var_pos(pred[i], i, instance)] = 1.0;
     }
 
 }
