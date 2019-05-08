@@ -183,9 +183,6 @@ int set_local_branch_constraints(Tsp_prob *instance, int (*var_pos)(int, int, Ts
         quit_on_GRB_error(instance->env, instance->model, error);
     }
 
-    error = GRBupdatemodel(instance->model);
-    quit_on_GRB_error(instance->env, instance->model, error);
-
     generate_local_branching_constraint(instance, instance->k_value, var_pos);
     instance->first_heur_iteration = 0;
 
@@ -219,6 +216,8 @@ void generate_local_branching_constraint(Tsp_prob *instance, int k, int (*var_po
     }
 
     sprintf(constr_name, "Local branching constraint iteration %d", instance->heuristic_iteration);
+
+    DEBUG_PRINT(("Added constraint %s\n", constr_name));
 
     error = GRBaddconstr(instance->model, nnz, const_index, constr_value, GRB_GREATER_EQUAL, rhs, constr_name);
     quit_on_GRB_error(instance->env, instance->model, error);

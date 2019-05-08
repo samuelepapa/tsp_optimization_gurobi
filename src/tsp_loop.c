@@ -246,6 +246,10 @@ void tsp_loop_model_run(Tsp_prob *instance) {
         } else if (status_code == GRB_OPTIMAL) {
             //I have found no connected components and the solution was found without limits
             done = 1;
+        } else if (status_code == GRB_SOLUTION_LIMIT) {
+            //I have reached the maximum amount of solutions allowed, this means that I am in a warm start
+            DEBUG_PRINT(("Solution limit reached in loop method. \n"));
+            done = 1;
         }
         current_iteration++;
         free(comp.list_of_comps);
@@ -256,6 +260,7 @@ void tsp_loop_model_run(Tsp_prob *instance) {
             printf("TIME LIMIT REACHED, no more computing, this is taking too long.\n");
             break;
         }
+
     }
 
     plot_solution(instance, loop_model, env, &xpos_loop);

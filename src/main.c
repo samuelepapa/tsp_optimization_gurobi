@@ -44,7 +44,9 @@ int main(int argc, char **argv) {
             .model_type = 0,
             .seed = 0,
             .best_solution = -1,
-            .time_limit = INFINITY //for tsp_loop purposes
+            .time_limit = INFINITY, //for tsp_loop purposes
+            .warm_start = 0,
+            .prob = 0.9
     };
     Trial trial_inst = {
             .n_models = -1,
@@ -158,6 +160,7 @@ void start_selected_model(Tsp_prob *instance) {
             break;
         case 13:
             tsp_local_branching_create(instance); //localbranching
+            break;
         default:
             tsp_model_create(instance);
     }

@@ -32,7 +32,15 @@ so isolation is achieved.
 
 Third, plot solution found. Investigate whether solution can be plotted while it is being found.
 
+### Heuristics
+Heuristics work by starting from a non-optimal solution to our problem and then finding a new 
+solution using some technique. Matheuristics define a neighbourhood of the solution and they 
+explore it iteratively, since most of the variables are set, the solver will be very fast, and
+a new solution defined, from which a new neighbourhood can be set and the process repeated.
+
+To do this, loop, lazycall and usercall are split in generation and creation.
+
+
 ### TODO
-* Remove determinism for parallel calculations.
-* Fix all memory leaks with valgrind.
-* Put all GRBwrite behind a check for a certain level of logging, same with plotting.
+
+
