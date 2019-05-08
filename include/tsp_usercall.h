@@ -10,6 +10,11 @@
 #include "input_output.h"
 #include "union_find.h"
 
+void tsp_usercall_model_generate(Tsp_prob *instance);
+
+void tsp_usercall_model_run(Tsp_prob *instance);
+
 void tsp_usercall_model_create(Tsp_prob *instance);
+
 
 #endif //TSP_OPTIMIZATION_GUROBI_TSP_USERCALL_H

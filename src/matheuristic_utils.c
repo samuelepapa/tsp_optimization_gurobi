@@ -4,8 +4,13 @@
 
 #include "matheuristic_utils.h"
 
-//simply set a dumb cycle
-void simple_warm_start(Tsp_prob *instance, double *solution, int (*var_pos)(int, int, Tsp_prob *));
+/**
+ * Simple initial heuristic solution which just links all the nodes in order
+ * @param instance the tsp_prob instance
+ * @param solution the solution where to write the output
+ * @param var_pos function used to map edge notation (i,j) to variable index notation according to the notation used
+ */
+void simple_initial_heuristic_solution(Tsp_prob *instance, double *solution, int (*var_pos)(int, int, Tsp_prob *));
 
 
 void inverse_map_warm_start_type(int model_type, char *target_string) {
@@ -28,16 +33,8 @@ int map_warm_start_type(char *optarg) {
 void get_initial_heuristic_sol(Tsp_prob *instance, double *solution, int (*var_pos)(int, int, Tsp_prob *)) {
     switch (instance->warm_start) {
         case 0:
-            simple_warm_start(instance, solution, var_pos);
+            simple_initial_heuristic_solution(instance, solution, var_pos);
     }
-}
-
-void simple_warm_start(Tsp_prob *instance, double *solution, int (*var_pos)(int, int, Tsp_prob *)) {
-    int nnode = instance->nnode;
-    for (int i = 0; i < nnode - 1; i++) {
-        solution[var_pos(i, i + 1, instance)] = 1.0;
-    }
-    solution[var_pos(0, nnode - 1, instance)] = 1.0;
 }
 
 void set_warm_start(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *)) {
@@ -55,4 +52,16 @@ void set_warm_start(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *)) {
 
     error = GRBupdatemodel(instance->model);
     quit_on_GRB_error(instance->env, instance->model, error);
+}
+
+void simple_initial_heuristic_solution(Tsp_prob *instance, double *solution, int (*var_pos)(int, int, Tsp_prob *)) {
+    int nnode = instance->nnode;
+    for (int i = 0; i < nnode - 1; i++) {
+        solution[var_pos(i, i + 1, instance)] = 1.0;
+    }
+    solution[var_pos(0, nnode - 1, instance)] = 1.0;
+}
+
+void greedy_initial_heuristic_solution(Tsp_prob *instance, double *solution, int(*var_pos)(int, int, Tsp_prob *)) {
+
 }

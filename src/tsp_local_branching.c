@@ -7,7 +7,6 @@
        __typeof__ (b) _b = (b); \
      _a > _b ? _a : _b; })
 
-//void set_warm_start(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *));
 
 /**
  * Set the local branching constraints to the model
@@ -68,7 +67,7 @@ void tsp_local_branching_create(Tsp_prob *instance) {
             }
             case 10: {
                 set_local_branch_constraints(instance, xpos_lazycall);
-
+                GRBwrite(instance->model, "output_local_branching_lazycall.lp");
                 tsp_lazycall_model_run(instance);
                 break;
             }
@@ -80,27 +79,10 @@ void tsp_local_branching_create(Tsp_prob *instance) {
 
 }
 
-/*void set_warm_start(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *)) {
-    int error;
-    error = GRBsetintparam(GRBgetenv(instance->model), GRB_INT_PAR_SOLUTIONLIMIT, 2);
-    quit_on_GRB_error(instance->env, instance->model, error);
-
-    //find the warm solution to feed to algorithm
-    int nvariables = (int) (0.5 * (instance->nnode * instance->nnode - instance->nnode));
-    double *solution = calloc(nvariables, sizeof(double));
-    get_initial_heuristic_sol(instance, solution, var_pos);
-
-    error = GRBsetdblattrarray(instance->model, GRB_DBL_ATTR_START, 0, nvariables, solution);
-    quit_on_GRB_error(instance->env, instance->model, error);
-
-    error = GRBupdatemodel(instance->model);
-    quit_on_GRB_error(instance->env, instance->model, error);
-}*/
-
 int initialize_local_branching(Tsp_prob *instance, double time_limit) {
     int error = 0;
     instance->best_heur_sol_value = INFINITY;
-    instance->heuristic_iteration = -1;
+    instance->heuristic_repetition = -1;
     instance->k_value = 5;
     //first call to the selected model
     switch (instance->black_box) {
@@ -136,7 +118,7 @@ int initialize_local_branching(Tsp_prob *instance, double time_limit) {
     error = GRBsetintparam(GRBgetenv(instance->model), GRB_INT_PAR_SOLUTIONLIMIT, GRB_MAXINT);
     quit_on_GRB_error(instance->env, instance->model, error);
 
-    instance->heuristic_iteration = 0;
+    instance->heuristic_repetition = 0;
     instance->first_heur_iteration = 1;
     error = GRBgetdblattr(instance->model, GRB_DBL_ATTR_OBJVAL, &instance->best_heur_sol_value);
     quit_on_GRB_error(instance->env, instance->model, error);
@@ -163,10 +145,10 @@ int set_local_branch_constraints(Tsp_prob *instance, int (*var_pos)(int, int, Ts
     double percent_decr = (-(cur_solution - instance->best_heur_sol_value) / instance->best_heur_sol_value) * 100;
 
     if (percent_decr < 5) {
-        if (instance->heuristic_iteration < 10) {
-            instance->heuristic_iteration++;
+        if (instance->heuristic_repetition < 10) {
+            instance->heuristic_repetition++;
         } else {
-            instance->heuristic_iteration = 0;
+            instance->heuristic_repetition = 0;
             if (instance->k_value < 20) {
                 instance->k_value = instance->k_value * 2;
             }
@@ -215,7 +197,7 @@ void generate_local_branching_constraint(Tsp_prob *instance, int k, int (*var_po
         }
     }
 
-    sprintf(constr_name, "Local branching constraint iteration %d", instance->heuristic_iteration);
+    sprintf(constr_name, "Local_branching_constraint");
 
     DEBUG_PRINT(("Added constraint %s\n", constr_name));
 

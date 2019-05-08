@@ -99,6 +99,10 @@ void tsp_loop_model_generate(Tsp_prob *instance) {
         index_cur_constr++;
     }
 
+    //Update the model
+    error = GRBupdatemodel(loop_model);
+    quit_on_GRB_error(env, loop_model, error);
+
     //Freeing memory
     free(constr_name);
 
@@ -111,15 +115,16 @@ void tsp_loop_model_generate(Tsp_prob *instance) {
 }
 
 void tsp_loop_model_run(Tsp_prob *instance) {
+    GRBmodel *loop_model = instance->model;
+    GRBenv *env = instance->env;
     int error;
     //setup clock, timelimit doesn't work because of repeated runs
     struct timespec start, cur;
     clock_gettime(CLOCK_MONOTONIC, &start);
     int time_limit_reached = 0;
     int n_node = instance->nnode;
-    GRBmodel *loop_model = instance->model;
-    GRBenv *env = instance->env;
 
+    //Used for connected components using union find
     Connected_comp comp = {.comps = calloc(n_node, sizeof(int)),
             .number_of_comps = 0,
             .number_of_items = calloc(n_node, sizeof(int)),
@@ -132,15 +137,13 @@ void tsp_loop_model_run(Tsp_prob *instance) {
     /*
      * Add SEC constraints and cycle
      */
-    //Update the model using new constraints
-    error = GRBupdatemodel(loop_model);
-    quit_on_GRB_error(env, loop_model, error);
+
     int numnoz = 0;
     error = GRBgetintattr(loop_model, "NumNZs", &numnoz);
     quit_on_GRB_error(env, loop_model, error);
     printf("IterationLimit: %g\n", ((double) numnoz) / 10);
-    double node_limit = (double) numnoz / 10;
-    int max_increments = 2;
+    double time_limit = 10;
+    int max_increments = 3;
     int max_iterations = 10;
     int cur_iter = 0;
     int cur_incr = 0;
@@ -151,17 +154,11 @@ void tsp_loop_model_run(Tsp_prob *instance) {
     int status_code = 0;
 
     int current_iteration = 0;
-    error = GRBsetdblparam(GRBgetenv(loop_model), "IterationLimit", node_limit);
+    error = GRBsetdblparam(GRBgetenv(loop_model), GRB_DBL_PAR_TIMELIMIT, time_limit);
     quit_on_GRB_error(GRBgetenv(loop_model), loop_model, error);
 
     //error = GRBsetintparam(GRBgetenv(loop_model), "OutputFlag", 0);
     //quit_on_GRB_error(GRBgetenv(loop_model), loop_model, error);
-
-    int seed = -1;
-    error = GRBgetintparam(GRBgetenv(loop_model), "Seed", &seed);
-    quit_on_GRB_error(GRBgetenv(loop_model), loop_model, error);
-
-    printf("Current seed: %d\n", seed);
 
     //error = GRBsetintparam(env, GRB_INT_PAR_RINS, 10);
     //quit_on_GRB_error(env, loop_model, error);
@@ -201,27 +198,29 @@ void tsp_loop_model_run(Tsp_prob *instance) {
 
         DEBUG_PRINT(("Found %d connected components\n", comp.number_of_comps));
 
-        //I have stopped because of the limit imposed, so increment the counter
-        if (status_code == GRB_ITERATION_LIMIT) {
-            DEBUG_PRINT(("IterationLimit REACHED\n"));
+        //I have stopped because of the limit imposed, so increment the counter, I do this because I suspect that
+        //the more I go on, the more I will need to wait before I find an integer solution which is better than the
+        // optimal solution with all the correct constraints
+        if (status_code == GRB_TIME_LIMIT) {
+            DEBUG_PRINT(("TimeLimit REACHED while cycling\n"));
             cur_iter++;
         } else {
             count_nolimit++;
         }
         //the number of iterations with this node limit is enough, try and give more time
         if ((cur_incr < max_increments) && (cur_iter >= max_iterations)) {
-            node_limit = node_limit * 3;
+            time_limit = time_limit * 3;
             //I have incremented once
             cur_incr++;
             //I need to start counting again
             cur_iter = 0;
             //Set the new node limit
-            error = GRBsetdblparam(GRBgetenv(loop_model), "IterationLimit", node_limit);
+            error = GRBsetdblparam(GRBgetenv(loop_model), GRB_DBL_PAR_TIMELIMIT, time_limit);
             quit_on_GRB_error(GRBgetenv(loop_model), loop_model, error);
         }
         //I have reached maximum iterations
         if (cur_incr > max_increments) {
-            node_limit = INFINITY;
+            time_limit = INFINITY;
             //Reactivate RINS
             //error = GRBsetintparam(env, GRB_INT_PAR_RINS, -1);
             //quit_on_GRB_error(env, loop_model, error);
@@ -230,18 +229,18 @@ void tsp_loop_model_run(Tsp_prob *instance) {
         if (count_nolimit > 10) {
             cur_incr = 0;
             cur_iter = 0;
-            node_limit = 10;
+            time_limit = 10;
             count_nolimit = 0;
         }
 
         //I have found connected components, add sec
         if (comp.number_of_comps >= 2) {
             add_sec_constraints(env, loop_model, instance, &comp, current_iteration);
-        } else if (status_code == GRB_ITERATION_LIMIT) {
+        } else if (status_code == GRB_TIME_LIMIT) {
             //I have reached the node limit in this iteration but only 1 connected component.
             //Let it run again with no limit
-            node_limit = INFINITY;
-            error = GRBsetdblparam(GRBgetenv(loop_model), "IterationLimit", node_limit);
+            time_limit = INFINITY;
+            error = GRBsetdblparam(GRBgetenv(loop_model), GRB_DBL_PAR_TIMELIMIT, time_limit);
             quit_on_GRB_error(GRBgetenv(loop_model), loop_model, error);
         } else if (status_code == GRB_OPTIMAL) {
             //I have found no connected components and the solution was found without limits
@@ -272,6 +271,7 @@ void tsp_loop_model_run(Tsp_prob *instance) {
         quit_on_GRB_error(env, loop_model, error);
         if (instance->status == GRB_OPTIMAL) {
             error = GRBgetdblattr(loop_model, GRB_DBL_ATTR_OBJVAL, &instance->best_solution);
+            quit_on_GRB_error(GRBgetenv(loop_model), loop_model, error);
         }
     }
 
@@ -283,9 +283,9 @@ void tsp_loop_model_create(Tsp_prob *instance){
     tsp_loop_model_generate(instance);
     tsp_loop_model_run(instance);
 
+    //this needs to be here so I have more control over the repeated runs
     GRBfreemodel(instance->model);
     //free_gurobi(env, loop_model);
-
 }
 
 int xpos_loop(int i, int j, Tsp_prob *instance){

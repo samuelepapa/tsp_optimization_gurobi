@@ -10,10 +10,17 @@
 
 int num_it = 0;
 
-void remove_subtour(Tsp_prob *instance, double *solution, int num_conn_comp, Connected_component *conn_comps, int (*var_pos)(int, int, Tsp_prob *));
+void remove_subtour(Tsp_prob *instance, double *solution, int num_conn_comp, Connected_component *conn_comps,
+                    int (*var_pos)(int, int, Tsp_prob *));
 
-//void set_warm_start(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *));
-
+/**
+ * Performs the hard fixing. Checks if the neighbourhood seems too small by looking at the solution found and comparing
+ * it with the best previous one, then removes the lower bounds and updates the lower bounds using the probability
+ * computed (could have been changed by the resizing of the neighbourhood)
+ * @param instance the tsp_prob instance
+ * @param var_pos the function that finds the index of the variable
+ * @return eventual error
+ */
 int set_hard_constraints(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *));
 
 /**
@@ -70,7 +77,7 @@ void tsp_hardfixing_model_create(Tsp_prob *instance) {
 int initialize_hardfixing(Tsp_prob *instance, double time_limit) {
     int error = 0;
     instance->best_heur_sol_value = INFINITY;
-    instance->heuristic_iteration = -1;
+    instance->heuristic_repetition = -1;
     //first call to the selected model
     switch (instance->black_box) {
         case 9: {
@@ -105,80 +112,73 @@ int initialize_hardfixing(Tsp_prob *instance, double time_limit) {
     error = GRBsetintparam(GRBgetenv(instance->model), GRB_INT_PAR_SOLUTIONLIMIT, GRB_MAXINT);
     quit_on_GRB_error(instance->env, instance->model, error);
 
-    instance->heuristic_iteration = 0;
+    instance->heuristic_repetition = 0;
     error = GRBgetdblattr(instance->model, GRB_DBL_ATTR_OBJVAL, &instance->best_heur_sol_value);
     quit_on_GRB_error(instance->env, instance->model, error);
 
     return error;
 }
 
-/*void set_warm_start(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *)) {
-    int error;
-    error = GRBsetintparam(GRBgetenv(instance->model), GRB_INT_PAR_SOLUTIONLIMIT, 2);
-    quit_on_GRB_error(instance->env, instance->model, error);
-
-    //find the warm solution to feed to algorithm
-    int nvariables = (int) (0.5 * (instance->nnode * instance->nnode - instance->nnode));
-    double *solution = calloc(nvariables, sizeof(double));
-    get_initial_heuristic_sol(instance, solution, var_pos);
-
-    error = GRBsetdblattrarray(instance->model, GRB_DBL_ATTR_START, 0, nvariables, solution);
-    quit_on_GRB_error(instance->env, instance->model, error);
-
-    error = GRBupdatemodel(instance->model);
-    quit_on_GRB_error(instance->env, instance->model, error);
-}*/
-
 int set_hard_constraints(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *)) {
     int error;
     double cur_solution;
+
+    //get current best solution
     error = GRBgetdblattr(instance->model, GRB_DBL_ATTR_OBJVAL, &cur_solution);
     quit_on_GRB_error(instance->env, instance->model, error);
+
+    //remove all lower bounds
     for (int i = 0; i < instance->nnode; i++) {
         for (int j = i + 1; j < instance->nnode; j++) {
             error = GRBsetdblattrelement(instance->model, GRB_DBL_ATTR_LB, var_pos(i, j, instance), 0.0);
             quit_on_GRB_error(instance->env, instance->model, error);
-
         }
     }
 
+    //compute the improvement if any
     double percent_decr = (-(cur_solution - instance->best_heur_sol_value) / instance->best_heur_sol_value) * 100;
-
+    //if I am stalling, keep count so I can increase the neighbourhood
     if (percent_decr < 5) {
-        if (instance->heuristic_iteration < 10) {
-            instance->heuristic_iteration++;
+        if (instance->heuristic_repetition < 10) {
+            instance->heuristic_repetition++;
         } else {
-            instance->heuristic_iteration = 0;
+            instance->heuristic_repetition = 0;
             if (instance->prob >= 0.1) {
                 instance->prob = instance->prob * 0.8;
             }
         }
     }
+    //update best solution up to now
     if (cur_solution < instance->best_heur_sol_value) {
         instance->best_heur_sol_value = cur_solution;
     }
 
+    //hard fixing of a percentage of the variables in the subtour
     double x;
-
     for (int i = 0; i < instance->nnode; i++) {
         for (int j = i + 1; j < instance->nnode; j++) {
             error = GRBgetdblattrelement(instance->model, GRB_DBL_ATTR_X, var_pos(i, j, instance), &x);
             quit_on_GRB_error(instance->env, instance->model, error);
             if (x > 1 - TOLERANCE) {
+                //this words because Gurobi doesn't run the callback on multiple threads
                 double r = ((double) rand() / (RAND_MAX));
-
                 if (r <= instance->prob) {
-                    GRBsetdblattrelement(instance->model, GRB_DBL_ATTR_LB, var_pos(i, j, instance), 1.0);
+                    error = GRBsetdblattrelement(instance->model, GRB_DBL_ATTR_LB, var_pos(i, j, instance), 1.0);
+                    quit_on_GRB_error(instance->env, instance->model, error);
                 }
             }
         }
     }
 
+    //update the model
     error = GRBupdatemodel(instance->model);
     quit_on_GRB_error(instance->env, instance->model, error);
+
+    return error;
 }
 
-void remove_subtour(Tsp_prob *instance, double *solution, int num_conn_comp, Connected_component *conn_comps, int (*var_pos)(int, int, Tsp_prob *)) {
+void remove_subtour(Tsp_prob *instance, double *solution, int num_conn_comp, Connected_component *conn_comps,
+                    int (*var_pos)(int, int, Tsp_prob *)) {
 
     int size = 2 * num_conn_comp;
 
@@ -192,12 +192,12 @@ void remove_subtour(Tsp_prob *instance, double *solution, int num_conn_comp, Con
 
     for (int i = 0; i < num_conn_comp; i++) {
         for (int j = 0; j < instance->nnode; j++) {
-            if(root[i] != j) {
+            if (root[i] != j) {
                 if (solution[var_pos(root[i], j, instance)] > 1 - TOLERANCE) {
                     if (find(conn_comps, conn_comps->parent[j]) == root[i]) {
                         if (h == 0) {
                             tour[h] = root[i];
-                            tour[size -1] = j;
+                            tour[size - 1] = j;
                             solution[var_pos(root[i], j, instance)] = 0;
                             h++;
                             break;
