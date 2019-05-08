@@ -18,7 +18,7 @@ int parse_input(int argc, char **argv, Tsp_prob *instance, Trial *trial_inst) {
     struct arg_int *seed_number, *time_limit;
     struct arg_dbl *probability;
     struct arg_end *end;
-    void *argtable[] = {
+    void *argtable[] = {//a, c, d, e, g, h, i, k, l, n, o, q, u, v, w, x, y, z
             filename = arg_file0("f", "filename", "<filename>",
                                  "path to file where the tsp instance or a trial file is located "
                                  "(this is the interpretation if the -r argument is present)."),
