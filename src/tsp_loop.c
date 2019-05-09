@@ -124,7 +124,7 @@ void tsp_loop_model_run(Tsp_prob *instance) {
     int time_limit_reached = 0;
     int n_node = instance->nnode;
 
-    //Used for connected components using union find
+    //Used for connected components using the iterative method
     Connected_comp comp = {.comps = calloc(n_node, sizeof(int)),
             .number_of_comps = 0,
             .number_of_items = calloc(n_node, sizeof(int)),

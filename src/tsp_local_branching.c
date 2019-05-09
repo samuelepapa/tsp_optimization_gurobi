@@ -24,7 +24,7 @@ int set_local_branch_constraints(Tsp_prob *instance, int (*var_pos)(int, int, Ts
 int initialize_local_branching(Tsp_prob *instance, double time_limit);
 
 /**
- * Create and add to the local branching constraint to the model
+ * Create and add to the model the local branching constraint
  * @param instance The pointer to the tsp instance
  * @param k The number of edges to change
  * @param var_pos The pointer to the mapping method between user variables and Gurobi variables

@@ -13,15 +13,15 @@
 
 void add_flow_cut(void *cbdata, struct callback_data *user_cbdata, int *left_nodes, int left_nodecount, int node);
 
-void find_connected_comps_lazycall(Tsp_prob *instance, Connected_comp *comp, double *solution);
+//void find_connected_comps_lazycall(Tsp_prob *instance, Connected_comp *comp, double *solution);
 
-int has_component_lazy(Connected_comp *comp, int curr_comp, int num_comp);
+//int has_component_lazy(Connected_comp *comp, int curr_comp, int num_comp);
 
-void add_lazy_sec_constraints(void *cbdata, struct callback_data *user_cbdata, Connected_comp *comp, int node);
+//void add_lazy_sec_constraints(void *cbdata, struct callback_data *user_cbdata, Connected_comp *comp, int node);
 
 //void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_component conn_comp[], int n_comps, int node); //add lazy SEC constraint from connected component found with union-find algorithm
 
-double get_solution_lazy(double *solution, int xpos);
+//double get_solution_lazy(double *solution, int xpos);
 
 /* Define my callback function */
 
@@ -271,7 +271,7 @@ int xpos_lazycall(int i, int j, Tsp_prob *instance) {
     return i * instance->nnode + j - ((i + 1) * (i + 2)) / 2;
 }
 
-void find_connected_comps_lazycall(Tsp_prob *instance, Connected_comp *comp, double *solution) {
+/*void find_connected_comps_lazycall(Tsp_prob *instance, Connected_comp *comp, double *solution) {
     int nnode = instance->nnode;
 
     for (int i = 0; i < nnode; i++) {
@@ -378,7 +378,7 @@ void add_lazy_sec_constraints(void *cbdata, struct callback_data *user_cbdata, C
     }
 
     free(constr_name);
-}
+}*/
 
 void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_component *conn_comps, int n_comps, int node) {
     int error;
@@ -386,7 +386,7 @@ void add_lazy_sec(void *cbdata, struct callback_data *user_cbdata, Connected_com
     double rhs;
     int nnz;
     int nnode = user_cbdata->instance->nnode;
-    int num_constr_name = 0;
+    //int num_constr_name = 0;
     int *root_cc = calloc(n_comps, sizeof(int));
 
     get_root(root_cc, n_comps, conn_comps, nnode);
