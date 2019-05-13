@@ -781,7 +781,7 @@ int plot_solution_fract(Tsp_prob *instance, double *solution, int (*var_pos)(int
 
     double sol;
     for (int i = 0; i < instance->nnode; i++) {
-        for (int j = i + 1; j < instance->nnode; j++) {
+        for (int j = 0; j < instance->nnode; j++) {
             index = var_pos(i, j, instance);
             sol = solution[index];
 
