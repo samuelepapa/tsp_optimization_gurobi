@@ -237,6 +237,10 @@ int map_model_type(char *optarg) {
     if (strncmp(optarg, "localbranching", 14) == 0) {
         return 13;
     }
+
+    if (strncmp(optarg, "vns", 3) == 0) {
+        return 14;
+    }
 }
 
 void inverse_map_model_type(int model_type, char *target_string) {
@@ -283,6 +287,9 @@ void inverse_map_model_type(int model_type, char *target_string) {
             break;
         case 13:
             strcpy(target_string, "localbranching");
+            break;
+        case 14:
+            strcpy(target_string, "vns");
             break;
         default:
             strcpy(target_string, "not a model");

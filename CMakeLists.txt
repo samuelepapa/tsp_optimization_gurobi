@@ -40,11 +40,13 @@ add_library(tspHardfixing STATIC src/tsp_hardfixing.c)
 add_library(tspUsercall STATIC src/tsp_usercall.c)
 add_library(matheuristicUtils STATIC src/matheuristic_utils.c)
 add_library(tspLocalBranching STATIC src/tsp_local_branching.c)
+add_library(metaheuristicUtils STATIC src/meta_heuristic_utils.c)
+add_library(tspVNS STATIC src/tsp_vns.c)
 
 add_executable(tsp_optimize src/main.c include/common.h)
 
 # for future use: m is the math.h library, it is not automatically linked by cmake
-target_link_libraries(tsp_optimize tspLocalBranching tspHardfixing tspUsercall tspLazycall matheuristicUtils tspLoop utils unionFind tspStd inputOutput gnuplot tspMTZ
+target_link_libraries(tsp_optimize tspVNS metaheuristicUtils tspLocalBranching tspHardfixing tspUsercall tspLazycall matheuristicUtils tspLoop utils unionFind tspStd inputOutput gnuplot tspMTZ
         tspBadCompact tspFlow1 tspFlow2 tspFlow3 tspTS1 tspTS2 tspTS3 argtable m)
 
 target_link_libraries(tsp_optimize ${PROJECT_SOURCE_DIR}/concorde/concorde_build/concorde.a)

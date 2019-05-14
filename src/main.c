@@ -20,6 +20,7 @@
 #include "tsp_usercall.h"
 #include "tsp_hardfixing.h"
 #include "tsp_local_branching.h"
+#include "tsp_vns.h"
 
 /**
  * Selects the method chosen by the instance and starts it
@@ -160,6 +161,9 @@ void start_selected_model(Tsp_prob *instance) {
             break;
         case 13:
             tsp_local_branching_create(instance); //localbranching
+            break;
+        case 14:
+            tsp_vns_create(instance); //variable neighborhood search
             break;
         default:
             tsp_model_create(instance);
