@@ -2,5 +2,10 @@
 #define TSP_OPTIMIZATION_GUROBI_META_HEURISTIC_UTILS_H
 
 #include "common.h"
+#include "utils.h"
+
+void two_opt(Tsp_prob *instance, double *solution);
+
+int x_pos(int i, int j, Tsp_prob *instance);
 
 #endif //TSP_OPTIMIZATION_GUROBI_META_HEURISTIC_UTILS_H

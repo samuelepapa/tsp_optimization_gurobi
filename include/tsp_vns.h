@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "matheuristic_utils.h"
+#include "meta_heuristic_utils.h"
 
 void tsp_vns_create(Tsp_prob *instance);
 
