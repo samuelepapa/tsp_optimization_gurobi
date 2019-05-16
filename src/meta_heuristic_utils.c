@@ -121,17 +121,22 @@ void assign_new_node_sequence(int *node_sequence, int *new_node_sequence, int n_
 
 void kick(Tsp_prob *instance, double *solution, int n_node) {
 
+    printf("Kick!!!");
+
     int selected_element = 0;
     int node_sequence[n_node + 1];
     int *not_available = calloc(n_node, sizeof(int));
+
+    int *new_node_sequence = calloc(n_node + 1, sizeof(int));
 
     get_node_path(solution, node_sequence, instance);
 
     int node_pos[3] = {0};
 
+    srand((unsigned) time(NULL));
+
     while(selected_element < 3) {
-        double p = ((double) rand() / (RAND_MAX));
-        int  selected_node = (int) p * n_node;
+        int  selected_node = (int) rand() % n_node;
         if (!not_available[selected_node]) {
             node_pos[selected_element] = selected_node;
             selected_element++;
@@ -140,9 +145,13 @@ void kick(Tsp_prob *instance, double *solution, int n_node) {
 
     }
 
-    three_opt_swap(instance, node_sequence, node_pos[0], node_pos[1], node_pos[2], n_node + 1, node_sequence);
+    three_opt_swap(instance, node_sequence, node_pos[0], node_pos[1], node_pos[2], n_node + 1, new_node_sequence);
 
-    new_solution(instance, node_sequence, solution);
+    new_solution(instance, new_node_sequence, solution);
+
+    free(not_available);
+
+    free(new_node_sequence);
 }
 
 void new_solution(Tsp_prob *instance, int *best_solution, double *solution) {
@@ -164,5 +173,29 @@ void new_solution(Tsp_prob *instance, int *best_solution, double *solution) {
 }
 
 void three_opt_swap(Tsp_prob *instance, int *node_sequence, int i, int j, int k, int n_node, int *new_node_sequence) {
-    int dist_1 = distance(node_sequence[i - 1], node_sequence[i], instance) + distance(node_sequence[j - 1], node_sequence[j], instance) + distance(node_sequence[k - 1], node_sequence[k], instance);
+    int a = node_sequence[i - 1];
+    int b = node_sequence[i];
+    int c = node_sequence[j - 1];
+    int d = node_sequence[j];
+    int f = node_sequence[k - 1];
+    int e = node_sequence[k % (n_node + 1)];
+
+    int dist_1 = distance(a, b, instance) + distance(c, d, instance) + distance(e, f, instance);
+    int dist_2 = distance(a, c, instance) + distance(b, d, instance) + distance(e, f, instance);
+    int dist_3 = distance(a, b, instance) + distance(c, e, instance) + distance(d, f, instance);
+    int dist_4 = distance(a, d, instance) + distance(e, b, instance) + distance(c, f, instance);
+    int dist_5 = distance(f, b, instance) + distance(c, d, instance) + distance(e, a, instance);
+
+    if (dist_1 > dist_2) {
+        two_opt_swap(node_sequence, i, j, n_node, new_node_sequence);
+    } else if (dist_1 > dist_3) {
+        two_opt_swap(node_sequence, j, k, n_node, new_node_sequence);
+    } else if (dist_1 > dist_5) {
+        two_opt_swap(node_sequence, i, k, n_node, new_node_sequence);
+    } else if (dist_1 > dist_4) {
+        int *tmp = calloc(n_node, sizeof(int));
+        two_opt_swap(node_sequence, i, j, n_node, tmp);
+        two_opt_swap(tmp, j, k, n_node, new_node_sequence);
+        free(tmp);
+    }
 }
