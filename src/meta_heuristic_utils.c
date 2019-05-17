@@ -34,7 +34,7 @@ void two_opt(Tsp_prob *instance, double *solution, int *node_sequence) {
             }
 
         }
-    } while(delta <= 0);
+    } while(delta < 0);
 
     new_solution(instance, node_sequence, solution);
 
@@ -121,7 +121,7 @@ void assign_new_node_sequence(int *node_sequence, int *new_node_sequence, int n_
 
 void kick(Tsp_prob *instance, double *solution, int n_node) {
 
-    printf("Kick!!!");
+    printf("Kick!!!\n");
 
     int selected_element = 0;
     int node_sequence[n_node + 1];

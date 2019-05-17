@@ -32,4 +32,5 @@ void tsp_vns_create(Tsp_prob *instance) {
     } while (delta < 0);
 
     free(node_sequence);
+    //free(best_solution);
 }
