@@ -40,4 +40,30 @@ void get_initial_heuristic_sol(Tsp_prob *instance, double *solution, int (*var_p
  */
 void set_warm_start(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *));
 
+/**
+ * Simple initial heuristic solution which just links all the nodes in order
+ * @param instance the tsp_prob instance
+ * @param solution the solution where to write the output
+ * @param var_pos function used to map edge notation (i,j) to variable index notation according to the notation used
+ */
+void simple_initial_heuristic_solution(Tsp_prob *instance, double *solution, int (*var_pos)(int, int, Tsp_prob *));
+
+void naive_initial_heuristic_solution(int start_node, Tsp_prob *instance, double *solution,
+                                      int (*var_pos)(int, int, Tsp_prob *));
+
+void grasp_initial_heuristic_solution(int start_node, double p_greedy, Tsp_prob *instance, double *solution,
+                                      int (*var_pos)(int, int, Tsp_prob *));
+
+/**
+ *
+ * @param first_node
+ * @param second_node
+ * @param p_grasp
+ * @param instance
+ * @param solution
+ * @param var_pos
+ */
+void extra_mileage_initial_heuristic_solution(int first_node, int second_node, double p_grasp, Tsp_prob *instance,
+                                              double *solution, int (*var_pos)(int, int, Tsp_prob *));
+
 #endif //TSP_OPTIMIZATION_GUROBI_MATHEURISTIC_UTILS_H

@@ -22,6 +22,7 @@
 #include "tsp_local_branching.h"
 #include "tsp_vns.h"
 
+#include "peaceful_queens_optimization.h"
 /**
  * Selects the method chosen by the instance and starts it
  * @param instance the tsp instance with the information about the problem to solve

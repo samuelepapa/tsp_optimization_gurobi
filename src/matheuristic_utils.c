@@ -5,23 +5,45 @@
 #include <input_output.h>
 #include "matheuristic_utils.h"
 
+
 /**
- * Simple initial heuristic solution which just links all the nodes in order
- * @param instance the tsp_prob instance
- * @param solution the solution where to write the output
- * @param var_pos function used to map edge notation (i,j) to variable index notation according to the notation used
+ * Populates an array of grasped_nodes nodes with the first nodes when looking at the cost of going from first_node to
+ * the node being evaluated, back to secondo node: c(1,j)+c(j,2). The grasped_nodes js such that this is done
+ * with minimal cost are added to the min_list in ascending order.
+ * @param first_node the first node where to start
+ * @param second_node the second node where to arrive, first_node and second_node define the arc selected in extra
+ * mileage
+ * @param costs the array of costs of all the arcs
+ * @param min_list the list where to save the results
+ * @param grasped_nodes the number of nodes to select
+ * @param visited the nodes that have been already visited
+ * @param instance the Tsp_prob instance
+ * @param var_pos the function to calculate the position of the variables
  */
-void simple_initial_heuristic_solution(Tsp_prob *instance, double *solution, int (*var_pos)(int, int, Tsp_prob *));
+void
+extra_mileage_get_mins(int first_node, int second_node, double *costs, int *min_list, int grasped_nodes, char *visited,
+                       Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *));
 
-void naive_initial_heuristic_solution(int start_node, Tsp_prob *instance, double *solution,
-                                      int (*var_pos)(int, int, Tsp_prob *));
+/**
+ * Converts an extra mileage style cycle to a solution
+ * @param n_node the number of nodes in the cycle
+ * @param cur_cycle the current cycle, list of nodes in the cycle
+ * @param solution the solution where to write the edges that need to be set to 1.0
+ * @param instance the Tsp_prob instance
+ * @param var_pos the function used to convert (i,j) in the variable position in solution
+ */
+void extra_mileage_cycle_to_solution(int n_node, int *cur_cycle, double *solution, Tsp_prob *instance,
+                                     int (*var_pos)(int, int, Tsp_prob *));
 
-void grasp_initial_heuristic_solution(int start_node, double p_greedy, Tsp_prob *instance, double *solution,
-                                      int (*var_pos)(int, int, Tsp_prob *));
-
-void extra_mileage_initial_heuristic_solution(int first_node, int second_node, double p_grasp, Tsp_prob *instance,
-                                              double *solution, int (*var_pos)(int, int, Tsp_prob *));
-
+/**
+ * Inserts nodes based on cost, ascending order
+ * @param cost the cost to add
+ * @param node_pos the node index
+ * @param min_list the list where to add
+ * @param min_costs_list the list of costs already added
+ * @param list_size the size of the list up to now
+ */
+void extra_mileage_insert_sorted_nodes(double cost, int node_pos, int *min_list, double *min_costs_list, int list_size);
 
 void inverse_map_warm_start_type(int model_type, char *target_string) {
     switch (model_type) {
@@ -62,6 +84,7 @@ int map_warm_start_type(char *optarg) {
 }
 
 void get_initial_heuristic_sol(Tsp_prob *instance, double *solution, int (*var_pos)(int, int, Tsp_prob *)) {
+    srand(time(NULL));
     switch (instance->warm_start) {
         case 0:
             simple_initial_heuristic_solution(instance, solution, var_pos);
@@ -72,9 +95,24 @@ void get_initial_heuristic_sol(Tsp_prob *instance, double *solution, int (*var_p
         case 2:
             grasp_initial_heuristic_solution(0, 0.5, instance, solution, var_pos);
             break;
-        case 3:
-            extra_mileage_initial_heuristic_solution(0, instance->nnode - 1, 0.5, instance, solution, var_pos);
+        case 3: {
+            int first_node = 0;
+            int second_node = 1;
+            int cost = distance(0, 1, instance);
+            int cur_cost;
+            for (int k = 0; k < instance->nnode; k++) {
+                for (int j = k + 1; j < instance->nnode; j++) {
+                    cur_cost = distance(k, j, instance);
+                    if (cur_cost > cost) {
+                        first_node = k;
+                        second_node = j;
+                        cost = cur_cost;
+                    }
+                }
+            }
+            extra_mileage_initial_heuristic_solution(first_node, second_node, 0.5, instance, solution, var_pos);
             break;
+        }
     }
 }
 
@@ -176,7 +214,7 @@ void naive_initial_heuristic_solution(int start_node, Tsp_prob *instance, double
     next_node = 0;
 
     for (int i = 0; i < n_node; i++) {
-        for (int j =  i + 1; j < n_node; j++) {
+        for (int j = i + 1; j < n_node; j++) {
             int pos = var_pos(i, j, instance);
             cost[pos] = distance(i, j, instance);
             if (cost[pos] < min_dist && i == cur_node) {
@@ -224,7 +262,8 @@ void naive_initial_heuristic_solution(int start_node, Tsp_prob *instance, double
 }
 
 //Find the n_node nodes with minimum distance from curr_node
-void get_min_distances(int curr_node, double *dist, int *not_available_distance, int *select_node, int n_select_node, int *visited, int *next, Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *)) {
+void get_min_distances(int curr_node, double *dist, int *not_available_distance, int *select_node, int n_select_node,
+                       int *visited, int *next, Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *)) {
 
     double min;
     int num_node = instance->nnode;
@@ -278,7 +317,7 @@ void grasp_initial_heuristic_solution(int start_node, double p_greedy, Tsp_prob 
     cur_node = start_node;
 
     for (int i = 0; i < n_node; i++) {
-        for (int j =  i + 1; j < n_node; j++) {
+        for (int j = i + 1; j < n_node; j++) {
             int pos = var_pos(i, j, instance);
             cost[pos] = distance(i, j, instance);
             not_available_distance[pos] = 0;
@@ -306,8 +345,9 @@ void grasp_initial_heuristic_solution(int start_node, double p_greedy, Tsp_prob 
                 }
             }
         } else { //random approach
-            get_min_distances(cur_node, cost, not_available_distance, other_node, num_selected_node, visited, next, instance, var_pos);
-            double prob = ((double) rand() / (RAND_MAX));
+            get_min_distances(cur_node, cost, not_available_distance, other_node, num_selected_node, visited, next,
+                              instance, var_pos);
+            double prob = ((double) (rand() - 1) / RAND_MAX);
             double gap = 1.0 / num_selected_node;
             int array_pos = ceil(prob / gap);
             next_node = other_node[array_pos - 1];
@@ -329,12 +369,9 @@ void grasp_initial_heuristic_solution(int start_node, double p_greedy, Tsp_prob 
     }
 }
 
-void
-get_min_extra_mileages(int first_node, int second_node, double *costs, int *min_list, int grasped_nodes, int nodes_left,
-                       char *visited, Tsp_prob *instance, double *solution, int (*var_pos)(int, int, Tsp_prob *));
 
-void cycle_to_solution(int n_node, int *cur_cycle, double *solution, Tsp_prob *instance,
-                       int (*var_pos)(int, int, Tsp_prob *)) {
+void extra_mileage_cycle_to_solution(int n_node, int *cur_cycle, double *solution, Tsp_prob *instance,
+                                     int (*var_pos)(int, int, Tsp_prob *)) {
     int pos;
     for (int i = 0; i < instance->nnode; i++) {
         for (int j = i + 1; j < instance->nnode; j++) {
@@ -357,7 +394,7 @@ void extra_mileage_initial_heuristic_solution(int first_node, int second_node, d
                                               double *solution, int (*var_pos)(int, int, Tsp_prob *)) {
     int n_node = instance->nnode;
     if (n_node < 2) {
-        printf("ERROR: not enough nodes in the instance, from extra_milage_initial_heuristic_solution.\n");
+        printf("ERROR: not enough nodes in the instance, from_index extra_milage_initial_heuristic_solution.\n");
         exit(1);
     }
     int n_edges = (n_node * (n_node - 1)) / 2;
@@ -372,10 +409,10 @@ void extra_mileage_initial_heuristic_solution(int first_node, int second_node, d
     //number of nodes in the new cycle being built
     int next_nodes;
 
-    //bitmap of visited nodes
-    char visited[n_node];
+    //bitmap of in_cycle nodes
+    char in_cycle[n_node];
 
-    //number of nodes to consider for selection: the first one is selected with probability p_grasp, the other with (1-p_grasp)/3
+    //number of nodes to_index consider for selection: the first one is selected with probability p_grasp, the other with (1-p_grasp)/3
     int grasped_nodes = 4;
     //list of grasped nodes
     int min_list[grasped_nodes];
@@ -386,70 +423,86 @@ void extra_mileage_initial_heuristic_solution(int first_node, int second_node, d
             int pos = var_pos(i, j, instance);
             costs[pos] = distance(i, j, instance);
         }
-        visited[i] = 0;
+        in_cycle[i] = 0;
     }
 
     //Initialize cycle
     cur_nodes = 2;
     cur_cycle[0] = first_node;
     cur_cycle[1] = second_node;
-    visited[first_node] = 1;
-    visited[second_node] = 1;
+    in_cycle[first_node] = 1;
+    in_cycle[second_node] = 1;
     nodes_left = n_node - 2;
 
     //variables used during cycle construction
     double use_greedy, prob, gap;
     int pos;
-    while (nodes_left > 0) {
-        //as long as I still have nodes to visit left
+
+    //find the smallest extra-mileage amongst arcs
+    char cur_cycle_replaced[n_node];
+    cur_cycle_replaced[0] = cur_cycle_replaced[1] = 0;
+    int left_to_replace = 2;
+    double min_cost = INFINITY;
+    int selected_arc_from, selected_arc_to;
+
+    /*while (nodes_left > 0) {
+        //as long as I still have nodes to_index visit left
         next_nodes = 0;
-        for (int i = 0; (i < cur_nodes - 1); i++) {
+        while(left_to_replace > 0) {
+            min_cost = INFINITY;
             if (nodes_left == 0) {
-                //populate the rest of the cycle with what I had previously found
-                next_cycle[next_nodes++] = cur_cycle[i];
+                for (int i = 0; i < n_node; i++) {
+                    if (!cur_cycle_replaced[i]) {
+                        next_cycle[next_nodes++] = cur_cycle[i];
+                    }
+                }
             } else {
-                get_min_extra_mileages(cur_cycle[i], cur_cycle[i + 1], costs, min_list, grasped_nodes, nodes_left,
-                                       visited, instance, solution, var_pos);
-                use_greedy = ((double) rand() / (RAND_MAX));
+                for (int i = 0; (i < cur_nodes - 1); i++) {
+                    if (!cur_cycle_replaced[i]) {
+                        extra_mileage_get_mins(cur_cycle[i], cur_cycle[i + 1], costs, min_list, grasped_nodes,
+                                               in_cycle, instance, var_pos);
+                        use_greedy = ((double) rand() / (RAND_MAX));
+                        if (nodes_left < (grasped_nodes)) {
+                            use_greedy = 0;
+                        }
+                        next_cycle[next_nodes++] = cur_cycle[i];
+                        if (use_greedy <= p_grasp) {
+                            next_cycle[next_nodes++] = min_list[0];
+                            in_cycle[min_list[0]] = 1;
+                        } else {//select at random from_index other candidates
+                            prob = ((double) (rand() - 1) / (RAND_MAX));
+                            pos = ceil(prob * (grasped_nodes - 1));
+                            next_cycle[next_nodes++] = min_list[pos];
+                            in_cycle[min_list[pos]] = 1;
+                        }
+                        //a node has been added to_index the cycle
+                        nodes_left--;
+                    }
+                }
+                //extra_mileage_cycle_to_solution(next_nodes, next_cycle, solution, instance, var_pos);
+            }
+            if (nodes_left == 0) {
+                //I just need to_index add the last node
+                next_cycle[next_nodes++] = cur_cycle[cur_nodes - 1];
+            } else {
+                extra_mileage_get_mins(cur_cycle[cur_nodes - 1], cur_cycle[0], costs, min_list, grasped_nodes,
+                                       in_cycle, instance, var_pos);
+                use_greedy = ((double) rand() / RAND_MAX);
                 if (nodes_left < (grasped_nodes)) {
                     use_greedy = 0;
                 }
-                next_cycle[next_nodes++] = cur_cycle[i];
+                next_cycle[next_nodes++] = cur_cycle[cur_nodes - 1];
                 if (use_greedy <= p_grasp) {
                     next_cycle[next_nodes++] = min_list[0];
-                    visited[min_list[0]] = 1;
-                } else {
-                    prob = ((double) rand() / (RAND_MAX));
-                    gap = 1.0 / (grasped_nodes - 1);
-                    pos = ceil(prob / gap);
+                    in_cycle[min_list[0]] = 1;
+                } else {//select at random from_index other candidates
+                    prob = ((double) (rand() - 1) / RAND_MAX);
+                    pos = ceil(prob * (grasped_nodes - 1));
                     next_cycle[next_nodes++] = min_list[pos];
-                    visited[min_list[pos]] = 1;
+                    in_cycle[min_list[pos]] = 1;
                 }
                 nodes_left--;
             }
-        }
-        if (nodes_left == 0) {
-            next_cycle[next_nodes++] = cur_cycle[cur_nodes - 1];
-        } else {
-            get_min_extra_mileages(cur_cycle[cur_nodes - 1], cur_cycle[0], costs, min_list, grasped_nodes, nodes_left,
-                                   visited, instance, solution,
-                                   var_pos);
-            use_greedy = ((double) rand() / (RAND_MAX));
-            if (nodes_left < (grasped_nodes)) {
-                use_greedy = 0;
-            }
-            next_cycle[next_nodes++] = cur_cycle[cur_nodes - 1];
-            if (use_greedy <= p_grasp) {
-                next_cycle[next_nodes++] = min_list[0];
-                visited[min_list[0]] = 1;
-            } else {
-                double prob = ((double) rand() / (RAND_MAX));
-                double gap = 1.0 / (grasped_nodes - 1);
-                int pos = ceil(prob / gap);
-                next_cycle[next_nodes++] = min_list[pos];
-                visited[min_list[pos]] = 1;
-            }
-            nodes_left--;
         }
 
         for (int i = 0; i < next_nodes; i++) {
@@ -457,13 +510,70 @@ void extra_mileage_initial_heuristic_solution(int first_node, int second_node, d
         }
         cur_nodes = next_nodes;
         printf("cur nodes: %d \n", cur_nodes);
+    }*/
+
+    int from_index, to_index;
+    double selected_cost;
+    int selected_extra_node, cur_extra_node;
+    int arc0, arc1, arc2;
+    while (nodes_left > 0) {
+        min_cost = INFINITY;
+        //select the best arc
+        for (int i = 0; i < cur_nodes; i++) {
+            from_index = i;
+            if (i < (cur_nodes - 1)) {
+                to_index = i + 1;
+            } else {
+                to_index = 0;
+            }
+            extra_mileage_get_mins(cur_cycle[from_index], cur_cycle[to_index], costs, min_list, grasped_nodes,
+                                   in_cycle, instance, var_pos);
+
+            use_greedy = ((double) rand() / RAND_MAX);
+            if (nodes_left < (grasped_nodes)) {
+                use_greedy = 0;
+            }
+            if (use_greedy <= p_grasp) {
+                cur_extra_node = 0;
+            } else {//select at random from_index other candidates
+                prob = ((double) (rand() - 1) / RAND_MAX);
+                pos = ceil(prob * (grasped_nodes - 1));
+                cur_extra_node = pos;
+            }
+            arc0 = var_pos(cur_cycle[from_index], cur_cycle[to_index], instance);
+            arc1 = var_pos(cur_cycle[from_index], min_list[cur_extra_node], instance);
+            arc2 = var_pos(min_list[cur_extra_node], cur_cycle[to_index], instance);
+            selected_cost = costs[arc1] + costs[arc2] - costs[arc0];
+
+            if (selected_cost < min_cost) {
+                min_cost = selected_cost;
+                selected_arc_from = from_index;
+                selected_arc_to = to_index;
+                selected_extra_node = min_list[cur_extra_node];
+            }
+        }
+        in_cycle[selected_extra_node] = 1;
+        next_nodes = 0;
+        for (int i = 0; i < cur_nodes; i++) {
+            next_cycle[next_nodes++] = cur_cycle[i];
+            if (i == selected_arc_from) {
+                next_cycle[next_nodes++] = selected_extra_node;
+            }
+        }
+
+        for (int i = 0; i < next_nodes; i++) {
+            cur_cycle[i] = next_cycle[i];
+        }
+        cur_nodes = next_nodes;
+        nodes_left--;
+        //extra_mileage_cycle_to_solution(cur_nodes, cur_cycle, solution, instance, var_pos);
     }
 
-    cycle_to_solution(cur_nodes, cur_cycle, solution, instance, var_pos);
-
+    extra_mileage_cycle_to_solution(cur_nodes, cur_cycle, solution, instance, var_pos);
 }
 
-void insert_sorted_nodes(double cost, int node_pos, int min_list[], double min_costs_list[], int list_size) {
+void
+extra_mileage_insert_sorted_nodes(double cost, int node_pos, int *min_list, double *min_costs_list, int list_size) {
     int k = list_size - 1;
     int temp_element;
     double temp_cost;
@@ -493,8 +603,8 @@ void insert_sorted_nodes(double cost, int node_pos, int min_list[], double min_c
 }
 
 void
-get_min_extra_mileages(int first_node, int second_node, double *costs, int *min_list, int grasped_nodes, int nodes_left,
-                       char *visited, Tsp_prob *instance, double *solution, int (*var_pos)(int, int, Tsp_prob *)) {
+extra_mileage_get_mins(int first_node, int second_node, double *costs, int *min_list, int grasped_nodes, char *visited,
+                       Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *)) {
 
     int pos_xj;
     int pos_jy;
@@ -508,7 +618,8 @@ get_min_extra_mileages(int first_node, int second_node, double *costs, int *min_
         if (!visited[i]) {
             pos_xj = var_pos(first_node, i, instance);
             pos_jy = var_pos(i, second_node, instance);
-            insert_sorted_nodes(costs[pos_xj] + costs[pos_jy], i, min_list, min_costs_list, grasped_nodes);
+            extra_mileage_insert_sorted_nodes(costs[pos_xj] + costs[pos_jy], i, min_list, min_costs_list,
+                                              grasped_nodes);
         }
     }
 

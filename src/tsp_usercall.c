@@ -55,7 +55,7 @@ int __stdcall usercallback(GRBmodel *model, void *cbdata, int where, void *usrda
         //the relaxation is found is 1/random_divider
         const int random_divider = 10;
         //these nodes is where the calculations are always run
-        const int initial_nodes = 10;
+        const int initial_nodes = 24;
         int number = rand();
         double node_cnt = -1;
         GRBcbget(cbdata, where, GRB_CB_MIPNODE_NODCNT, &node_cnt);
@@ -161,6 +161,9 @@ void tsp_usercall_model_generate(Tsp_prob *instance) {
     quit_on_GRB_error(env, usercall_model, error);
 
     error = GRBsetintparam(GRBgetenv(usercall_model), GRB_INT_PAR_PRECRUSH, 1);
+    quit_on_GRB_error(env, usercall_model, error);
+
+    error = GRBsetintparam(GRBgetenv(usercall_model), GRB_INT_PAR_BRANCHDIR, 1);
     quit_on_GRB_error(env, usercall_model, error);
 
     /*Set time limit*/
