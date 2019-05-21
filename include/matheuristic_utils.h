@@ -66,4 +66,7 @@ void grasp_initial_heuristic_solution(int start_node, double p_greedy, Tsp_prob 
 void extra_mileage_initial_heuristic_solution(int first_node, int second_node, double p_grasp, Tsp_prob *instance,
                                               double *solution, int (*var_pos)(int, int, Tsp_prob *));
 
+int x_pos_metaheuristic(int i, int j, Tsp_prob *instance);
+
+
 #endif //TSP_OPTIMIZATION_GUROBI_MATHEURISTIC_UTILS_H
