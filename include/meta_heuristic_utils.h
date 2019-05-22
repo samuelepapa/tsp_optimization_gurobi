@@ -5,7 +5,7 @@
 #include "input_output.h"
 #include "utils.h"
 
-void two_opt(Tsp_prob *instance, double *solution, int *node_sequence);
+int two_opt(Tsp_prob *instance, double *solution, int *node_sequence, int *costs);
 
 void get_node_path(double *solution, int *node_sequence, Tsp_prob *instance);
 

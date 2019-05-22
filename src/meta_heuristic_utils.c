@@ -11,40 +11,59 @@ void
 three_opt_swap_rnd(Tsp_prob *instance, int *node_sequence, int i, int j, int k, int n_node, int *new_node_sequence);
 
 
-void two_opt(Tsp_prob *instance, double *solution, int *node_sequence) {
+int two_opt(Tsp_prob *instance, double *solution, int *node_sequence, int *costs) {
     int n_node = instance->nnode;
+    int coord1, coord2, coord3, coord4;
+    int *new_sequence_allocation = calloc(n_node + 1, sizeof(int));
+    int *new_node_sequence = new_sequence_allocation;
+    int *temp_pointer_to_int;
+    int *cur_sequence_allocation = calloc(n_node + 1, sizeof(int));
+    int *cur_sequence = cur_sequence_allocation;
 
-    int *new_node_sequence = calloc(n_node + 1, sizeof(int));
-    int delta = 0;
-
-    get_node_path(solution, node_sequence, instance);
-
-    int best_distance = compute_total_distance(instance, node_sequence);
+    get_node_path(solution, cur_sequence, instance);
+    //get_node_path(solution, new_node_sequence, instance);
+    for (int i = 0; i < n_node + 1; i++) {
+        new_node_sequence[i] = cur_sequence[i];
+    }
+    int best_distance = compute_total_distance(instance, cur_sequence);
     int new_distance = 0;
-
-    int improve = 0;
+    char improve = 0;
     do {
         //best_distance = compute_total_distance(instance, node_sequence);
         improve = 0;
         for (int i = 0; i < n_node - 2; i++) {
             for (int k = i + 2; k < n_node; k++) {
-                two_opt_swap(node_sequence, i, k, n_node, new_node_sequence);
-                new_distance = compute_total_distance(instance, new_node_sequence);
-                delta = new_distance - best_distance;
-                if (delta < 0) {
+                coord1 = x_pos_metaheuristic(cur_sequence[i], cur_sequence[i + 1], instance);
+                coord2 = x_pos_metaheuristic(cur_sequence[k], cur_sequence[k + 1], instance);
+                coord3 = x_pos_metaheuristic(cur_sequence[i], cur_sequence[k], instance);
+                coord4 = x_pos_metaheuristic(cur_sequence[i + 1], cur_sequence[k + 1], instance);
+                new_distance = best_distance -
+                               costs[coord1] -
+                               costs[coord2] +
+                               costs[coord3] +
+                               costs[coord4];
+
+                if (new_distance < best_distance) {
                     improve = 1;
-                    copy_node_sequence(node_sequence, new_node_sequence, n_node + 1);
+                    two_opt_swap(cur_sequence, i, k, n_node, new_node_sequence);
+                    //copy_node_sequence(cur_sequence, new_node_sequence, n_node + 1);
+                    temp_pointer_to_int = cur_sequence;
+                    cur_sequence = new_node_sequence;
+                    new_node_sequence = temp_pointer_to_int;
                     best_distance = new_distance;
                 }
             }
 
         }
-        printf("improved \n");
+        //printf("improved \n");
     } while (improve == 1);
 
+    copy_node_sequence(node_sequence, cur_sequence, n_node + 1);
     //new_solution(instance, node_sequence, solution);
 
-    free(new_node_sequence);
+    free(new_sequence_allocation);
+    free(cur_sequence_allocation);
+    return best_distance;
 }
 
 void get_node_path(double *solution, int *node_sequence, Tsp_prob *instance) {
@@ -120,6 +139,7 @@ void two_opt_swap(int *node_sequence, int i, int k, int n_node, int *new_node_se
 void copy_node_sequence(int *to_node_sequence, int *from_node_sequence, int n_node) {
 
     for (int i = 0; i < n_node; i++) {
+        //printf("NODE: %d, %d\n", i, from_node_sequence[i]);
         to_node_sequence[i] = from_node_sequence[i];
     }
 }
