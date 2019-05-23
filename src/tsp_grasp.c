@@ -86,6 +86,8 @@ void tsp_grasp_create(Tsp_prob *instance) {
     }
 
     printf("Heuristic solution value: %d\n", incumbent_value);
+
+    plot_solution_fract(instance, solution, x_pos_grasp);
     /*free(alpha_list);
    free(avg_incumb_value);*/
     free(edge.edge_cost);
@@ -112,6 +114,10 @@ void grasp_randomized_construction(Tsp_prob *instance, double *solution, edge_da
     int start_node = floor(genrand64_real1() * (instance->nnode - 1));
     int cur_node = start_node;
     int n_selected_edge = 0;
+
+    for (int i = 0; i < n_edge; i++) {
+        solution[i] = 0.0;
+    }
 
     while (n_selected_edge < instance->nnode - 1) {
 
@@ -205,7 +211,6 @@ void grasp_randomized_construction(Tsp_prob *instance, double *solution, edge_da
         time_elapsed = (cur.tv_sec - start.tv_sec);
         printf("GENSOL %g\n", cost_solution(instance, solution, var_pos));
     }*/
-
 
 }
 
