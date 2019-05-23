@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <time.h>
 #include "gurobi_c.h"
+#include "mt64.h"
 
 #define DEBUG
 #ifdef DEBUG

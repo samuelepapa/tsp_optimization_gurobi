@@ -21,6 +21,7 @@ include_directories(concorde/concorde_build)
 find_library(C_GUROBI_LIB NAMES libgurobi81.so PATHS /opt/gurobi810/linux64/lib)
 
 add_library(argtable STATIC src/argtable3.c)
+add_library(mt19937 STATIC src/mt19937-64.c)
 add_library(gnuplot STATIC src/plot_graph.c)
 add_library(utils STATIC src/utils.c)
 add_library(inputOutput STATIC src/input_output.c)
@@ -43,13 +44,14 @@ add_library(tspLocalBranching STATIC src/tsp_local_branching.c)
 add_library(metaheuristicUtils STATIC src/meta_heuristic_utils.c)
 add_library(tspVNS STATIC src/tsp_vns.c)
 add_library(tspGRASP STATIC src/tsp_grasp.c)
+add_library(tspSA STATIC src/tsp_simulated_annealing.c)
 
 add_executable(tsp_optimize src/main.c include/common.h)
 
 # for future use: m is the math.h library, it is not automatically linked by cmake
-target_link_libraries(tsp_optimize tspGRASP tspVNS metaheuristicUtils tspLocalBranching tspHardfixing tspUsercall
+target_link_libraries(tsp_optimize tspSA tspGRASP tspVNS metaheuristicUtils tspLocalBranching tspHardfixing tspUsercall
         tspLazycall matheuristicUtils tspLoop utils unionFind tspStd inputOutput gnuplot tspMTZ tspBadCompact tspFlow1
-        tspFlow2 tspFlow3 tspTS1 tspTS2 tspTS3 argtable m)
+        tspFlow2 tspFlow3 tspTS1 tspTS2 tspTS3 mt19937 argtable m)
 
 target_link_libraries(tsp_optimize ${PROJECT_SOURCE_DIR}/concorde/concorde_build/concorde.a)
 

@@ -381,6 +381,10 @@ void set_time_limit(GRBmodel *model, Tsp_prob *instance) {
     }
 }
 
+int gen_rand_value(int min, int max) {
+    return (genrand64_int64() % (max - min + 1)) + min;
+}
+
 void free_comp_struc(Connected_comp *comp) {
     free(comp->comps);
 //    free(comp->list_of_comps);

@@ -78,6 +78,15 @@ void set_seed(GRBmodel *model, Tsp_prob *instance);
  */
 void set_time_limit(GRBmodel *model, Tsp_prob *instance);
 
+
+/**
+ * Generate random number within a specific range
+ * @param min Minimum range value
+ * @param max Maximum range value
+ * @return random number within the specific range, extreme included
+ */
+int gen_rand_value(int min, int max);
+
 /**
  * Free memory allocated to connected component elements
  * @param comp The pointer to the connected component structure
