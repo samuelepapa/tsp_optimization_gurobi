@@ -296,7 +296,7 @@ void inverse_map_model_type(int model_type, char *target_string) {
             strcpy(target_string, "vns");
             break;
         case 15:
-            strncpy(target_string, "grasp");
+            strcpy(target_string, "grasp");
             break;
         default:
             strcpy(target_string, "not a model");
