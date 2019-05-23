@@ -7,8 +7,7 @@
 
 void grasp_randomized_construction(Tsp_prob *instance, double *solution, int *edge_cost);
 
-void grasp_local_search(Tsp_prob *instance, double *solution, double time_limit, int method,
-                        int (*var_pos)(int, int, Tsp_prob *));
+int grasp_local_search(Tsp_prob *instance, double *solution, int *edge_cost);
 
 //void update_alpha(double *alpha_list, int selected_alpha, int incumbent_value, double *avg_incumb_value);
 
@@ -20,13 +19,18 @@ double prob_in_range(double min, double max);
 
 double grasp_cost_solution(Tsp_prob *instance, double *solution);
 
-void GRASP(Tsp_prob *instance) {
-    //the time limit is interpreted as an iteration count in GRASP
+void tsp_grasp_create(Tsp_prob *instance) {
+    //the time limit is interpreted as an iteration count in tsp_grasp_create
     int iteration_count = (int) (instance->time_limit);
     int cur_iteration = 0;
     int num_var = (instance->nnode * (instance->nnode - 1)) / 2;
     int *edge_cost = calloc(num_var, sizeof(int));
     double *solution = calloc(num_var, sizeof(double));
+    double *cur_solution = calloc(num_var, sizeof(double));
+    int incumbent_value = INT_MAX;
+
+    double *tmp_pointer;
+
 
     for (int i = 0; i < instance->nnode; i++) {
         for (int j = i + 1; j < instance->nnode; j++) {
@@ -44,9 +48,9 @@ void GRASP(Tsp_prob *instance) {
 
     while (cur_iteration < iteration_count) {
 
-        grasp_randomized_construction(instance, solution, edge_cost);
+        grasp_randomized_construction(instance, cur_solution, edge_cost);
 
-        grasp_local_search(instance, solution, instance->time_limit, 0, x_pos_grasp);
+        int cur_sol_value = grasp_local_search(instance, cur_solution, edge_cost);
 
         /*if (cur_iteration > 1) {
             int selected_sol_pool = (genrand64_int64() / ULLONG_MAX) * (num_pool_element - 1);
@@ -56,13 +60,23 @@ void GRASP(Tsp_prob *instance) {
         /*int selected_alpha = (genrand64_int64() / ULLONG_MAX) * (alpha_list_size - 1);
         double alpha = alpha_list[selected_alpha];*/
 
-        printf("GENSOL %d, %g\n", cur_iteration, grasp_cost_solution(instance, solution));
+        printf("GENSOL %d, %d\n", cur_iteration, cur_sol_value);
+
+        if (cur_sol_value < incumbent_value) {
+            tmp_pointer = solution;
+            solution = cur_solution;
+            cur_solution = tmp_pointer;
+            incumbent_value = cur_sol_value;
+        }
+
         cur_iteration++;
     }
 
+    printf("Heuristic solution value: %d\n", incumbent_value);
     /*free(alpha_list);
    free(avg_incumb_value);*/
     free(edge_cost);
+    free(cur_solution);
     free(solution);
 }
 
@@ -79,7 +93,6 @@ void grasp_randomized_construction(Tsp_prob *instance, double *solution, int *ed
     int start_node = (genrand64_int64() / ULLONG_MAX) * (instance->nnode - 1);
     int cur_node = start_node;
     int n_selected_edge = 0;
-    int incumbent_value = 0;
 
     init_genrand64(time(NULL));
 
@@ -124,7 +137,7 @@ void grasp_randomized_construction(Tsp_prob *instance, double *solution, int *ed
 
         solution[choose_edge] = 1.0;
 
-        incumbent_value += edge_cost[choose_edge];
+        //incumbent_value += edge_cost[choose_edge];
 
         //update_alpha(alpha_list, selected_alpha, incumbent_value, avg_incumb_value);
 
@@ -164,9 +177,16 @@ void grasp_randomized_construction(Tsp_prob *instance, double *solution, int *ed
 
 }
 
-void grasp_local_search(Tsp_prob *instance, double *solution, double time_limit, int method,
-                           int (*var_pos)(int, int, Tsp_prob *)) {
-    //2-opt
+int grasp_local_search(Tsp_prob *instance, double *solution, int *edge_cost) {
+
+    int *node_sequence = calloc(instance->nnode + 1, sizeof(int));
+
+    get_node_path(solution, node_sequence, instance);
+
+    int best_incumbent = two_opt(instance, solution, node_sequence, edge_cost);
+
+    return best_incumbent;
+
 }
 
 void grasp_get_solution_pool(Tsp_prob *instance, double **solution_pool, double time_limit, int method) {

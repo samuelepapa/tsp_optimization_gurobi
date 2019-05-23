@@ -6,9 +6,9 @@
 #define TSP_OPTIMIZATION_GUROBI_TSP_GRASP_H
 
 #include "common.h"
-#include "matheuristic_utils.h"
+#include "meta_heuristic_utils.h"
 #include "utils.h"
 
-void GRASP(Tsp_prob *instance);
+void tsp_grasp_create(Tsp_prob *instance);
 
 #endif //TSP_OPTIMIZATION_GUROBI_TSP_GRASP_H

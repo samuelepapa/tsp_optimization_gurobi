@@ -21,6 +21,7 @@
 #include "tsp_hardfixing.h"
 #include "tsp_local_branching.h"
 #include "tsp_vns.h"
+#include "tsp_grasp.h"
 
 #include "peaceful_queens_optimization.h"
 /**
@@ -165,6 +166,9 @@ void start_selected_model(Tsp_prob *instance) {
             break;
         case 14:
             tsp_vns_create(instance); //variable neighborhood search
+            break;
+        case 15:
+            tsp_grasp_create(instance); //greedy randomized adaptive search procedure
             break;
         default:
             tsp_model_create(instance);
