@@ -309,3 +309,52 @@ three_opt_swap_rnd(Tsp_prob *instance, int *node_sequence, int i, int j, int k, 
         free(tmp);
     }*/
 }
+
+int random_two_opt(Tsp_prob *instance, double *solution, int *node_sequence, int *costs) {
+    int n_node = instance->nnode;
+    int coord1, coord2, coord3, coord4;
+    int *new_sequence_allocation = calloc(n_node + 1, sizeof(int));
+    int *new_node_sequence = new_sequence_allocation;
+    int *cur_sequence_allocation = calloc(n_node + 1, sizeof(int));
+    int *cur_sequence = cur_sequence_allocation;
+
+    get_node_path(solution, cur_sequence, instance);
+    //get_node_path(solution, new_node_sequence, instance);
+    for (int i = 0; i < n_node + 1; i++) {
+        new_node_sequence[i] = cur_sequence[i];
+    }
+    int best_distance = compute_total_distance(instance, cur_sequence);
+    int new_distance = 0;
+
+    //init_genrand64(time(0));
+
+    int i = gen_rand_value(0, n_node - 1);
+    int k = 0;
+    do {
+        k = gen_rand_value(0, n_node - 1);
+    } while (k < i && k > i + 1);
+
+
+    coord1 = x_pos_metaheuristic(cur_sequence[i], cur_sequence[i + 1], instance);
+    coord2 = x_pos_metaheuristic(cur_sequence[k], cur_sequence[k + 1], instance);
+    coord3 = x_pos_metaheuristic(cur_sequence[i], cur_sequence[k], instance);
+    coord4 = x_pos_metaheuristic(cur_sequence[i + 1], cur_sequence[k + 1], instance);
+    new_distance = best_distance -
+                   costs[coord1] -
+                   costs[coord2] +
+                   costs[coord3] +
+                   costs[coord4];
+
+
+    two_opt_swap(cur_sequence, i, k, n_node, new_node_sequence);
+    //copy_node_sequence(cur_sequence, new_node_sequence, n_node + 1);
+    cur_sequence = new_node_sequence;
+    best_distance = new_distance;
+
+    copy_node_sequence(node_sequence, cur_sequence, n_node + 1);
+    //new_solution(instance, node_sequence, solution);
+
+    free(new_sequence_allocation);
+    free(cur_sequence_allocation);
+    return best_distance;
+}

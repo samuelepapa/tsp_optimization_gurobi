@@ -179,6 +179,20 @@ int distance(int i, int j, Tsp_prob *instance) {
     }
 }
 
+int x_pos_tsp(int i, int j, Tsp_prob *instance) {
+    if (i == j) {
+        return -1;
+    }
+    if (i > j) {
+        return x_pos_tsp(j, i, instance);
+    }
+    return i * instance->nnode + j - ((i + 1) * (i + 2)) / 2;
+}
+
+int x_pos_atsp(int i, int j, Tsp_prob *instance) {
+    return instance->nnode * i + j;
+}
+
 int map_model_type(char *optarg) {
 
     DEBUG_PRINT(("options: %s", optarg));
@@ -245,6 +259,10 @@ int map_model_type(char *optarg) {
     if (strncmp(optarg, "grasp", 5) == 0) {
         return 15;
     }
+
+    if (strncmp(optarg, "sa", 2) == 0) {
+        return 16;
+    }
 }
 
 void inverse_map_model_type(int model_type, char *target_string) {
@@ -257,7 +275,7 @@ void inverse_map_model_type(int model_type, char *target_string) {
             strcpy(target_string, "mtz");
             break;
         case 2:
-            strcpy(target_string, "badcompact");
+            strcpy(target_string, "bad compact");
             break;
         case 3:
             strcpy(target_string, "flow1");
@@ -284,13 +302,13 @@ void inverse_map_model_type(int model_type, char *target_string) {
             strcpy(target_string, "lazycall");
             break;
         case 11:
-            strcpy(target_string, "hardfixing");
+            strcpy(target_string, "hard fixing");
             break;
         case 12:
             strcpy(target_string, "usercall");
             break;
         case 13:
-            strcpy(target_string, "localbranching");
+            strcpy(target_string, "local branching");
             break;
         case 14:
             strcpy(target_string, "vns");
@@ -298,6 +316,8 @@ void inverse_map_model_type(int model_type, char *target_string) {
         case 15:
             strcpy(target_string, "grasp");
             break;
+        case 16:
+            strcpy(target_string, "simulated anneling");
         default:
             strcpy(target_string, "not a model");
     }

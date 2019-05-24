@@ -22,6 +22,7 @@
 #include "tsp_local_branching.h"
 #include "tsp_vns.h"
 #include "tsp_grasp.h"
+#include "tsp_simulated_annealing.h"
 
 #include "peaceful_queens_optimization.h"
 /**
@@ -169,6 +170,9 @@ void start_selected_model(Tsp_prob *instance) {
             break;
         case 15:
             tsp_grasp_create(instance); //greedy randomized adaptive search procedure
+            break;
+        case 16:
+            tsp_simulated_annealing_create(instance);
             break;
         default:
             tsp_model_create(instance);

@@ -21,7 +21,7 @@ void tsp_vns_create(Tsp_prob *instance) {
 
     double *incumbent_solution = calloc(n_edge, sizeof(double));
     double *cur_solution = calloc(n_edge, sizeof(double));
-    double *local_best_solution = calloc(n_edge, sizeof(double));
+    //double *local_best_solution = calloc(n_edge, sizeof(double));
     int *alloc_node_sequence = calloc(n_node + 1, sizeof(int));
     int *node_sequence = alloc_node_sequence;
 

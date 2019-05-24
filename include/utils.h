@@ -19,27 +19,26 @@
 int distance(int i, int j, Tsp_prob *instance);
 
 /**
- * Free memory to avoid leaks, assumes instance is initialized as variable, not dinamically allocated
+ * Mapping between points of an edge and position in memory for symmetric TSP
+ * @param i First point
+ * @param j Second point
  * @param instance The pointer to the problem instance
+ * @return The memory position
  */
-void close_instance(Tsp_prob *instance);
+int x_pos_tsp(int i, int j, Tsp_prob *instance);
+
 
 /**
- * Print the error message associated by error integer value and free the gurobi model and the gurobi environment
- * @param env The pointer to the gurobi environment
- * @param model The pointer to the gurobi model
- * @param error Integer error value returned by the gurobi methods
+ * Mapping between points of an edge and position in memory for asymmetric TSP
+ * @param i First point
+ * @param j Second point
+ * @param instance The pointer to the problem instance
+ * @return The memory position
  */
-void quit_on_GRB_error(GRBenv *env, GRBmodel *model, int error);
-
-/**
- * Free the gurobi model and the gurobi environment
- * @param env The pointer to the gurobi environment
- * @param model The pointer to the gurobi model
- */
-void free_gurobi(GRBenv *env, GRBmodel *model);
+int x_pos_atsp(int i, int j, Tsp_prob *instance);
 
 void inverse_map_model_type (int model_type, char *target_string);
+
 /**
  * Map model type string value in integer value
  * @param optarg Pointer to the value associated to -m value in input
@@ -52,7 +51,6 @@ void inverse_map_model_type (int model_type, char *target_string);
  */
 int map_model_type (char *optarg);
 
-void close_trial(Trial *trial_inst);
 
 /**
  * Find connected components returned by the MIP solver
@@ -88,6 +86,27 @@ void set_time_limit(GRBmodel *model, Tsp_prob *instance);
 int gen_rand_value(int min, int max);
 
 /**
+ * Free memory to avoid leaks, assumes instance is initialized as variable, not dinamically allocated
+ * @param instance The pointer to the problem instance
+ */
+void close_instance(Tsp_prob *instance);
+
+/**
+ * Print the error message associated by error integer value and free the gurobi model and the gurobi environment
+ * @param env The pointer to the gurobi environment
+ * @param model The pointer to the gurobi model
+ * @param error Integer error value returned by the gurobi methods
+ */
+void quit_on_GRB_error(GRBenv *env, GRBmodel *model, int error);
+
+/**
+ * Free the gurobi model and the gurobi environment
+ * @param env The pointer to the gurobi environment
+ * @param model The pointer to the gurobi model
+ */
+void free_gurobi(GRBenv *env, GRBmodel *model);
+
+/**
  * Free memory allocated to connected component elements
  * @param comp The pointer to the connected component structure
  */
@@ -99,5 +118,6 @@ void free_comp_struc(Connected_comp *comp);
  */
 void free_graph(Graph *graph);
 
+void close_trial(Trial *trial_inst);
 
 #endif //TSP_OPTIMIZATION_GUROBI_UTILS_H

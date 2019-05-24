@@ -21,8 +21,6 @@ int grasp_local_search(Tsp_prob *instance, double *solution, edge_data *edge);
 
 int x_pos_grasp(int i, int j, Tsp_prob *instance);
 
-double prob_in_range(double min, double max);
-
 double grasp_cost_solution(Tsp_prob *instance, double *solution);
 
 void tsp_grasp_create(Tsp_prob *instance) {
@@ -152,7 +150,7 @@ void grasp_randomized_construction(Tsp_prob *instance, double *solution, edge_da
             }
         }
 
-        double alpha = genrand64_real3();//prob_in_range(0.5, 0.9);
+        double alpha = genrand64_real1();//prob_in_range(0.5, 0.9);
 
         double threshold = c_min + alpha * (c_max - c_min);
 
@@ -241,19 +239,6 @@ int x_pos_grasp(int i, int j, Tsp_prob *instance) {
     }
     return i * instance->nnode + j - ((i + 1) * (i + 2)) / 2;
 }
-
-double prob_in_range(double min, double max) {
-
-    double p_value;
-
-    do {
-        p_value = genrand64_real1();
-
-    } while(p_value < min || p_value > max);
-
-    return p_value;
-}
-
 
 double grasp_cost_solution(Tsp_prob *instance, double *solution) {
     double cost = 0;
