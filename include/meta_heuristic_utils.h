@@ -16,6 +16,8 @@ void kick(Tsp_prob *instance, double *solution, int n_node, double *input_soluti
 
 void new_solution(Tsp_prob *instance, int *input_sequence, double *output_solution);
 
-int random_two_opt(Tsp_prob *instance, double *solution, int *node_sequence, int *costs);
+void copy_node_sequence(int *to_node_sequence, int *from_node_sequence, int n_node);
+
+void two_opt_swap(int *node_sequence, int i, int k, int n_node, int *new_node_sequence);
 
 #endif //TSP_OPTIMIZATION_GUROBI_META_HEURISTIC_UTILS_H
