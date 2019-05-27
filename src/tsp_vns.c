@@ -1,7 +1,10 @@
 #include "tsp_vns.h"
 
+
 void tsp_vns_create(Tsp_prob *instance) {
-    srand((unsigned) time(NULL));
+    unsigned long long int seed = (unsigned long long int) time(NULL);
+    init_genrand64(seed);
+
     struct timespec start, cur;
     double time_elapsed = 0;
     //TODO CALCULATE COSTS ARRAY
@@ -20,14 +23,18 @@ void tsp_vns_create(Tsp_prob *instance) {
     clock_gettime(CLOCK_MONOTONIC, &start);
 
     double *incumbent_solution = calloc(n_edge, sizeof(double));
-    double *cur_solution = calloc(n_edge, sizeof(double));
-    double *local_best_solution = calloc(n_edge, sizeof(double));
+
     int *alloc_node_sequence = calloc(n_node + 1, sizeof(int));
+    int *incumbent_node_sequence = calloc(n_node + 1, sizeof(int));
     int *node_sequence = alloc_node_sequence;
 
     get_initial_heuristic_sol(instance, incumbent_solution, x_pos_metaheuristic);
 
-    int best_value = two_opt(instance, incumbent_solution, node_sequence, costs);
+    get_node_path(incumbent_solution, node_sequence, instance);
+
+    int best_value = two_opt_f(instance, node_sequence, costs);
+
+    copy_node_sequence(incumbent_node_sequence, node_sequence, n_node);
 
     int delta;
 
@@ -35,22 +42,24 @@ void tsp_vns_create(Tsp_prob *instance) {
 
     double kick_number = 1;
     int drag = 5;
-    int max_kick_number = 5;
+    int max_kick_number = 3;
     int new_value = 0;
 
     do {
         //Shaking
         for (int i = 0; i < (int) kick_number; i++) {
-            kick(instance, cur_solution, n_node, incumbent_solution);
+            //kick(instance, node_sequence, n_node, incumbent_node_sequence);
+            double_bridge_kick(instance, node_sequence, n_node, incumbent_node_sequence);
         }
 
-        new_value = two_opt(instance, cur_solution, node_sequence, costs);
+        new_value = two_opt_f(instance, node_sequence, costs);
 
         printf("HEURSOL %d, %d\n", iteration_count, new_value);
 
         if (new_value < best_value) {
             best_value = new_value;
-            new_solution(instance, node_sequence, incumbent_solution);
+            //new_solution(instance, node_sequence, incumbent_solution);
+            copy_node_sequence(incumbent_node_sequence, node_sequence, n_node);
             printf("Incumbent updated, iteration: %d \n", iteration_count);
             kick_number = 1;
         } else if (kick_number == max_kick_number) {

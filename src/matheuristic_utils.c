@@ -399,23 +399,23 @@ void extra_mileage_initial_heuristic_solution(int first_node, int second_node, d
     }
     int n_edges = (n_node * (n_node - 1)) / 2;
     //array of costs, speeds up calculations
-    double costs[n_edges];
+    double *costs = calloc(n_edges, sizeof(double));
     //Current cycle being processed
-    int cur_cycle[n_node];
+    int *cur_cycle = calloc(n_node, sizeof(double));
     //Next cycle being built
-    int next_cycle[n_node];
+    int *next_cycle = calloc(n_node, sizeof(double));
     //current number of nodes in the cycle
     int cur_nodes;
     //number of nodes in the new cycle being built
     int next_nodes;
 
     //bitmap of in_cycle nodes
-    char in_cycle[n_node];
+    char *in_cycle = calloc(n_node, sizeof(double));
 
     //number of nodes to_index consider for selection: the first one is selected with probability p_grasp, the other with (1-p_grasp)/3
     int grasped_nodes = 4;
     //list of grasped nodes
-    int min_list[grasped_nodes];
+    int *min_list = calloc(grasped_nodes, sizeof(double));
     int nodes_left;
 
     for (int i = 0; i < n_node; i++) {
@@ -439,7 +439,7 @@ void extra_mileage_initial_heuristic_solution(int first_node, int second_node, d
     int pos;
 
     //find the smallest extra-mileage amongst arcs
-    char cur_cycle_replaced[n_node];
+    char *cur_cycle_replaced = calloc(n_node, sizeof(double));
     cur_cycle_replaced[0] = cur_cycle_replaced[1] = 0;
     int left_to_replace = 2;
     double min_cost = INFINITY;

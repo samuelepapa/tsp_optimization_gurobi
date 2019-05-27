@@ -1,7 +1,7 @@
 #include "tsp_mtz.h"
 
 
-#define LAZY_LEVEL 1
+#define LAZY_LEVEL 2
 /*LAZY_LEVEL
  * With a value of 1, the constraint can be used to cut off a feasible solution, but it won’t necessarily be pulled in if another lazy constraint also cuts off the solution.
  * With a value of 2, all lazy constraints that are violated by a feasible solution will be pulled into the model.
