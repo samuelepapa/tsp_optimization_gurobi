@@ -249,7 +249,7 @@ void two_opt_swap(int *node_sequence, int i, int k, int n_node, int *new_node_se
 
 void copy_node_sequence(int *to_node_sequence, int *from_node_sequence, int n_node) {
 
-    for (int i = 0; i < n_node; i++) {
+    for (int i = 0; i <= n_node; i++) {
         //printf("NODE: %d, %d\n", i, from_node_sequence[i]);
         to_node_sequence[i] = from_node_sequence[i];
     }
@@ -327,6 +327,7 @@ void new_solution(Tsp_prob *instance, int *input_sequence, double *output_soluti
 
 
     for (int i = 0; i < n_node; i++) {
+        //printf("cur: %d %d\n",input_sequence[i], input_sequence[i+1] );
         int pos = x_pos_metaheuristic(input_sequence[i], input_sequence[i + 1], instance);
         output_solution[pos] = 1;
     }

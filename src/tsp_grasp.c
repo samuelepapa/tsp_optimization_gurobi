@@ -24,6 +24,11 @@ int x_pos_grasp(int i, int j, Tsp_prob *instance);
 double grasp_cost_solution(Tsp_prob *instance, double *solution);
 
 void tsp_grasp_create(Tsp_prob *instance) {
+    unsigned long long int seed = (unsigned long long int) time(NULL);
+    init_genrand64(seed);
+    struct timespec start, cur;
+    double time_elapsed = 0;
+    clock_gettime(CLOCK_MONOTONIC, &start);
     //the time limit is interpreted as an iteration count in tsp_grasp_create
     int iteration_count = (int) (instance->time_limit);
     int cur_iteration = 0;
@@ -57,7 +62,9 @@ void tsp_grasp_create(Tsp_prob *instance) {
         alpha_list[i] = 1.0 / alpha_list_size;
     }*/
 
-    while (cur_iteration < iteration_count) {
+
+    clock_gettime(CLOCK_MONOTONIC, &cur);
+    while (cur.tv_sec - start.tv_sec < iteration_count) {
 
         grasp_randomized_construction(instance, cur_solution, &edge);
 
@@ -71,7 +78,7 @@ void tsp_grasp_create(Tsp_prob *instance) {
         /*int selected_alpha = (genrand64_int64() / ULLONG_MAX) * (alpha_list_size - 1);
         double alpha = alpha_list[selected_alpha];*/
 
-        printf("GENSOL %d, %d\n", cur_iteration, cur_sol_value);
+        printf("HEURSOL %d, %d\n", cur_iteration, cur_sol_value);
 
         if (cur_sol_value < incumbent_value) {
             tmp_pointer = solution;
@@ -81,6 +88,7 @@ void tsp_grasp_create(Tsp_prob *instance) {
         }
 
         cur_iteration++;
+        clock_gettime(CLOCK_MONOTONIC, &cur);
     }
 
     printf("Heuristic solution value: %d\n", incumbent_value);
@@ -106,8 +114,6 @@ void grasp_randomized_construction(Tsp_prob *instance, double *solution, edge_da
     int c_max;
     int pos;
     int l;
-
-    init_genrand64(time(0));
 
     int start_node = floor(genrand64_real1() * (instance->nnode - 1));
     int cur_node = start_node;

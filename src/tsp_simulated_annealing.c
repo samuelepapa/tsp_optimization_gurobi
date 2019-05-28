@@ -12,7 +12,8 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
     double *best_solution = calloc(n_edge, sizeof(double));
     double *incumbent_solution = calloc(n_edge, sizeof(double));
     int *incumbent_node_sequence = calloc(n_node, sizeof(int));
-    int *cur_node_sequence = calloc(n_node + 1, sizeof(int));
+    int *cur_node_sequence_alloc = calloc(n_node + 1, sizeof(int));
+    int *cur_node_sequence = cur_node_sequence_alloc;
     int *edge_cost = calloc(n_edge, sizeof(int));
 
     int mean_edge_cost = 0;
@@ -42,21 +43,23 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
 
     mean_edge_cost = mean_edge_cost / n_edge;
 
-    double T = 100000;
+    //double T = 100000;
     //double T = mean_edge_cost;
+    double T = -1 * (0.001 / log(0.05)) * best_value;
 
     //double T = (0.15 / (-1.0 * log(0.30))) * incumbent_value;
-    double n = n_node;
+    double n = 10 * n_node;
     double rho = 1.0; //genrand64_real1() + 1;
     double delta = 0;
     double beta = prob_in_range(0.8, 0.99);
-
+    int cur_node = 0;
     do {
 
         for (int j = 0; j < n; j++) {
-            cur_sol_value = random_two_opt(instance, incumbent_solution, cur_node_sequence, edge_cost, j);
+            cur_node = j % n_node;
+            cur_sol_value = random_two_opt(instance, incumbent_solution, cur_node_sequence, edge_cost, cur_node);
 
-            printf("Solution value found: %d\n", cur_sol_value);
+            //printf("Solution value found: %d\n", cur_sol_value);
 
             if (cur_sol_value < incumbent_value) {
                 incumbent_value = cur_sol_value;
@@ -69,16 +72,21 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
                 }
             } else {
                 delta = incumbent_value - cur_sol_value;
+                //printf("exp: %g, delta: %g\n", exp(delta / T), delta);
                 if (exp(delta / T) > genrand64_real3()) {
                     copy_node_sequence(incumbent_node_sequence, cur_node_sequence, n_node);
                     new_solution(instance, incumbent_node_sequence, incumbent_solution);
+                    incumbent_value = cur_sol_value;
+                    printf("Updated despite %g, %d\n", delta, incumbent_value);
                 }
             }
         }
 
+        printf("HEURSOL %d\n", incumbent_value);
+
         T = beta * T;
 
-    } while (T > 1e-4);
+    } while (exp(delta / T) > 1e-11);
 
     printf("Best heuristic solution value: %d\n", best_value);
 
@@ -87,7 +95,7 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
     free(incumbent_solution);
     free(incumbent_node_sequence);
     free(best_solution);
-    free(cur_node_sequence);
+    //free(cur_node_sequence_alloc);
     free(edge_cost);
 }
 
@@ -98,7 +106,7 @@ double prob_in_range(double min, double max) {
     do {
         p_value = genrand64_real1();
 
-    } while(p_value < min || p_value > max);
+    } while (p_value < min || p_value > max);
 
     return p_value;
 }
@@ -113,9 +121,9 @@ int random_two_opt(Tsp_prob *instance, double *solution, int *node_sequence, int
 
     get_node_path(solution, cur_sequence, instance);
     //get_node_path(solution, new_node_sequence, instance);
-    for (int i = 0; i < n_node + 1; i++) {
-        new_node_sequence[i] = cur_sequence[i];
-    }
+    /* for (int i = 0; i < n_node + 1; i++) {costs
+         new_node_sequence[i] = cur_sequence[i];
+     }*/
     int best_distance = compute_total_distance(instance, cur_sequence);
     int new_distance = 0;
 
@@ -123,9 +131,14 @@ int random_two_opt(Tsp_prob *instance, double *solution, int *node_sequence, int
     //int node = floor(genrand64_real1() * (n_node - 1));
     int node_2 = 0;
     while (1) {
-        node_2 = floor(genrand64_real1() * (n_node - 1));
-
-        if (node_2 != node) {
+        node_2 = floor(genrand64_real3() * (n_node));
+        if (node == 0 && node_2 >= 2 && node_2 <= n_node - 2) {
+            break;
+        }
+        if (node == n_node - 1 && node_2 >= 1 && node_2 <= n_node - 3) {
+            break;
+        }
+        if (node_2 != node && node_2 != node - 1 && node_2 != node + 1) {
             break;
         }
     }
@@ -152,10 +165,9 @@ int random_two_opt(Tsp_prob *instance, double *solution, int *node_sequence, int
 
     two_opt_swap(cur_sequence, i, k, n_node, new_node_sequence);
     //copy_node_sequence(cur_sequence, new_node_sequence, n_node + 1);
-    cur_sequence = new_node_sequence;
     best_distance = new_distance;
 
-    copy_node_sequence(node_sequence, cur_sequence, n_node + 1);
+    copy_node_sequence(node_sequence, new_node_sequence, n_node);
     //new_solution(instance, node_sequence, solution);
 
     free(new_sequence_allocation);
