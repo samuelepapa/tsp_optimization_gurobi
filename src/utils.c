@@ -210,7 +210,7 @@ double standard_deviation(int *std_value, int num_std_value) {
         sum_of_pow += diff;
     }
 
-    return sqrt(sum_of_pow / num_std_value);
+    return sqrt(sum_of_pow / (num_std_value - 1));
 }
 
 int map_model_type(char *optarg) {

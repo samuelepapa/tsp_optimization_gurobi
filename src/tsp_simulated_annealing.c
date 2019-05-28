@@ -113,11 +113,10 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
 
         T = T / (1 + (log(1 + sigma) * T) / (3 * std_dev));
 
-        /*if (acceptance_ratio < 0.02 && exp(delta / T) < 1e-11) {
+        /*if (exp(delta / T) < 1e-11) {
             printf("Temperature changed.\n");
             T = -1 * (0.15 / log(0.30)) * best_value;
         }*/
-
         //T = beta * T;
     } while(n_not_update_sol != 5 && acceptance_ratio >= 0.02); //while (exp(delta / T) > 1e-11);
 
