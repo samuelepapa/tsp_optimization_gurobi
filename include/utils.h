@@ -37,6 +37,15 @@ int x_pos_tsp(int i, int j, Tsp_prob *instance);
  */
 int x_pos_atsp(int i, int j, Tsp_prob *instance);
 
+/**
+ * Return the solution value of the x variables
+ * @param env The pointer to the gurobi environment
+ * @param model The pointer to the gurobi model
+ * @param xpos The memory location of the x variable
+ * @return The value of x after the resolution of the model
+ */
+double get_solution(GRBenv *env, GRBmodel *model, int xpos);
+
 double standard_deviation(int *std_value, int num_std_value);
 
 void inverse_map_model_type (int model_type, char *target_string);

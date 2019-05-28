@@ -8,6 +8,7 @@
 #include "common.h"
 #include "utils.h"
 #include "input_output.h"
+#include "union_find.h"
 
 void tsp_loop_model_create(Tsp_prob *instance);
 

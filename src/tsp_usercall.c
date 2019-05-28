@@ -2,10 +2,7 @@
 // Created by samuele on 06/05/19.
 //
 
-#include "tsp_lazycall.h"
 #include "tsp_usercall.h"
-#include "tsp_hardfixing.h"
-#include "concorde.h"
 
 
 #define TOLERANCE 10E-4

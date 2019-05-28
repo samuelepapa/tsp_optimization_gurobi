@@ -4,6 +4,7 @@
 #include "tsp_loop.h"
 
 #define MAX_VARNAME_SIZE 100
+#define CON_COMP_FINDER 1 //1, iterative mode. 2, union-find mode
 #define LAZY_LEVEL 2
 /*LAZY_LEVEL
  * With a value of 1, the constraint can be used to cut off a feasible solution, but it won’t necessarily be pulled in if another lazy constraint also cuts off the solution.
@@ -19,6 +20,8 @@
  * @param iteration Index of the added constraints
  */
 void add_sec_constraints(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_comp *comp, int iteration);
+
+void add_sec_from_u_f(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_component *conn_comps, int n_comps);
 
 void tsp_loop_model_generate(Tsp_prob *instance) {
     GRBenv *env = instance->env;
@@ -125,15 +128,40 @@ void tsp_loop_model_run(Tsp_prob *instance) {
     int n_node = instance->nnode;
 
     //Used for connected components using the iterative method
-    Connected_comp comp = {.comps = calloc(n_node, sizeof(int)),
+    /*Connected_comp comp = {.comps = calloc(n_node, sizeof(int)),
             .number_of_comps = 0,
             .number_of_items = calloc(n_node, sizeof(int)),
-            .list_of_comps = NULL/*,
-                           .visit_flag = calloc(n_node, sizeof(int))*/
-    };
+            .list_of_comps = NULL*//*,
+            .visit_flag = calloc(n_node, sizeof(int))*/
+    //};
+    Connected_comp comp = {0};
+
+    Connected_component con_comp = {0};
+    Graph *graph = NULL;
+
+    switch (CON_COMP_FINDER) {
+        case 1: {
+            comp.comps = calloc(n_node, sizeof(int));
+            comp.number_of_comps = 0;
+            comp.number_of_items = calloc(n_node, sizeof(int));
+            comp.list_of_comps = NULL;
+            break;
+        }
+
+        case 2: {
+            con_comp.parent = calloc(n_node, sizeof(int));
+            con_comp.rank = calloc(n_node, sizeof(int));
+            con_comp.size = calloc(n_node, sizeof(int));
+            graph = malloc(sizeof(Graph));
+            create_graph_u_f(instance, graph);
+            break;
+        }
+    }
 
     int done = 0;
     double solution;
+    int n_variables = (n_node * (n_node - 1)) / 2;
+    double *sol = calloc(n_variables, sizeof(double));
     /*
      * Add SEC constraints and cycle
      */
@@ -152,6 +180,8 @@ void tsp_loop_model_run(Tsp_prob *instance) {
     int fast_phase = 1;
 
     int status_code = 0;
+
+    int number_of_components = 0;
 
     int current_iteration = 0;
     error = GRBsetdblparam(GRBgetenv(loop_model), GRB_DBL_PAR_TIMELIMIT, time_limit);
@@ -194,9 +224,24 @@ void tsp_loop_model_run(Tsp_prob *instance) {
         plot_solution(instance, loop_model, env, &xpos_loop);
 
         //Find the connected components
-        find_connected_comps(env, loop_model, instance, &comp, &xpos_loop);
+        switch (CON_COMP_FINDER) {
+            case 1: {
+                find_connected_comps(env, loop_model, instance, &comp, &xpos_loop);
+                number_of_components = comp.number_of_comps;
+                break;
+            }
 
-        DEBUG_PRINT(("Found %d connected components\n", comp.number_of_comps));
+            case 2: {
+                for (int i = 0; i < n_variables; i++) {
+                    sol[i] = get_solution(env, loop_model, i);
+                }
+                number_of_components = union_find(graph, sol, xpos_loop, instance, &con_comp);
+                break;
+            }
+        }
+
+
+        DEBUG_PRINT(("Found %d connected components\n", number_of_components));
 
         //I have stopped because of the limit imposed, so increment the counter, I do this because I suspect that
         //the more I go on, the more I will need to wait before I find an integer solution which is better than the
@@ -234,8 +279,19 @@ void tsp_loop_model_run(Tsp_prob *instance) {
         }
 
         //I have found connected components, add sec
-        if (comp.number_of_comps >= 2) {
-            add_sec_constraints(env, loop_model, instance, &comp, current_iteration);
+        if (number_of_components >= 2) {
+            switch (CON_COMP_FINDER) {
+                case 1: {
+                    add_sec_constraints(env, loop_model, instance, &comp, current_iteration);
+                    break;
+                }
+
+                case 2: {
+                    add_sec_from_u_f(env, loop_model, instance, &con_comp, number_of_components);
+                    break;
+                }
+            }
+
         } else if (status_code == GRB_TIME_LIMIT) {
             //I have reached the node limit in this iteration but only 1 connected component.
             //Let it run again with no limit
@@ -275,7 +331,20 @@ void tsp_loop_model_run(Tsp_prob *instance) {
         }
     }
 
-    free_comp_struc(&comp);
+    switch (CON_COMP_FINDER) {
+        case 1: {
+            free_comp_struc(&comp);
+            break;
+        }
+        case 2: {
+            free_comp(&con_comp);
+            free_graph(graph);
+            break;
+        }
+    }
+
+    free(sol);
+
 }
 
 void tsp_loop_model_create(Tsp_prob *instance){
@@ -342,4 +411,61 @@ void add_sec_constraints(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Conne
     }
 
     free(constr_name);
+}
+
+void add_sec_from_u_f(GRBenv *env, GRBmodel *model, Tsp_prob *instance, Connected_component *conn_comps, int n_comps) {
+    int error;
+    //int nnz = 0; //number of non-zero value
+    double rhs;
+    int nnz;
+    int nnode = instance->nnode;
+    //int num_constr_name = 0;
+    int *root_cc = calloc(n_comps, sizeof(int));
+
+    get_root(root_cc, n_comps, conn_comps, nnode);
+
+    char *constr_name = (char *) calloc(100, sizeof(char));
+
+    for (int c = 0; c < n_comps; c++) {
+        int selected_comp = root_cc[c];
+        int n_item = conn_comps->size[selected_comp];
+
+        int tot_item = (n_item * (n_item - 1)) / 2;
+
+        rhs = n_item - 1;
+
+        int *constr_index = malloc(sizeof(int) * tot_item);
+        double *constr_value = malloc(sizeof(double) * tot_item);
+
+        nnz = 0;
+
+        for (int i = 0; i < nnode; i++) {
+            int i_parent = find(conn_comps, i);
+            if (i_parent != selected_comp) {
+                continue;
+            }
+
+            for (int j = i + 1; j < nnode; j++) {
+                int j_parent = find(conn_comps, j);
+                if (j_parent == i_parent) {
+                    constr_index[nnz] = xpos_loop(i, j, instance);
+                    constr_value[nnz] = 1.0;
+                    nnz++;
+                }
+            }
+        }
+
+        sprintf(constr_name, "add_constr_subtour_%d", selected_comp);
+        error = GRBaddconstr(model, nnz, constr_index, constr_value, GRB_LESS_EQUAL, rhs, constr_name);
+        if (error) {
+            printf("Error on cblazy adding lazy constraints, code: %d \n", error);
+        }
+        quit_on_GRB_error(env, model, error);
+
+        free(constr_index);
+        free(constr_value);
+    }
+
+    free(constr_name);
+    free(root_cc);
 }

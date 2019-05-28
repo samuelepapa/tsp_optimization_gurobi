@@ -14,15 +14,6 @@
 int has_component(Connected_comp *comp, int curr_comp, int num_comp);
 
 /**
- * Return the solution value of the x variables
- * @param env The pointer to the gurobi environment
- * @param model The pointer to the gurobi model
- * @param xpos The memory location of the x variable
- * @return The value of x after the resolution of the model
- */
-double get_solution(GRBenv *env, GRBmodel *model, int xpos);
-
-/**
  * Print the error message associated by error integer value and free the gurobi model and the gurobi environment
  * @param env The pointer to the gurobi environment
  * @param model The pointer to the gurobi model

@@ -9,6 +9,9 @@
 #include "utils.h"
 #include "input_output.h"
 #include "union_find.h"
+#include "tsp_lazycall.h"
+#include "tsp_hardfixing.h"
+#include "concorde.h"
 
 void tsp_usercall_model_generate(Tsp_prob *instance);
 
