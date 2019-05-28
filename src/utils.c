@@ -193,6 +193,26 @@ int x_pos_atsp(int i, int j, Tsp_prob *instance) {
     return instance->nnode * i + j;
 }
 
+double standard_deviation(int *std_value, int num_std_value) {
+    int sum = 0;
+
+    for (int i = 0; i < num_std_value; i++) {
+        sum += std_value[i];
+    }
+
+    double mean = (1.0 * sum) / num_std_value;
+
+    double sum_of_pow = 0;
+    double diff = 0;
+
+    for (int j = 0; j < num_std_value; ++j) {
+        diff = (std_value[j] - mean) * (std_value[j] - mean);
+        sum_of_pow += diff;
+    }
+
+    return sqrt(sum_of_pow / num_std_value);
+}
+
 int map_model_type(char *optarg) {
 
     DEBUG_PRINT(("options: %s", optarg));

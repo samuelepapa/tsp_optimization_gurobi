@@ -3,8 +3,6 @@
 
 int x_pos_metaheuristic(int i, int j, Tsp_prob *instance);
 
-void two_opt_swap(int *node_sequence, int i, int k, int n_node, int *new_node_sequence);
-
 void
 three_opt_swap_rnd(Tsp_prob *instance, int *node_sequence, int i, int j, int k, int n_node, int *new_node_sequence);
 

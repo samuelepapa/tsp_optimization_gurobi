@@ -16,14 +16,11 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
     int *cur_node_sequence = cur_node_sequence_alloc;
     int *edge_cost = calloc(n_edge, sizeof(int));
 
-    int mean_edge_cost = 0;
-
     init_genrand64(time(0));
 
     for (int i = 0; i < n_node; i++) {
         for (int j = i + 1; j < n_node; j++) {
             edge_cost[x_pos_tsp(i, j, instance)] = distance(i, j, instance);
-            mean_edge_cost += edge_cost[x_pos_tsp(i, j, instance)];
         }
     }
 
@@ -41,19 +38,33 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
 
     printf("First solution value: %d\n", incumbent_value);
 
-    mean_edge_cost = mean_edge_cost / n_edge;
+    double T = -1 * (0.15 / log(0.30)) * best_value;
 
-    //double T = 100000;
-    //double T = mean_edge_cost;
-    double T = -1 * (0.001 / log(0.05)) * best_value;
-
-    //double T = (0.15 / (-1.0 * log(0.30))) * incumbent_value;
-    double n = 10 * n_node;
-    double rho = 1.0; //genrand64_real1() + 1;
+    double n = n_node;
+    double rho = prob_in_range(1.0, 5.0);
+    n *= rho;
     double delta = 0;
-    double beta = prob_in_range(0.8, 0.99);
+    //double beta = prob_in_range(0.5, 0.99);
     int cur_node = 0;
+
+    double sigma = prob_in_range(0.01, 0.20);
+    double std_dev;
+    int *std_value = calloc(ceil(n), sizeof(int));
+    int n_std_value;
+    int l;
+
+    double acceptance_ratio;
+    double accept_transition;
+    int total_transition;
+
+    int n_not_update_sol = 0;
+
     do {
+
+        l = 0;
+        n_std_value = 0;
+        accept_transition = 0;
+        total_transition = 0;
 
         for (int j = 0; j < n; j++) {
             cur_node = j % n_node;
@@ -65,6 +76,10 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
                 incumbent_value = cur_sol_value;
                 copy_node_sequence(incumbent_node_sequence, cur_node_sequence, n_node);
                 new_solution(instance, incumbent_node_sequence, incumbent_solution);
+                std_value[l] = incumbent_value;
+                n_std_value++;
+                accept_transition++;
+                n_not_update_sol = 0;
 
                 if (incumbent_value < best_value) {
                     best_value = incumbent_value;
@@ -77,16 +92,34 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
                     copy_node_sequence(incumbent_node_sequence, cur_node_sequence, n_node);
                     new_solution(instance, incumbent_node_sequence, incumbent_solution);
                     incumbent_value = cur_sol_value;
+                    std_value[l] = incumbent_value;
+                    n_std_value++;
+                    accept_transition++;
+                    n_not_update_sol = 0;
                     printf("Updated despite %g, %d\n", delta, incumbent_value);
                 }
             }
+
+            total_transition++;
         }
 
         printf("HEURSOL %d\n", incumbent_value);
 
-        T = beta * T;
+        n_not_update_sol++;
 
-    } while (exp(delta / T) > 1e-11);
+        acceptance_ratio = accept_transition / total_transition;
+
+        std_dev = standard_deviation(std_value, n_std_value);
+
+        T = T / (1 + (log(1 + sigma) * T) / (3 * std_dev));
+
+        /*if (acceptance_ratio < 0.02 && exp(delta / T) < 1e-11) {
+            printf("Temperature changed.\n");
+            T = -1 * (0.15 / log(0.30)) * best_value;
+        }*/
+
+        //T = beta * T;
+    } while(n_not_update_sol != 5 && acceptance_ratio >= 0.02); //while (exp(delta / T) > 1e-11);
 
     printf("Best heuristic solution value: %d\n", best_value);
 
@@ -95,20 +128,14 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
     free(incumbent_solution);
     free(incumbent_node_sequence);
     free(best_solution);
+    free(std_value);
     //free(cur_node_sequence_alloc);
     free(edge_cost);
 }
 
 double prob_in_range(double min, double max) {
 
-    double p_value;
-
-    do {
-        p_value = genrand64_real1();
-
-    } while (p_value < min || p_value > max);
-
-    return p_value;
+    return  min + genrand64_real1() * (max - min);
 }
 
 int random_two_opt(Tsp_prob *instance, double *solution, int *node_sequence, int *costs, int node) {

@@ -37,6 +37,8 @@ int x_pos_tsp(int i, int j, Tsp_prob *instance);
  */
 int x_pos_atsp(int i, int j, Tsp_prob *instance);
 
+double standard_deviation(int *std_value, int num_std_value);
+
 void inverse_map_model_type (int model_type, char *target_string);
 
 /**
