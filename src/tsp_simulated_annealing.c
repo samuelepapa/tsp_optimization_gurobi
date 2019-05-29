@@ -40,14 +40,13 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
 
     double T = -1 * (0.15 / log(0.30)) * best_value;
 
-    double n = n_node;
-    double rho = prob_in_range(1.0, 5.0);
-    n *= rho;
+    double rho = 5.0; //prob_in_range(1.0, 5.0);
+    double n = rho * n_node;
     double delta = 0;
     //double beta = prob_in_range(0.5, 0.99);
     int cur_node = 0;
 
-    double sigma = prob_in_range(0.01, 0.20);
+    double sigma = 0.10; //prob_in_range(0.01, 0.20);
     double std_dev;
     int *std_value = calloc(ceil(n), sizeof(int));
     int n_std_value;
@@ -58,6 +57,10 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
     int total_transition;
 
     int n_not_update_sol = 0;
+
+    int max_not_update = 2 * n;
+
+    int temperature_reduction = 0;
 
     do {
 
@@ -77,6 +80,7 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
                 copy_node_sequence(incumbent_node_sequence, cur_node_sequence, n_node);
                 new_solution(instance, incumbent_node_sequence, incumbent_solution);
                 std_value[l] = incumbent_value;
+                l++;
                 n_std_value++;
                 accept_transition++;
                 n_not_update_sol = 0;
@@ -93,6 +97,7 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
                     new_solution(instance, incumbent_node_sequence, incumbent_solution);
                     incumbent_value = cur_sol_value;
                     std_value[l] = incumbent_value;
+                    l++;
                     n_std_value++;
                     accept_transition++;
                     n_not_update_sol = 0;
@@ -100,6 +105,7 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
                 }
             }
 
+            n_not_update_sol++;
             total_transition++;
         }
 
@@ -113,12 +119,14 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
 
         T = T / (1 + (log(1 + sigma) * T) / (3 * std_dev));
 
+        temperature_reduction++;
+
         /*if (exp(delta / T) < 1e-11) {
             printf("Temperature changed.\n");
             T = -1 * (0.15 / log(0.30)) * best_value;
         }*/
         //T = beta * T;
-    } while(n_not_update_sol != 5 && acceptance_ratio >= 0.02); //while (exp(delta / T) > 1e-11);
+    } while((exp(delta / T) >= 1e-15 || acceptance_ratio >= 0.001 || n_not_update_sol != 10) && n_not_update_sol <= max_not_update); //while (exp(delta / T) > 1e-11);
 
     printf("Best heuristic solution value: %d\n", best_value);
 
