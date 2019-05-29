@@ -26,7 +26,7 @@
 
 **Solver-based methods**. Loop heuristics, cycling through the time to decrease the search of solutions which violate the constraints and how this makes it so useless constraints might be added. Lazy callback, the fact that Gurobi does everything from a single core, the necessity of removing pre-processor (which might affect performance). Usercut callback, the use of the Concorde library and the different formulation of the constraints used here.
 
-**Matheuristics**. Look the the MF^2 paper.
+**Matheuristics**. Look the MF^2 paper.
 
 **Metaheuristics**. Details on how the GRASP was implemented. Some examples of solutions found by pure greedy extra-mileage and pure greedy nearest neighbor. 2-opt implementation details. The choice of a simple data-structure over a more efficient one (cite the fact that there exists, but this report is based on an exploration of the different methods available not on a rigorous analysis and comparison of the best possible method available out there). The difference between using a random 3-opt kick and the double-bridge move to diversify and how effective they are because of the data structure chosen and how big the neighborhood becomes. Variable Neighborhood Search implementation details, the use of drag to let the neightborhood be explored for longer.
 
@@ -47,3 +47,5 @@ Final conclusion on the experience? On the results obtained.
 **Union-Find**. Explanation of the union-find algorithm.
 
 ?????**Iterative method**. Brief explanation of the iterative method for finding connected components.?????
+
+?????**2-opt**. Brief explanation of the 2-opt.?????
