@@ -40,13 +40,13 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
 
     double T = -1 * (0.15 / log(0.30)) * best_value;
 
-    double rho = 5.0; //prob_in_range(1.0, 5.0);
+    double rho = prob_in_range(1.0, 5.0);
     double n = rho * n_node;
     double delta = 0;
     //double beta = prob_in_range(0.5, 0.99);
     int cur_node = 0;
 
-    double sigma = 0.10; //prob_in_range(0.01, 0.20);
+    double sigma = prob_in_range(0.01, 0.20);
     double std_dev;
     int *std_value = calloc(ceil(n), sizeof(int));
     int n_std_value;
