@@ -1,4 +1,5 @@
 ## Report topics
+
 ### Theory
 
 **Description of the report**. A brief introduction.
@@ -18,6 +19,7 @@
 *Construction*. Constructing solutions using nearest-neighbor, extra-mileage. Use of GRASP to add variability to the solution. The need for first-improvement tactic but anticipate the fact that they are extremely inefficient to apply to large isntances.
 
 *Metaheuristics*. Introduction on metaheuristics, diversification and intensification.  GRASP as a metaheuristic. Variable Neighborhood Search general overview of the method and how it was used by us in general terms, use of 2-opt, say that things can be done to make it fast, k-opt neighborhood, the use of a 3-swap kick move, the double-bridge swap move (show the moves). Simulated annealing general description and how we decided to implement it (theoretical description of the implementation).
+
 ### Implementation
 
 **Compact models**. Details on the use of lazy constraints. Effectiveness of flow1. High number of variables and constraints in other formulations. The apparent failure of the ts1, ts2, ts3 formulations.
@@ -38,3 +40,10 @@
 
 ### Conclusions
 Final conclusion on the experience? On the results obtained.
+
+### Appendix
+**Blade**. How to use university cluster Blade.
+
+**Union-Find**. Explanation of the union-find algorithm.
+
+?????**Iterative method**. Brief explanation of the iterative method for finding connected components.?????
