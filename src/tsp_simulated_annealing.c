@@ -58,7 +58,7 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
 
     int n_not_update_sol = 0;
 
-    int max_not_update = 2 * n;
+    int max_not_update = ceil(2 * n);
 
     int temperature_reduction = 0;
 
@@ -88,11 +88,12 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
                 if (incumbent_value < best_value) {
                     best_value = incumbent_value;
                     new_solution(instance, incumbent_node_sequence, best_solution);
+                    printf("New best solution value found.\n");
                 }
             } else {
                 delta = incumbent_value - cur_sol_value;
                 //printf("exp: %g, delta: %g\n", exp(delta / T), delta);
-                if (exp(delta / T) > genrand64_real3()) {
+                if (exp(delta / T) > genrand64_real2()) {
                     copy_node_sequence(incumbent_node_sequence, cur_node_sequence, n_node);
                     new_solution(instance, incumbent_node_sequence, incumbent_solution);
                     incumbent_value = cur_sol_value;
@@ -126,7 +127,7 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
             T = -1 * (0.15 / log(0.30)) * best_value;
         }*/
         //T = beta * T;
-    } while((exp(delta / T) >= 1e-15 || acceptance_ratio >= 0.001 || n_not_update_sol != 10) && n_not_update_sol <= max_not_update); //while (exp(delta / T) > 1e-11);
+    } while(exp(delta / T) >= 1e-15 || acceptance_ratio >= 0.001 || n_not_update_sol <= max_not_update); //while (exp(delta / T) > 1e-11);
 
     printf("Best heuristic solution value: %d\n", best_value);
 
