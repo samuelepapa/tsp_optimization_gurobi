@@ -4,13 +4,13 @@ double prob_in_range(double min, double max);
 
 int random_two_opt(Tsp_prob *instance, double *solution, int *node_sequence, int *costs, int node);
 
-/*int get_neighborhood(Tsp_prob *instance, double *solution, int *node_sequence, int *edge_cost);
+int get_neighborhood(Tsp_prob *instance, double *solution, int *node_sequence, int *edge_cost);
 
 int block_insert(int *node_sequence, int *edge_cost, Tsp_prob *instance, int distance);
 
 int vertex_insert(int *node_sequence, int *edge_cost, Tsp_prob *instance, int distance);
 
-int block_reverse(int *node_sequence, int *edge_cost, Tsp_prob *instance, int distance);*/
+int block_reverse(int *node_sequence, int *edge_cost, Tsp_prob *instance, int distance);
 
 
 void tsp_simulated_annealing_create(Tsp_prob *instance) {
@@ -80,8 +80,8 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
 
         for (int j = 0; j < n; j++) {
             //cur_node = j % n_node;
-            cur_sol_value = random_two_opt(instance, incumbent_solution, cur_node_sequence, edge_cost, cur_node);
-            //cur_sol_value = get_neighborhood(instance, incumbent_solution, cur_node_sequence, edge_cost);
+            //cur_sol_value = random_two_opt(instance, incumbent_solution, cur_node_sequence, edge_cost, cur_node);
+            cur_sol_value = get_neighborhood(instance, incumbent_solution, cur_node_sequence, edge_cost);
 
             //printf("Solution value found: %d\n", cur_sol_value);
 
@@ -221,7 +221,7 @@ int random_two_opt(Tsp_prob *instance, double *solution, int *node_sequence, int
     return best_distance;
 }
 
-/*int get_neighborhood(Tsp_prob *instance, double *solution, int *node_sequence, int *edge_cost) {
+int get_neighborhood(Tsp_prob *instance, double *solution, int *node_sequence, int *edge_cost) {
 
     double p = genrand64_real1();
 
@@ -251,13 +251,11 @@ int block_insert(int *node_sequence, int *edge_cost, Tsp_prob *instance, int dis
 
     int *new_sequence = calloc(n_node + 1, sizeof(int));
 
-    int partition = floor(((1.0 * n_node) / 3));
+    int node_1 = gen_rand_value(0, n_node - 6);
 
-    int node_1 = gen_rand_value(0, partition - 1);
+    int node_2 = gen_rand_value(node_1 + 2, n_node - 4);
 
-    int node_2 = gen_rand_value(partition + 1, 2 * partition - 1);
-
-    int node_3 = gen_rand_value(2 * partition + 1, 3 * partition - 2);
+    int node_3 = gen_rand_value(node_2 + 2, n_node - 2);
 
     int new_distance = distance - edge_cost[x_pos_tsp(node_1, node_1 + 1, instance)] - edge_cost[x_pos_tsp(node_2, node_2 + 1, instance)] - edge_cost[x_pos_tsp(node_3, node_3 + 1, instance)] + edge_cost[x_pos_tsp(node_1, node_2 + 1, instance)] + edge_cost[x_pos_tsp(node_1 + 1, node_3, instance)] + edge_cost[x_pos_tsp(node_2, node_3 + 1, instance)];
 
@@ -292,11 +290,9 @@ int block_insert(int *node_sequence, int *edge_cost, Tsp_prob *instance, int dis
 
 int vertex_insert(int *node_sequence, int *edge_cost, Tsp_prob *instance, int distance) {
 
-    int partition = instance->nnode / 2;
+    int node_1 = gen_rand_value(0, instance->nnode - 3);
 
-    int node_1 = gen_rand_value(0, partition - 1);
-
-    int node_2 = gen_rand_value(partition + 1, instance->nnode - 1);
+    int node_2 = gen_rand_value(node_1 + 2, instance->nnode - 1);
 
     int node_2_value = node_sequence[node_2];
 
@@ -313,11 +309,9 @@ int vertex_insert(int *node_sequence, int *edge_cost, Tsp_prob *instance, int di
 
 int block_reverse(int *node_sequence, int *edge_cost, Tsp_prob *instance, int distance) {
 
-    int partition = instance->nnode / 2;
+    int node_1 = gen_rand_value(0, instance->nnode - 2);
 
-    int node_1 = gen_rand_value(0, partition - 1);
-
-    int node_2 = gen_rand_value(partition + 1, instance->nnode - 1);
+    int node_2 = gen_rand_value(node_1 + 2, instance->nnode - 1);
 
     int new_distance = distance - edge_cost[x_pos_tsp(node_1, node_1 + 1, instance)] - edge_cost[x_pos_tsp(node_2, node_2 + 1, instance)] + edge_cost[x_pos_tsp(node_1, node_2 + 1, instance)] + edge_cost[x_pos_tsp(node_1 + 1, node_2, instance)];
 
@@ -330,4 +324,4 @@ int block_reverse(int *node_sequence, int *edge_cost, Tsp_prob *instance, int di
     }
 
     return new_distance;
-}*/
+}
