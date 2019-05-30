@@ -42,14 +42,14 @@ void tsp_vns_create(Tsp_prob *instance) {
 
     double kick_number = 1;
     int drag = 5;
-    int max_kick_number = 3;
+    int max_kick_number = 30;
     int new_value = 0;
 
     do {
         //Shaking
         for (int i = 0; i < (int) kick_number; i++) {
-            //kick(instance, node_sequence, n_node, incumbent_node_sequence);
-            double_bridge_kick(instance, node_sequence, n_node, incumbent_node_sequence);
+            kick(instance, node_sequence, n_node, incumbent_node_sequence);
+            //double_bridge_kick(instance, node_sequence, n_node, incumbent_node_sequence);
         }
 
         new_value = two_opt_f(instance, node_sequence, costs);

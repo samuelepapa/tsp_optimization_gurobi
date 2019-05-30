@@ -5,7 +5,9 @@ double prob_in_range(double min, double max);
 int random_two_opt(Tsp_prob *instance, double *solution, int *node_sequence, int *costs, int node);
 
 void tsp_simulated_annealing_create(Tsp_prob *instance) {
-
+    struct timespec start, cur;
+    double time_elapsed = 0;
+    clock_gettime(CLOCK_MONOTONIC, &start);
     int n_node = instance->nnode;
     int n_edge = (n_node * (n_node - 1)) / 2;
 
@@ -18,11 +20,13 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
 
     init_genrand64(time(0));
 
+    double avg_edge_cost = 0;
     for (int i = 0; i < n_node; i++) {
         for (int j = i + 1; j < n_node; j++) {
             edge_cost[x_pos_tsp(i, j, instance)] = distance(i, j, instance);
         }
     }
+
 
     int incumbent_value;
     int cur_sol_value;
@@ -33,12 +37,14 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
     get_node_path(incumbent_solution, cur_node_sequence, instance);
 
     best_value = incumbent_value = compute_total_distance(instance, cur_node_sequence);
+    avg_edge_cost = (double) best_value / n_node;
 
     new_solution(instance, cur_node_sequence, best_solution);
 
     printf("First solution value: %d\n", incumbent_value);
 
-    double T = -1 * (0.15 / log(0.30)) * best_value;
+    //double T = -1 * (0.0001 / log(0.01)) * best_value;
+    double T = -1 * (1) / log(0.001) * avg_edge_cost;
 
     double rho = prob_in_range(1.0, 5.0);
     double n = rho * n_node;
@@ -118,16 +124,21 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
 
         std_dev = standard_deviation(std_value, n_std_value);
 
-        T = T / (1 + (log(1 + sigma) * T) / (3 * std_dev));
+        if (exp(delta / T) > 1E-10) {
+            T = T / (1 + (log(1 + sigma) * T) / (3 * std_dev));
+        }
 
         temperature_reduction++;
+
+        clock_gettime(CLOCK_MONOTONIC, &cur);
 
         /*if (exp(delta / T) < 1e-11) {
             printf("Temperature changed.\n");
             T = -1 * (0.15 / log(0.30)) * best_value;
         }*/
         //T = beta * T;
-    } while(exp(delta / T) >= 1e-15 || acceptance_ratio >= 0.001 || n_not_update_sol <= max_not_update); //while (exp(delta / T) > 1e-11);
+    } while (/*exp(delta / T) >= 1e-15 || acceptance_ratio >= 0.001 || n_not_update_sol <= max_not_update*/
+            (cur.tv_sec - start.tv_sec) < instance->time_limit); //while (exp(delta / T) > 1e-11);
 
     printf("Best heuristic solution value: %d\n", best_value);
 
