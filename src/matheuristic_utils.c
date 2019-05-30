@@ -84,7 +84,7 @@ int map_warm_start_type(char *optarg) {
 }
 
 void get_initial_heuristic_sol(Tsp_prob *instance, double *solution, int (*var_pos)(int, int, Tsp_prob *)) {
-    srand(time(NULL));
+    init_genrand64(time(0));
     switch (instance->warm_start) {
         case 0:
             simple_initial_heuristic_solution(instance, solution, var_pos);
@@ -334,7 +334,7 @@ void grasp_initial_heuristic_solution(int start_node, double p_greedy, Tsp_prob 
 
         min_dist = INFINITY;
 
-        double use_greedy = ((double) rand() / (RAND_MAX));
+        double use_greedy = genrand64_real1();
 
         if (use_greedy <= p_greedy || count > n_node - num_selected_node) { //greedy approach
             for (int i = 0; i < n_node; i++) {
@@ -349,10 +349,8 @@ void grasp_initial_heuristic_solution(int start_node, double p_greedy, Tsp_prob 
         } else { //random approach
             get_min_distances(cur_node, cost, not_available_distance, other_node, num_selected_node, visited, next,
                               instance, var_pos);
-            double prob = ((double) (rand() - 1) / RAND_MAX);
-            double gap = 1.0 / num_selected_node;
-            int array_pos = ceil(prob / gap);
-            next_node = other_node[array_pos - 1];
+            int array_pos = gen_rand_value(0, num_selected_node - 1);
+            next_node = other_node[array_pos];
         }
 
         next[cur_node] = next_node;
@@ -531,15 +529,14 @@ void extra_mileage_initial_heuristic_solution(int first_node, int second_node, d
             extra_mileage_get_mins(cur_cycle[from_index], cur_cycle[to_index], costs, min_list, grasped_nodes,
                                    in_cycle, instance, var_pos);
 
-            use_greedy = ((double) rand() / RAND_MAX);
+            use_greedy = genrand64_real1();
             if (nodes_left < (grasped_nodes)) {
                 use_greedy = 0;
             }
             if (use_greedy <= p_grasp) {
                 cur_extra_node = 0;
             } else {//select at random from_index other candidates
-                prob = ((double) (rand() - 1) / RAND_MAX);
-                pos = ceil(prob * (grasped_nodes - 1));
+                pos = gen_rand_value(0, grasped_nodes - 1);
                 cur_extra_node = pos;
             }
             arc0 = var_pos(cur_cycle[from_index], cur_cycle[to_index], instance);

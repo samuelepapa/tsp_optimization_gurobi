@@ -4,6 +4,15 @@ double prob_in_range(double min, double max);
 
 int random_two_opt(Tsp_prob *instance, double *solution, int *node_sequence, int *costs, int node);
 
+int get_neighborhood(Tsp_prob *instance, double *solution, int *node_sequence, int *edge_cost);
+
+int block_insert(int *node_sequence, int *edge_cost, Tsp_prob *instance, int distance);
+
+int vertex_insert(int *node_sequence, int *edge_cost, Tsp_prob *instance, int distance);
+
+int block_reverse(int *node_sequence, int *edge_cost, Tsp_prob *instance, int distance);
+
+
 void tsp_simulated_annealing_create(Tsp_prob *instance) {
     struct timespec start, cur;
     double time_elapsed = 0;
@@ -27,7 +36,6 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
         }
     }
 
-
     int incumbent_value;
     int cur_sol_value;
     int best_value;
@@ -37,7 +45,6 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
     get_node_path(incumbent_solution, cur_node_sequence, instance);
 
     best_value = incumbent_value = compute_total_distance(instance, cur_node_sequence);
-    avg_edge_cost = (double) best_value / n_node;
 
     new_solution(instance, cur_node_sequence, best_solution);
 
@@ -76,8 +83,9 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
         total_transition = 0;
 
         for (int j = 0; j < n; j++) {
-            cur_node = j % n_node;
-            cur_sol_value = random_two_opt(instance, incumbent_solution, cur_node_sequence, edge_cost, cur_node);
+            //cur_node = j % n_node;
+            //cur_sol_value = random_two_opt(instance, incumbent_solution, cur_node_sequence, edge_cost, cur_node);
+            cur_sol_value = get_neighborhood(instance, incumbent_solution, cur_node_sequence, edge_cost);
 
             //printf("Solution value found: %d\n", cur_sol_value);
 
@@ -99,7 +107,7 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
             } else {
                 delta = incumbent_value - cur_sol_value;
                 //printf("exp: %g, delta: %g\n", exp(delta / T), delta);
-                if (exp(delta / T) > genrand64_real2()) {
+                if (exp(delta / T) > genrand64_real1()) {
                     copy_node_sequence(incumbent_node_sequence, cur_node_sequence, n_node);
                     new_solution(instance, incumbent_node_sequence, incumbent_solution);
                     incumbent_value = cur_sol_value;
@@ -124,9 +132,7 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
 
         std_dev = standard_deviation(std_value, n_std_value);
 
-        if (exp(delta / T) > 1E-10) {
-            T = T / (1 + (log(1 + sigma) * T) / (3 * std_dev));
-        }
+        T = T / (1 + (T * log(1 + sigma)) / (3 * std_dev));
 
         temperature_reduction++;
 
@@ -220,4 +226,109 @@ int random_two_opt(Tsp_prob *instance, double *solution, int *node_sequence, int
     free(cur_sequence_allocation);
 
     return best_distance;
+}
+
+int get_neighborhood(Tsp_prob *instance, double *solution, int *node_sequence, int *edge_cost) {
+
+    double p = genrand64_real1();
+
+    int *sol_node_sequence = calloc(instance->nnode + 1, sizeof(int));
+
+    get_node_path(solution, sol_node_sequence, instance);
+
+    int distance = compute_total_distance(instance, sol_node_sequence);
+
+    if (0 <= p < 0.01) {
+        distance = block_insert(node_sequence, edge_cost, instance, distance);
+    }
+
+    if (0.01 <= p < 0.1) {
+        distance = vertex_insert(node_sequence, edge_cost, instance, distance);
+    }
+
+    if (p >= 0.1) {
+        block_reverse(node_sequence, edge_cost, instance, distance);
+    }
+
+    return distance;
+}
+
+int block_insert(int *node_sequence, int *edge_cost, Tsp_prob *instance, int distance) {
+    int n_node = instance->nnode;
+
+    int *new_sequence = calloc(n_node + 1, sizeof(int));
+
+    int node_1 = gen_rand_value(0, n_node - 6);
+
+    int node_2 = gen_rand_value(node_1 + 2, n_node - 4);
+
+    int node_3 = gen_rand_value(node_2 + 2, n_node - 2);
+
+    int new_distance = distance - edge_cost[x_pos_tsp(node_1, node_1 + 1, instance)] - edge_cost[x_pos_tsp(node_2, node_2 + 1, instance)] - edge_cost[x_pos_tsp(node_3, node_3 + 1, instance)] + edge_cost[x_pos_tsp(node_1, node_2 + 1, instance)] + edge_cost[x_pos_tsp(node_1 + 1, node_3, instance)] + edge_cost[x_pos_tsp(node_2, node_3 + 1, instance)];
+
+    int l = 0;
+
+    for (int i = 0; i <= node_1 ; i++) {
+        new_sequence[l] = node_sequence[i];
+        l++;
+    }
+
+    for (int j = 0; j < node_3 - node_2; j++) {
+        new_sequence[l] = node_sequence[node_2 + 1 + j];
+        l++;
+    }
+
+    for (int k = 0; k < node_2 - node_1; k++) {
+        new_sequence[l] = node_sequence[node_1 + 1 + k];
+        l++;
+    }
+
+    for (int m = 0; m <= n_node - node_3; m++) {
+        new_sequence[l] = node_sequence[node_3 + 1 + m];
+        l++;
+    }
+
+    copy_node_sequence(node_sequence, new_sequence, n_node);
+
+    free(new_sequence);
+
+    return new_distance;
+}
+
+int vertex_insert(int *node_sequence, int *edge_cost, Tsp_prob *instance, int distance) {
+
+    int node_1 = gen_rand_value(0, instance->nnode - 3);
+
+    int node_2 = gen_rand_value(node_1 + 2, instance->nnode - 1);
+
+    int node_2_value = node_sequence[node_2];
+
+    int new_distance = distance - edge_cost[x_pos_tsp(node_1, node_1 + 1, instance)] - edge_cost[x_pos_tsp(node_2 - 1, node_2, instance)] - edge_cost[x_pos_tsp(node_2, node_2 + 1, instance)] + edge_cost[x_pos_tsp(node_1, node_2, instance)] + edge_cost[x_pos_tsp(node_2, node_1 + 1, instance)] + edge_cost[x_pos_tsp(node_2 - 1, node_2 + 1, instance)];
+
+    for (int i = node_2; i > node_1 + 1; i--) {
+        node_sequence[i] = node_sequence[i - 1];
+    }
+
+    node_sequence[node_1 + 1] = node_2_value;
+
+    return new_distance;
+}
+
+int block_reverse(int *node_sequence, int *edge_cost, Tsp_prob *instance, int distance) {
+
+    int node_1 = gen_rand_value(0, instance->nnode - 2);
+
+    int node_2 = gen_rand_value(node_1 + 2, instance->nnode - 1);
+
+    int new_distance = distance - edge_cost[x_pos_tsp(node_1, node_1 + 1, instance)] - edge_cost[x_pos_tsp(node_2, node_2 + 1, instance)] + edge_cost[x_pos_tsp(node_1, node_2 + 1, instance)] + edge_cost[x_pos_tsp(node_1 + 1, node_2, instance)];
+
+    int tmp = 0;
+
+    for (int i = 0; i < (node_2 - node_1) / 2; i++) {
+        tmp = node_sequence[node_1 + 1 + i];
+        node_sequence[node_1 + 1 + i] = node_sequence[node_2 - i];
+        node_sequence[node_2 - i] = tmp;
+    }
+
+    return new_distance;
 }

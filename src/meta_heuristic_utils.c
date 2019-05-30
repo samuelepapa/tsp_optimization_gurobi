@@ -287,7 +287,7 @@ void kick(Tsp_prob *instance, int *node_sequence, int n_node, int *incumbent_nod
 
     while (selected_element < 3) {
         select_this = 0;
-        selected_node = ((int) rand() % (n_node));
+        selected_node = (int) (genrand64_int64() % (n_node - 1));
         if (selected_node == (n_node - 1)) {
             if (!not_available[0] && !not_available[n_node - 1] && !not_available[n_node - 2]) {
                 select_this = 1;
