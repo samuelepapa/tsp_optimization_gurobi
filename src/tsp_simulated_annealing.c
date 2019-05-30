@@ -30,11 +30,15 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
     init_genrand64(time(0));
 
     double avg_edge_cost = 0;
+
     for (int i = 0; i < n_node; i++) {
         for (int j = i + 1; j < n_node; j++) {
             edge_cost[x_pos_tsp(i, j, instance)] = distance(i, j, instance);
+            avg_edge_cost += distance(i, j, instance);
         }
     }
+
+    avg_edge_cost = avg_edge_cost / n_edge;
 
     int incumbent_value;
     int cur_sol_value;
@@ -52,8 +56,11 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
 
     int first_value = incumbent_value;
 
+    /* T = (m / (-log(f))) * f(x0)
+     *  f% of the uphill moves, which are m% worse than the initial solution f(x0), are accepted at the initial temperature level T0     *
+     */
     //double T = -1 * (0.0001 / log(0.01)) * best_value;
-    double T = -1 * (1) / log(0.01) * avg_edge_cost;
+    double T = -1 * (0.05) / log(0.2) * avg_edge_cost;
 
     double rho = prob_in_range(1.0, 5.0);
     double n = rho * n_node;
