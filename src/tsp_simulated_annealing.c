@@ -50,8 +50,10 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
 
     printf("First solution value: %d\n", incumbent_value);
 
+    int first_value = incumbent_value;
+
     //double T = -1 * (0.0001 / log(0.01)) * best_value;
-    double T = -1 * (1) / log(0.001) * avg_edge_cost;
+    double T = -1 * (1) / log(0.01) * avg_edge_cost;
 
     double rho = prob_in_range(1.0, 5.0);
     double n = rho * n_node;
@@ -83,9 +85,9 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
         total_transition = 0;
 
         for (int j = 0; j < n; j++) {
-            //cur_node = j % n_node;
-            //cur_sol_value = random_two_opt(instance, incumbent_solution, cur_node_sequence, edge_cost, cur_node);
-            cur_sol_value = get_neighborhood(instance, incumbent_solution, cur_node_sequence, edge_cost);
+            cur_node = j % n_node;
+            cur_sol_value = random_two_opt(instance, incumbent_solution, cur_node_sequence, edge_cost, cur_node);
+            //cur_sol_value = get_neighborhood(instance, incumbent_solution, cur_node_sequence, edge_cost);
 
             //printf("Solution value found: %d\n", cur_sol_value);
 
@@ -130,9 +132,12 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
 
         acceptance_ratio = accept_transition / total_transition;
 
-        std_dev = standard_deviation(std_value, n_std_value);
+        if (T >= 1e-10) {
+            std_dev = standard_deviation(std_value, n_std_value);
 
-        T = T / (1 + (T * log(1 + sigma)) / (3 * std_dev));
+            T = T / (1 + (T * log(1 + sigma)) / (3 * std_dev));
+        }
+
 
         temperature_reduction++;
 
@@ -147,6 +152,11 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
             (cur.tv_sec - start.tv_sec) < instance->time_limit); //while (exp(delta / T) > 1e-11);
 
     printf("Best heuristic solution value: %d\n", best_value);
+    printf("First heuristic solution value: %d\n", first_value);
+
+    printf("PARAMETERS:\n");
+    printf("Rro: %g\n", rho);
+    printf("Sigma: %g\n", sigma);
 
     plot_solution_fract(instance, best_solution, x_pos_tsp);
 
