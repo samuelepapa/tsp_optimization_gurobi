@@ -309,7 +309,7 @@ int vertex_insert(int *node_sequence, int *edge_cost, Tsp_prob *instance, int di
 
 int block_reverse(int *node_sequence, int *edge_cost, Tsp_prob *instance, int distance) {
 
-    int node_1 = gen_rand_value(0, instance->nnode - 2);
+    int node_1 = gen_rand_value(0, instance->nnode - 3);
 
     int node_2 = gen_rand_value(node_1 + 2, instance->nnode - 1);
 
