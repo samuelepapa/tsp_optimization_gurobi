@@ -72,32 +72,51 @@ int two_opt_f(Tsp_prob *instance, int *node_sequence, int *costs) {
     int best_distance = compute_total_distance(instance, cur_sequence);
     int new_distance = 0;
     char improve = 0;
+    char *dlb = calloc(n_node, sizeof(char));
+    int i = 0;
     do {
         //best_distance = compute_total_distance(instance, node_sequence);
         improve = 0;
-        for (int i = 0; i < n_node - 2; i++) {
-            coord1 = x_pos_metaheuristic(cur_sequence[i], cur_sequence[i + 1], instance);
-            for (int k = i + 2; k < n_node; k++) {
-                coord2 = x_pos_metaheuristic(cur_sequence[k], cur_sequence[k + 1], instance);
-                coord3 = x_pos_metaheuristic(cur_sequence[i], cur_sequence[k], instance);
-                coord4 = x_pos_metaheuristic(cur_sequence[i + 1], cur_sequence[k + 1], instance);
-                new_distance = best_distance +
-                               costs[coord3] +
-                               costs[coord4] -
-                               costs[coord1] -
-                               costs[coord2];
+        for (int pos = 0; pos < n_node; pos++) {
+            if (dlb[cur_sequence[pos]] == 1) {
+                continue;
+            }
+            for (int dir = 0; dir < 2; dir++) {
+                //int dir = 0;
+                i = ((pos - dir) + n_node) % n_node;
+                coord1 = x_pos_metaheuristic(cur_sequence[i], cur_sequence[(i + 1) % n_node], instance);
+                for (int k = 0; k < n_node; k++) {
+                    if (i == k || i == (k + 1) % n_node || (i + 1) % n_node == k) {
+                        continue; //not a valid 2-opt move
+                    }
+                    coord2 = x_pos_metaheuristic(cur_sequence[k], cur_sequence[(k + 1) % n_node], instance);
+                    coord3 = x_pos_metaheuristic(cur_sequence[i], cur_sequence[k], instance);
+                    coord4 = x_pos_metaheuristic(cur_sequence[(i + 1) % n_node], cur_sequence[(k + 1) % n_node],
+                                                 instance);
+                    new_distance = best_distance +
+                                   costs[coord3] +
+                                   costs[coord4] -
+                                   costs[coord1] -
+                                   costs[coord2];
 
-                if (new_distance < best_distance) {
-                    improve = 1;
-                    two_opt_swap(cur_sequence, i, k, n_node, new_node_sequence);
-                    //copy_node_sequence(cur_sequence, new_node_sequence, n_node + 1);
-                    temp_pointer_to_int = cur_sequence;
-                    cur_sequence = new_node_sequence;
-                    new_node_sequence = temp_pointer_to_int;
-                    best_distance = new_distance;
-                    coord1 = x_pos_metaheuristic(cur_sequence[i], cur_sequence[i + 1], instance);
+                    if (new_distance < best_distance) {
+                        dlb[cur_sequence[i]] = 0;
+                        dlb[cur_sequence[(i + 1) % n_node]] = 0;
+                        dlb[cur_sequence[k]] = 0;
+                        dlb[cur_sequence[(k + 1) % n_node]] = 0;
+                        improve = 1;
+                        two_opt_swap(cur_sequence, i, k, n_node, new_node_sequence);
+                        //copy_node_sequence(cur_sequence, new_node_sequence, n_node + 1);
+                        temp_pointer_to_int = cur_sequence;
+                        cur_sequence = new_node_sequence;
+                        new_node_sequence = temp_pointer_to_int;
+                        best_distance = new_distance;
+                        coord1 = x_pos_metaheuristic(cur_sequence[i], cur_sequence[(i + 1) % n_node], instance);
+                    }
                 }
             }
+            //if it could have been improved it has already been improved in both directions
+            dlb[cur_sequence[pos]] = 1;
 
         }
         //printf("improved \n");
@@ -240,7 +259,7 @@ void two_opt_swap(int *node_sequence, int i, int k, int n_node, int *new_node_se
     for (int c = k; c >= i + 1; c--) {
         new_node_sequence[l++] = node_sequence[c];
     }
-    for (int c = k + 1; c < n_node + 1; c++) {
+    for (int c = k + 1; c <= n_node; c++) {
         new_node_sequence[l++] = node_sequence[c];
     }
 }

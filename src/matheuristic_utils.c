@@ -203,7 +203,7 @@ void naive_initial_heuristic_solution(int start_node, Tsp_prob *instance, double
                                       int (*var_pos)(int, int, Tsp_prob *)) {
     int n_node = instance->nnode;
     int n_edges = (n_node * (n_node - 1)) / 2;
-    double cost[n_edges];
+    double *cost = malloc(sizeof(double) * n_edges);
     int visited[n_node], next[n_node];
 
     int count, next_node, cur_node;
@@ -258,6 +258,8 @@ void naive_initial_heuristic_solution(int start_node, Tsp_prob *instance, double
             solution[var_pos(i, start_node, instance)] = 1.0;
         }
     }
+
+    free(cost);
 
 }
 
