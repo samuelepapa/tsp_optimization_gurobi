@@ -62,8 +62,8 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
     //double T = -1 * (0.0001 / log(0.01)) * best_value;
     double T = -1 * (0.05) / log(0.2) * avg_edge_cost;
 
-    double rho = prob_in_range(1.0, 5.0);
-    double n = rho * n_node;
+    double rho = prob_in_range(1.0, 3.0);
+    double n = n_node;
     double delta = 0;
     //double beta = prob_in_range(0.5, 0.99);
     int cur_node = 0;
@@ -145,6 +145,7 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
             T = T / (1 + (T * log(1 + sigma)) / (3 * std_dev));
         }
 
+        n *= rho;
 
         temperature_reduction++;
 
@@ -162,7 +163,7 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
     printf("First heuristic solution value: %d\n", first_value);
 
     printf("PARAMETERS:\n");
-    printf("Rro: %g\n", rho);
+    printf("Rho: %g\n", rho);
     printf("Sigma: %g\n", sigma);
 
     plot_solution_fract(instance, best_solution, x_pos_tsp);
