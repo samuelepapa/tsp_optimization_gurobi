@@ -147,6 +147,8 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
 
         n *= rho;
 
+        std_value = realloc(std_value, ceil(n));
+
         temperature_reduction++;
 
         clock_gettime(CLOCK_MONOTONIC, &cur);
