@@ -62,7 +62,7 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
     //double T = -1 * (0.0001 / log(0.01)) * best_value;
     double T = -1 * (0.05) / log(0.2) * avg_edge_cost;
 
-    double rho = prob_in_range(1.0, 3.0);
+    double rho = prob_in_range(1.0, 2.0);
     double n = n_node;
     double delta = 0;
     //double beta = prob_in_range(0.5, 0.99);
@@ -145,11 +145,14 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
             T = T / (1 + (T * log(1 + sigma)) / (3 * std_dev));
         }
 
-        n *= rho;
 
-        std_value = realloc(std_value, ceil(n));
 
         temperature_reduction++;
+
+        if (temperature_reduction % 20 == 0) {
+            n *= rho;
+            std_value = realloc(std_value, ceil(n));
+        }
 
         clock_gettime(CLOCK_MONOTONIC, &cur);
 
