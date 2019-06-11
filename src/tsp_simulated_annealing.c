@@ -60,15 +60,21 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
      *  f% of the uphill moves, which are m% worse than the initial solution f(x0), are accepted at the initial temperature level T0     *
      */
     //double T = -1 * (0.0001 / log(0.01)) * best_value;
-    double T = -1 * (0.05) / log(0.2) * avg_edge_cost;
 
-    double rho = prob_in_range(1.0, 2.0);
-    double n = n_node;
+    double m = 0.05;
+    double f = 0.1;
+
+    double T = -1 * (m) / log(f) * avg_edge_cost;
+
+    double rho = 1.0;//prob_in_range(1.0, 5.0);
+    double n_0 = n_edge;
+    double n = n_0;
     double delta = 0;
     //double beta = prob_in_range(0.5, 0.99);
     int cur_node = 0;
 
-    double sigma = prob_in_range(0.01, 0.20);
+
+    double sigma = 0.01; //prob_in_range(0.01, 0.20);
     double std_dev;
     int *std_value = calloc(ceil(n), sizeof(int));
     int n_std_value;
@@ -84,8 +90,15 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
 
     int temperature_reduction = 0;
 
+    int f_l;
+    int f_h;
+    double F_ = 0.0;
+    double last_n = n;
+
     do {
 
+        f_l = INT_MAX;
+        f_h = 0;
         l = 0;
         n_std_value = 0;
         accept_transition = 0;
@@ -97,6 +110,14 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
             //cur_sol_value = get_neighborhood(instance, incumbent_solution, cur_node_sequence, edge_cost);
 
             //printf("Solution value found: %d\n", cur_sol_value);
+
+            if (cur_sol_value < f_l) {
+                f_l = cur_sol_value;
+            }
+
+            if (cur_sol_value > f_h) {
+                f_h = cur_sol_value;
+            }
 
             if (cur_sol_value < incumbent_value) {
                 incumbent_value = cur_sol_value;
@@ -144,15 +165,28 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
 
             T = T / (1 + (T * log(1 + sigma)) / (3 * std_dev));
         }
-
-
-
         temperature_reduction++;
 
-        if (temperature_reduction % 20 == 0) {
+        /*if (temperature_reduction % 20 == 0) {
             n *= rho;
             std_value = realloc(std_value, ceil(n));
+        }*/
+
+        /*if (n < n_edge) {
+            n *= rho;
+        } else {
+            n = n_edge;
+        }*/
+
+        F_ = 1 - exp((-1.0 * (f_h - f_l)) / f_h);
+
+        n = n_0 + floor(n_0 * F_);
+
+        if (last_n < n) {
+            std_value = realloc(std_value, ceil(n));
+            last_n = n;
         }
+
 
         clock_gettime(CLOCK_MONOTONIC, &cur);
 
@@ -168,7 +202,9 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
     printf("First heuristic solution value: %d\n", first_value);
 
     printf("PARAMETERS:\n");
-    printf("Rho: %g\n", rho);
+    //printf("Rho: %g\n", rho);
+    printf("m: %g\n", m);
+    printf("f: %g\n", f);
     printf("Sigma: %g\n", sigma);
 
     plot_solution_fract(instance, best_solution, x_pos_tsp);

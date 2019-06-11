@@ -5,11 +5,11 @@
 #include "tsp_grasp.h"
 
 typedef struct {
-    //the root of the element in the subset tree
+    //the first node
     int *i_edge;
-    //rank of element in the subset
+    //the second node
     int *j_edge;
-    //size of the connected component
+    //the edge cost
     int *edge_cost;
 } edge_data;
 
@@ -21,7 +21,7 @@ int grasp_local_search(Tsp_prob *instance, double *solution, edge_data *edge);
 
 int x_pos_grasp(int i, int j, Tsp_prob *instance);
 
-double grasp_cost_solution(Tsp_prob *instance, double *solution);
+//double grasp_cost_solution(Tsp_prob *instance, double *solution);
 
 void tsp_grasp_create(Tsp_prob *instance) {
     unsigned long long int seed = (unsigned long long int) time(NULL);
@@ -232,9 +232,6 @@ int grasp_local_search(Tsp_prob *instance, double *solution, edge_data *edge) {
 
 }
 
-void grasp_get_solution_pool(Tsp_prob *instance, double **solution_pool, double time_limit, int method) {
-
-}
 
 int x_pos_grasp(int i, int j, Tsp_prob *instance) {
     if (i == j) {
@@ -246,7 +243,7 @@ int x_pos_grasp(int i, int j, Tsp_prob *instance) {
     return i * instance->nnode + j - ((i + 1) * (i + 2)) / 2;
 }
 
-double grasp_cost_solution(Tsp_prob *instance, double *solution) {
+/*double grasp_cost_solution(Tsp_prob *instance, double *solution) {
     double cost = 0;
     for (int i = 0; i < instance->nnode; i++) {
         for (int j = i + 1; j < instance->nnode; j++) {
@@ -257,4 +254,4 @@ double grasp_cost_solution(Tsp_prob *instance, double *solution) {
         }
     }
     return cost;
-}
+}*/
