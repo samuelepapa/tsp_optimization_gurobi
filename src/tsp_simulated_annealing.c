@@ -64,10 +64,12 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
     double m = 0.05;
     double f = 0.1;
 
-    double T = -1 * (m) / log(f) * avg_edge_cost;
+    //double T = -1 * (m) / log(f) * avg_edge_cost;
+
+    double T = -1 * (m) / log(f) * incumbent_value;
 
     double rho = 1.0;//prob_in_range(1.0, 5.0);
-    double n_0 = n_edge;
+    double n_0 = n_node;
     double n = n_0;
     double delta = 0;
     //double beta = prob_in_range(0.5, 0.99);
@@ -182,8 +184,10 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
 
         n = n_0 + floor(n_0 * F_);
 
+        n = ceil(n);
+
         if (last_n < n) {
-            std_value = realloc(std_value, ceil(n));
+            std_value = realloc(std_value, n* sizeof(int));
             last_n = n;
         }
 
