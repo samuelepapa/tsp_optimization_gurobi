@@ -22,7 +22,7 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
 
     double *best_solution = calloc(n_edge, sizeof(double));
     double *incumbent_solution = calloc(n_edge, sizeof(double));
-    int *incumbent_node_sequence = calloc(n_node, sizeof(int));
+    int *incumbent_node_sequence = calloc(n_node + 1, sizeof(int));
     int *cur_node_sequence_alloc = calloc(n_node + 1, sizeof(int));
     int *cur_node_sequence = cur_node_sequence_alloc;
     int *edge_cost = calloc(n_edge, sizeof(int));
@@ -61,8 +61,8 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
      */
     //double T = -1 * (0.0001 / log(0.01)) * best_value;
 
-    double m = 0.05;
-    double f = 0.1;
+    double m = 0.001;
+    double f = 0.01;
 
     //double T = -1 * (m) / log(f) * avg_edge_cost;
 
@@ -134,7 +134,7 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
                 if (incumbent_value < best_value) {
                     best_value = incumbent_value;
                     new_solution(instance, incumbent_node_sequence, best_solution);
-                    printf("New best solution value found.\n");
+                    DEBUG_PRINT(("New best solution value found %d.\n", 0));
                 }
             } else {
                 delta = incumbent_value - cur_sol_value;
@@ -148,7 +148,7 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
                     n_std_value++;
                     accept_transition++;
                     n_not_update_sol = 0;
-                    printf("Updated despite %g, %d\n", delta, incumbent_value);
+                    DEBUG_PRINT(("Updated despite %g, %d\n", delta, incumbent_value));
                 }
             }
 
@@ -156,7 +156,8 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
             total_transition++;
         }
 
-        printf("HEURSOL %d\n", incumbent_value);
+        DEBUG_PRINT(("HEURSOL %d\n", incumbent_value));
+        DEBUG_PRINT(("Temperature: %g\n", T));
 
         n_not_update_sol++;
 
@@ -164,8 +165,12 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
 
         if (T >= 1e-10) {
             std_dev = standard_deviation(std_value, n_std_value);
+            DEBUG_PRINT(("STD: %g\n", std_dev));
+            if (std_dev == -1) {
+                std_dev = T;
+            }
 
-            T = T / (1 + (T * log(1 + sigma)) / (3 * std_dev));
+            T = T * (3 * std_dev) / ((3 * std_dev) + (T * log(1 + sigma)));
         }
         temperature_reduction++;
 
@@ -183,7 +188,6 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
         F_ = 1 - exp((-1.0 * (f_h - f_l)) / f_h);
 
         n = n_0 + floor(n_0 * F_);
-
         n = ceil(n);
 
         if (last_n < n) {
@@ -211,13 +215,19 @@ void tsp_simulated_annealing_create(Tsp_prob *instance) {
     printf("f: %g\n", f);
     printf("Sigma: %g\n", sigma);
 
+    instance->best_solution = best_value;
+
     plot_solution_fract(instance, best_solution, x_pos_tsp);
+
+    instance->solution_edges = calloc(n_edge, sizeof(double));
+
+    copy_solution(instance, best_solution, instance->solution_edges);
 
     free(incumbent_solution);
     free(incumbent_node_sequence);
     free(best_solution);
     free(std_value);
-    //free(cur_node_sequence_alloc);
+    free(cur_node_sequence_alloc);
     free(edge_cost);
 }
 

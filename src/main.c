@@ -23,6 +23,7 @@
 #include "tsp_vns.h"
 #include "tsp_grasp.h"
 #include "tsp_simulated_annealing.h"
+#include "tsp_metaheuristics.h"
 
 #include "peaceful_queens_optimization.h"
 /**
@@ -174,6 +175,15 @@ void start_selected_model(Tsp_prob *instance) {
         case 16:
             tsp_simulated_annealing_create(instance);
             break;
+        case 17:
+            tsp_metaheuristics(instance);
+            break;
+        case 18:
+            tsp_metaheuristics(instance);
+            break;
+        case 19:
+            tsp_metaheuristics(instance);
+            break;
         default:
             tsp_model_create(instance);
     }
@@ -199,7 +209,7 @@ void execute_trial(Trial *trial_inst) {
     char model_name[120];
     char *output_log = calloc(128000, sizeof(char));
     char *pointer_to_output_log = output_log;
-    sprintf(pointer_to_output_log, "INSTANCE,MODEL FORMULATION,SEED,TIME ELAPSED (in seconds)\n");
+    sprintf(pointer_to_output_log, "INSTANCE, MODEL FORMULATION, SEED, BEST SOLUTION, TIME ELAPSED (in seconds)\n");
     pointer_to_output_log = output_log + strlen(output_log);
 
     //Initialize problem instances
@@ -240,11 +250,11 @@ void execute_trial(Trial *trial_inst) {
                 //Output purposes
                 inverse_map_model_type(trial_inst->models[cur_model], model_name);
                 //fprintf(trial_file, "INSTANCE,MODEL FORMULATION,SEED,TIME ELAPSED (in seconds)\n");
-                sprintf(pointer_to_output_log, "%s,%s,%d,%g\n", trial_inst->instances[cur_instance], model_name,
-                        trial_inst->seeds[cur_run], time_elapsed);
+                sprintf(pointer_to_output_log, "%s,%s,%d,%g,%g\n", trial_inst->instances[cur_instance], model_name,
+                        trial_inst->seeds[cur_run], trial_inst->problems[cur_instance]->best_solution, time_elapsed);
                 pointer_to_output_log = output_log + strlen(output_log);
-                fprintf(stdout, "STAT, %s,%s,%d,%g\n\n", trial_inst->instances[cur_instance], model_name,
-                        trial_inst->seeds[cur_run], time_elapsed);
+                fprintf(stdout, "STAT, %s,%s,%d,%g,%g\n\n", trial_inst->instances[cur_instance], model_name,
+                        trial_inst->seeds[cur_run], trial_inst->problems[cur_instance]->best_solution, time_elapsed);
             }
         }
     }

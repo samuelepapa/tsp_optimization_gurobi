@@ -89,24 +89,24 @@ int initialize_local_branching(Tsp_prob *instance, double time_limit) {
         case 9: {
             tsp_loop_model_generate(instance);
 
-            set_warm_start(instance, xpos_loop);
+            set_warm_start_heu(instance, xpos_loop);
 
             error = GRBsetdblparam(GRBgetenv(instance->model), GRB_DBL_PAR_TIMELIMIT, time_limit);
             quit_on_GRB_error(instance->env, instance->model, error);
 
-            //Run very fast, if nothing is found keep initial solution set by set_warm_start using work_start method
+            //Run very fast, if nothing is found keep initial solution set by set_warm_start_heu using work_start method
             tsp_loop_model_run(instance);
         }
             break;
         case 10: {
             tsp_lazycall_model_generate(instance);
 
-            set_warm_start(instance, xpos_lazycall);
+            set_warm_start_heu(instance, xpos_lazycall);
 
             error = GRBsetdblparam(GRBgetenv(instance->model), GRB_DBL_PAR_TIMELIMIT, time_limit);
             quit_on_GRB_error(instance->env, instance->model, error);
 
-            //Run very fast, if nothing is found keep initial solution set by set_warm_start using work_start method
+            //Run very fast, if nothing is found keep initial solution set by set_warm_start_heu using work_start method
             tsp_lazycall_model_run(instance);
         }
             break;

@@ -28,8 +28,55 @@ int set_hard_constraints(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *
  * @param instance the tsp prob instance
  * @return error code from Gurobi
  */
-int initialize_hardfixing(Tsp_prob *instance, double time_limit);
+int generate_sol_hardfixing(Tsp_prob *instance, double time_limit);
 
+int set_sol_hardfixing(Tsp_prob *instance);
+
+void tsp_hardfixing_model_create_wsol(Tsp_prob *instance) {
+    struct timespec start, end;
+    double time_elapsed;
+
+    clock_gettime(CLOCK_MONOTONIC, &start);
+
+    double time_limit = instance->time_limit;
+    if (time_limit == INFINITY) {
+        time_limit = DEFAULT_TIMELIMIT;
+    }
+    instance->time_limit = max(time_limit / 25, 10);
+
+    set_sol_hardfixing(instance);
+
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    time_elapsed = (end.tv_sec - start.tv_sec) + (double) (end.tv_nsec - start.tv_sec) / 1000000000.0;
+
+    printf("timelimit: %g\n", time_limit);
+
+    GRBsetdblparam(GRBgetenv(instance->model), GRB_DBL_PAR_TIMELIMIT, instance->time_limit);
+
+    while (time_elapsed < time_limit) {
+        switch (instance->black_box) {
+            case 9:
+                set_hard_constraints(instance, xpos_loop);
+
+                tsp_loop_model_run(instance);
+                break;
+            case 10: {
+                set_hard_constraints(instance, xpos_lazycall);
+
+                tsp_lazycall_model_run(instance);
+            }
+                break;
+        }
+        clock_gettime(CLOCK_MONOTONIC, &end);
+        time_elapsed = (end.tv_sec - start.tv_sec) + (double) (end.tv_nsec - start.tv_sec) / 1000000000.0;
+    }
+    int error = 0;
+    //get best solution
+    error = GRBgetdblattr(instance->model, GRB_DBL_ATTR_OBJVAL, &(instance->best_solution));
+    quit_on_GRB_error(instance->env, instance->model, error);
+
+
+}
 void tsp_hardfixing_model_create(Tsp_prob *instance) {
     struct timespec start, end;
     double time_elapsed;
@@ -43,7 +90,7 @@ void tsp_hardfixing_model_create(Tsp_prob *instance) {
     }
     instance->time_limit = max(time_limit / 25, 10);
 
-    initialize_hardfixing(instance, initial_sol_timelimit);
+    generate_sol_hardfixing(instance, initial_sol_timelimit);
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     time_elapsed = (end.tv_sec - start.tv_sec) + (double) (end.tv_nsec - start.tv_sec) / 1000000000.0;
@@ -70,11 +117,60 @@ void tsp_hardfixing_model_create(Tsp_prob *instance) {
         clock_gettime(CLOCK_MONOTONIC, &end);
         time_elapsed = (end.tv_sec - start.tv_sec) + (double) (end.tv_nsec - start.tv_sec) / 1000000000.0;
     }
+    int error = 0;
+    //get best solution
+    error = GRBgetdblattr(instance->model, GRB_DBL_ATTR_OBJVAL, &(instance->best_solution));
+    quit_on_GRB_error(instance->env, instance->model, error);
 
 
 }
 
-int initialize_hardfixing(Tsp_prob *instance, double time_limit) {
+int set_sol_hardfixing(Tsp_prob *instance) {
+    int error = 0;
+    const double time_limit = 5;
+    instance->best_heur_sol_value = INFINITY;
+    instance->heuristic_repetition = -1;
+    //first call to the selected model
+    switch (instance->black_box) {
+        case 9: {
+            tsp_loop_model_generate(instance);
+
+            set_warm_start(instance);
+
+            error = GRBsetdblparam(GRBgetenv(instance->model), GRB_DBL_PAR_TIMELIMIT, time_limit);
+            quit_on_GRB_error(instance->env, instance->model, error);
+
+            //Run very fast, if nothing is found keep initial solution set by set_warm_start_heu using work_start method
+            tsp_loop_model_run(instance);
+        }
+            break;
+        case 10: {
+            tsp_lazycall_model_generate(instance);
+
+            set_warm_start(instance);
+
+            error = GRBsetdblparam(GRBgetenv(instance->model), GRB_DBL_PAR_TIMELIMIT, time_limit);
+            quit_on_GRB_error(instance->env, instance->model, error);
+
+            //Run very fast, if nothing is found keep initial solution set by set_warm_start_heu using work_start method
+            tsp_lazycall_model_run(instance);
+        }
+            break;
+        case 12:
+            //tsp_usercall_model_create(instance);
+            break;
+
+    }
+
+
+    instance->heuristic_repetition = 0;
+    //error = GRBgetdblattr(instance->model, GRB_DBL_ATTR_OBJVAL, &instance->best_heur_sol_value);
+    //quit_on_GRB_error(instance->env, instance->model, error);
+
+    return error;
+}
+
+int generate_sol_hardfixing(Tsp_prob *instance, double time_limit) {
     int error = 0;
     instance->best_heur_sol_value = INFINITY;
     instance->heuristic_repetition = -1;
@@ -83,24 +179,24 @@ int initialize_hardfixing(Tsp_prob *instance, double time_limit) {
         case 9: {
             tsp_loop_model_generate(instance);
 
-            set_warm_start(instance, xpos_loop);
+            set_warm_start_heu(instance, xpos_loop);
 
             error = GRBsetdblparam(GRBgetenv(instance->model), GRB_DBL_PAR_TIMELIMIT, time_limit);
             quit_on_GRB_error(instance->env, instance->model, error);
 
-            //Run very fast, if nothing is found keep initial solution set by set_warm_start using work_start method
+            //Run very fast, if nothing is found keep initial solution set by set_warm_start_heu using work_start method
             tsp_loop_model_run(instance);
         }
             break;
         case 10: {
             tsp_lazycall_model_generate(instance);
 
-            set_warm_start(instance, xpos_lazycall);
+            set_warm_start_heu(instance, xpos_lazycall);
 
             error = GRBsetdblparam(GRBgetenv(instance->model), GRB_DBL_PAR_TIMELIMIT, time_limit);
             quit_on_GRB_error(instance->env, instance->model, error);
 
-            //Run very fast, if nothing is found keep initial solution set by set_warm_start using work_start method
+            //Run very fast, if nothing is found keep initial solution set by set_warm_start_heu using work_start method
             tsp_lazycall_model_run(instance);
         }
             break;

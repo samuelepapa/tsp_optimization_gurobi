@@ -54,13 +54,13 @@ void tsp_vns_create(Tsp_prob *instance) {
 
         new_value = two_opt_f(instance, node_sequence, costs);
 
-        printf("HEURSOL %d, %d\n", iteration_count, new_value);
+        DEBUG_PRINT(("HEURSOL %d, %d\n", iteration_count, new_value));
 
         if (new_value < best_value) {
             best_value = new_value;
             //new_solution(instance, node_sequence, incumbent_solution);
             copy_node_sequence(incumbent_node_sequence, node_sequence, n_node);
-            printf("Incumbent updated, iteration: %d \n", iteration_count);
+            DEBUG_PRINT(("Incumbent updated, iteration: %d \n", iteration_count));
             kick_number = 1;
         } else if (kick_number == max_kick_number) {
             kick_number = 1;
@@ -73,6 +73,12 @@ void tsp_vns_create(Tsp_prob *instance) {
     } while ((cur.tv_sec - start.tv_sec) < instance->time_limit);
 
     printf("BEST SOL: %d \n", best_value);
+    instance->best_solution = best_value;
+
+    instance->solution_edges = calloc(n_edge, sizeof(double));
+    new_solution(instance, incumbent_node_sequence, instance->solution_edges);
+
+    plot_solution_fract(instance, instance->solution_edges, x_pos_tsp);
 
     free(alloc_node_sequence);
     //free(incumbent_solution);

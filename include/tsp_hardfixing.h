@@ -10,4 +10,5 @@
 
 void tsp_hardfixing_model_create(Tsp_prob *instance);
 
+void tsp_hardfixing_model_create_wsol(Tsp_prob *instance);
 #endif //TSP_OPTIMIZATION_GUROBI_TSP_MATHEURISTIC_H

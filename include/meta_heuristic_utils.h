@@ -22,6 +22,8 @@ void kick(Tsp_prob *instance, int *node_sequence, int n_node, int *incumbent_nod
 
 void new_solution(Tsp_prob *instance, int *input_sequence, double *output_solution);
 
+void copy_solution(Tsp_prob *instance, double *input_solution, double *output_solution);
+
 void copy_node_sequence(int *to_node_sequence, int *from_node_sequence, int n_node);
 
 void two_opt_swap(int *node_sequence, int i, int k, int n_node, int *new_node_sequence);

@@ -129,10 +129,10 @@ void tsp_lazycall_model_generate(Tsp_prob *instance) {
     int n_node = instance->nnode;
     int n_variables = (int) (0.5 * (n_node * n_node - n_node)); //this number is always even
     DEBUG_PRINT(("%d", n_variables));
-    double upper_bounds[n_variables];
-    double lower_bounds[n_variables];
-    char variable_type[n_variables];
-    double objective_coeffs[n_variables];
+    double *upper_bounds = calloc(n_variables, sizeof(double));
+    double *lower_bounds = calloc(n_variables, sizeof(double));
+    char *variable_type = calloc(n_variables, sizeof(char));
+    double *objective_coeffs = calloc(n_variables, sizeof(double));
     char **variables_names = (char **) calloc((size_t) n_variables, sizeof(char *));
     int size_variable_names = 0;
 
@@ -209,6 +209,10 @@ void tsp_lazycall_model_generate(Tsp_prob *instance) {
     }
 
     free(variables_names);
+    free(upper_bounds);
+    free(lower_bounds);
+    free(variable_type);
+    free(objective_coeffs);
 
 }
 

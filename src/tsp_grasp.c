@@ -40,7 +40,9 @@ void tsp_grasp_create(Tsp_prob *instance) {
             .edge_cost = calloc(num_var, sizeof(int))
     };
     double *solution = calloc(num_var, sizeof(double));
+    double *solution_p = solution;
     double *cur_solution = calloc(num_var, sizeof(double));
+    double *cur_solution_p = cur_solution;
     int incumbent_value = INT_MAX;
 
     double *tmp_pointer;
@@ -64,11 +66,12 @@ void tsp_grasp_create(Tsp_prob *instance) {
 
 
     clock_gettime(CLOCK_MONOTONIC, &cur);
+
     while (cur.tv_sec - start.tv_sec < iteration_count) {
 
-        grasp_randomized_construction(instance, cur_solution, &edge);
+        grasp_randomized_construction(instance, cur_solution_p, &edge);
 
-        int cur_sol_value = grasp_local_search(instance, cur_solution, &edge);
+        int cur_sol_value = grasp_local_search(instance, cur_solution_p, &edge);
 
         /*if (cur_iteration > 1) {
             int selected_sol_pool = (genrand64_int64() / ULLONG_MAX) * (num_pool_element - 1);
@@ -78,12 +81,14 @@ void tsp_grasp_create(Tsp_prob *instance) {
         /*int selected_alpha = (genrand64_int64() / ULLONG_MAX) * (alpha_list_size - 1);
         double alpha = alpha_list[selected_alpha];*/
 
-        printf("HEURSOL %d, %d\n", cur_iteration, cur_sol_value);
+        DEBUG_PRINT(("HEURSOL %d, %d\n", cur_iteration, cur_sol_value));
 
         if (cur_sol_value < incumbent_value) {
-            tmp_pointer = solution;
-            solution = cur_solution;
-            cur_solution = tmp_pointer;
+            //put the cur_solution in the
+            tmp_pointer = solution_p;
+            solution_p = cur_solution_p;
+            cur_solution_p = tmp_pointer;
+
             incumbent_value = cur_sol_value;
         }
 
@@ -91,9 +96,17 @@ void tsp_grasp_create(Tsp_prob *instance) {
         clock_gettime(CLOCK_MONOTONIC, &cur);
     }
 
-    printf("Heuristic solution value: %d\n", incumbent_value);
+    DEBUG_PRINT(("Heuristic solution value: %d\n", incumbent_value));
 
-    plot_solution_fract(instance, solution, x_pos_grasp);
+    plot_solution_fract(instance, solution_p, x_pos_grasp);
+
+    instance->best_solution = incumbent_value;
+
+
+    instance->solution_edges = calloc(num_var, sizeof(double));
+
+    copy_solution(instance, cur_solution_p, instance->solution_edges);
+
     /*free(alpha_list);
    free(avg_incumb_value);*/
     free(edge.edge_cost);
@@ -225,6 +238,8 @@ int grasp_local_search(Tsp_prob *instance, double *solution, edge_data *edge) {
     get_node_path(solution, node_sequence, instance);
 
     int best_incumbent = two_opt(instance, solution, node_sequence, edge->edge_cost);
+
+    new_solution(instance, node_sequence, solution);
 
     free(node_sequence);
 

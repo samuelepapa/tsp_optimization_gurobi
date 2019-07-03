@@ -16,7 +16,7 @@
 #include "gurobi_c.h"
 #include "mt64.h"
 
-#define DEBUG
+//#define DEBUG
 #ifdef DEBUG
 # define DEBUG_PRINT(x) printf x
 #else
@@ -90,6 +90,9 @@ typedef struct {
 
     //the k value for local branch constraint
     int k_value;
+
+    //list of edges in the solution, all variables are present
+    double *solution_edges;
 
 } Tsp_prob;
 

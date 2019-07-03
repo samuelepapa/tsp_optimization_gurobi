@@ -187,6 +187,10 @@ int x_pos_atsp(int i, int j, Tsp_prob *instance) {
 double standard_deviation(int *std_value, int num_std_value) {
     int sum = 0;
 
+    if (num_std_value <= 2) {
+        return -1;
+    }
+
     for (int i = 0; i < num_std_value; i++) {
         sum += std_value[i];
     }
@@ -274,6 +278,18 @@ int map_model_type(char *optarg) {
     if (strncmp(optarg, "sa", 2) == 0) {
         return 16;
     }
+
+    if (strncmp(optarg, "meta_vnshf", 10) == 0) {
+        return 17;
+    }
+
+    if (strncmp(optarg, "meta_sahf", 9) == 0) {
+        return 18;
+    }
+
+    if (strncmp(optarg, "meta_grasphf", 12) == 0) {
+        return 19;
+    }
 }
 
 void inverse_map_model_type(int model_type, char *target_string) {
@@ -328,7 +344,13 @@ void inverse_map_model_type(int model_type, char *target_string) {
             strcpy(target_string, "grasp");
             break;
         case 16:
-            strcpy(target_string, "simulated anneling");
+            strcpy(target_string, "sa");
+        case 17:
+            strcpy(target_string, "meta_vnshf");
+        case 18:
+            strcpy(target_string, "meta_sahf");
+        case 19:
+            strcpy(target_string, "meta_grasphf");
         default:
             strcpy(target_string, "not a model");
     }

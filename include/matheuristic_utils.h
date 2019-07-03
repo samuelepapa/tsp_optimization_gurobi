@@ -38,7 +38,9 @@ void get_initial_heuristic_sol(Tsp_prob *instance, double *solution, int (*var_p
  * @param instance the tsp_prob instance
  * @param var_pos function to find the index of the variable
  */
-void set_warm_start(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *));
+void set_warm_start_heu(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *));
+
+void set_warm_start(Tsp_prob *instance);
 
 /**
  * Simple initial heuristic solution which just links all the nodes in order

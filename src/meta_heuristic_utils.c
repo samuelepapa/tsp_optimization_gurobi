@@ -53,7 +53,7 @@ int two_opt(Tsp_prob *instance, double *solution, int *node_sequence, int *costs
         //printf("improved \n");
     } while (improve == 1);
 
-    copy_node_sequence(node_sequence, cur_sequence, n_node + 1);
+    copy_node_sequence(node_sequence, cur_sequence, n_node);
     //new_solution(instance, node_sequence, solution);
 
     free(new_sequence_allocation);
@@ -347,6 +347,14 @@ void new_solution(Tsp_prob *instance, int *input_sequence, double *output_soluti
         //printf("cur: %d %d\n",input_sequence[i], input_sequence[i+1] );
         int pos = x_pos_metaheuristic(input_sequence[i], input_sequence[i + 1], instance);
         output_solution[pos] = 1;
+    }
+}
+
+void copy_solution(Tsp_prob *instance, double *input_solution, double *output_solution) {
+    int n_node = instance->nnode;
+
+    for (int i = 0; i < (int) (n_node * (n_node - 1) / 2); i++) {
+        output_solution[i] = input_solution[i];
     }
 }
 

@@ -124,7 +124,7 @@ void simple_initial_heuristic_solution(Tsp_prob *instance, double *solution, int
     solution[var_pos(0, nnode - 1, instance)] = 1.0;
 }
 
-void set_warm_start(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *)) {
+void set_warm_start_heu(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *)) {
     int error;
     error = GRBsetintparam(GRBgetenv(instance->model), GRB_INT_PAR_SOLUTIONLIMIT, 2);
     quit_on_GRB_error(instance->env, instance->model, error);
@@ -135,6 +135,17 @@ void set_warm_start(Tsp_prob *instance, int (*var_pos)(int, int, Tsp_prob *)) {
     get_initial_heuristic_sol(instance, solution, var_pos);
 
     error = GRBsetdblattrarray(instance->model, GRB_DBL_ATTR_START, 0, nvariables, solution);
+    quit_on_GRB_error(instance->env, instance->model, error);
+
+    error = GRBupdatemodel(instance->model);
+    quit_on_GRB_error(instance->env, instance->model, error);
+}
+
+void set_warm_start(Tsp_prob *instance) {
+    int error;
+    int nvariables = (int) (0.5 * (instance->nnode * instance->nnode - instance->nnode));
+
+    error = GRBsetdblattrarray(instance->model, GRB_DBL_ATTR_START, 0, nvariables, instance->solution_edges);
     quit_on_GRB_error(instance->env, instance->model, error);
 
     error = GRBupdatemodel(instance->model);
