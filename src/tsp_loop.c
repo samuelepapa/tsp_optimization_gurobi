@@ -187,8 +187,8 @@ void tsp_loop_model_run(Tsp_prob *instance) {
     error = GRBsetdblparam(GRBgetenv(loop_model), GRB_DBL_PAR_TIMELIMIT, time_limit);
     quit_on_GRB_error(GRBgetenv(loop_model), loop_model, error);
 
-    //error = GRBsetintparam(GRBgetenv(loop_model), "OutputFlag", 0);
-    //quit_on_GRB_error(GRBgetenv(loop_model), loop_model, error);
+    error = GRBsetintparam(GRBgetenv(loop_model), "OutputFlag", 0);
+    quit_on_GRB_error(GRBgetenv(loop_model), loop_model, error);
 
     //error = GRBsetintparam(env, GRB_INT_PAR_RINS, 10);
     //quit_on_GRB_error(env, loop_model, error);

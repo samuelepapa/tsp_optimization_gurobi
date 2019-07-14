@@ -184,6 +184,15 @@ void start_selected_model(Tsp_prob *instance) {
         case 19:
             tsp_metaheuristics(instance);
             break;
+        case 20:
+            tsp_metaheuristics(instance);
+            break;
+        case 21:
+            tsp_metaheuristics(instance);
+            break;
+        case 22:
+            tsp_metaheuristics(instance);
+            break;
         default:
             tsp_model_create(instance);
     }
@@ -221,6 +230,7 @@ void execute_trial(Trial *trial_inst) {
         trial_inst->problems[i]->time_limit = trial_inst->time_limit;
         printf("file: %s\n", trial_inst->problems[i]->filename);
         init_instance(trial_inst->problems[i]);
+        trial_inst->problems[i]->black_box = 10;
     }
     //Starting trial of the blade
     Tsp_prob *instance_pointer;

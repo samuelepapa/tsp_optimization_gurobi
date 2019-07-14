@@ -102,8 +102,8 @@ int __stdcall mycallback(GRBmodel *model, void *cbdata, int where, void *usrdata
 
         time_elapsed = (end.tv_sec - start.tv_sec) + (double) (end.tv_nsec - start.tv_sec) / 1000000000.0;
 
-        printf("\nThe current solution has: %d connected components, found in %g seconds \n", number_of_comps,
-               time_elapsed);
+        DEBUG_PRINT(("\nThe current solution has: %d connected components, found in %g seconds \n", number_of_comps,
+                time_elapsed));
 
         if (number_of_comps >= 2) {
             add_lazy_sec(cbdata, mydata, mydata->conn_comps, number_of_comps, (int) node_cnt);
@@ -253,6 +253,9 @@ void tsp_lazycall_model_run(Tsp_prob *instance) {
     error = GRBsetcallbackfunc(lazycall_model, mycallback, (void *) &user_cbdata);
     quit_on_GRB_error(env, lazycall_model, error);
 
+    error = GRBsetintparam(GRBgetenv(lazycall_model), "OutputFlag", 0);
+    quit_on_GRB_error(GRBgetenv(lazycall_model), lazycall_model, error);
+
     error = GRBoptimize(lazycall_model);
     quit_on_GRB_error(env, lazycall_model, error);
 
@@ -260,6 +263,9 @@ void tsp_lazycall_model_run(Tsp_prob *instance) {
     error = GRBgetintattr(lazycall_model, GRB_INT_ATTR_STATUS, &optim_status);
     quit_on_GRB_error(env, lazycall_model, error);
     instance->status = optim_status;
+
+    error = GRBgetdblattr(lazycall_model, GRB_DBL_ATTR_OBJVAL, &instance->best_solution);
+    quit_on_GRB_error(env, lazycall_model, error);
 
     free_comp(&conn_comp);
     free_graph(user_cbdata.graph);

@@ -105,6 +105,8 @@ int parse_input(int argc, char **argv, Tsp_prob *instance, Trial *trial_inst) {
             }
             if (black_box->count > 0) {
                 instance->black_box = map_model_type((char *) black_box->sval[0]);
+            } else {
+                instance->black_box = 10;
             }
             if (probability->count > 0) {
                 instance->prob = probability->dval[0];

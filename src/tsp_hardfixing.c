@@ -100,6 +100,7 @@ void tsp_hardfixing_model_create(Tsp_prob *instance) {
 
     GRBsetdblparam(GRBgetenv(instance->model), GRB_DBL_PAR_TIMELIMIT, instance->time_limit);
 
+
     while (time_elapsed < time_limit) {
         switch (instance->black_box) {
             case 9:
@@ -117,8 +118,8 @@ void tsp_hardfixing_model_create(Tsp_prob *instance) {
         clock_gettime(CLOCK_MONOTONIC, &end);
         time_elapsed = (end.tv_sec - start.tv_sec) + (double) (end.tv_nsec - start.tv_sec) / 1000000000.0;
     }
-    int error = 0;
     //get best solution
+    int error = 0;
     error = GRBgetdblattr(instance->model, GRB_DBL_ATTR_OBJVAL, &(instance->best_solution));
     quit_on_GRB_error(instance->env, instance->model, error);
 

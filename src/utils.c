@@ -255,7 +255,7 @@ int map_model_type(char *optarg) {
         return 10;
     }
 
-    if (strncmp(optarg, "hardfixing", 12) == 0) {
+    if (strncmp(optarg, "hardfixing", 10) == 0) {
         return 11;
     }
 
@@ -289,6 +289,18 @@ int map_model_type(char *optarg) {
 
     if (strncmp(optarg, "meta_grasphf", 12) == 0) {
         return 19;
+    }
+
+    if (strncmp(optarg, "meta_vnslc", 10) == 0) {
+        return 20;
+    }
+
+    if (strncmp(optarg, "meta_salc", 9) == 0) {
+        return 21;
+    }
+
+    if (strncmp(optarg, "meta_grasplc", 12) == 0) {
+        return 22;
     }
 }
 
@@ -345,12 +357,25 @@ void inverse_map_model_type(int model_type, char *target_string) {
             break;
         case 16:
             strcpy(target_string, "sa");
+            break;
         case 17:
             strcpy(target_string, "meta_vnshf");
+            break;
         case 18:
             strcpy(target_string, "meta_sahf");
+            break;
         case 19:
             strcpy(target_string, "meta_grasphf");
+            break;
+        case 20:
+            strcpy(target_string, "meta_vnslc");
+            break;
+        case 21:
+            strcpy(target_string, "meta_salc");
+            break;
+        case 22:
+            strcpy(target_string, "meta_grasplc");
+            break;
         default:
             strcpy(target_string, "not a model");
     }
